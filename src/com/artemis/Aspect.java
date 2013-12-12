@@ -106,6 +106,7 @@ public class Aspect {
 	 * @deprecated
 	 * @see getAspectForAll
 	 */
+	@Deprecated
 	public static Aspect getAspectFor(Class<? extends Component> type, Class<? extends Component>... types) {
 		return getAspectForAll(type, types);
 	}
