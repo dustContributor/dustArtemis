@@ -22,7 +22,9 @@ public class EntityManager extends Manager {
 	}
 	
 	@Override
-	protected void initialize() {
+	protected void initialize ()
+	{
+		// Empty method.
 	}
 
 	protected Entity createEntityInstance() {

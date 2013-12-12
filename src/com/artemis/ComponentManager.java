@@ -12,9 +12,11 @@ public class ComponentManager extends Manager {
 		componentsByType = new Bag<Bag<Component>>();
 		deleted = new Bag<Entity>();
 	}
-	
+
 	@Override
-	protected void initialize() {
+	protected void initialize ()
+	{
+		// Empty method.
 	}
 
 	private void removeComponentsOfEntity(Entity e) {

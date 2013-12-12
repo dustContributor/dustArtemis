@@ -48,7 +48,9 @@ public abstract class EntitySystem implements EntityObserver {
 	/**
 	 * Called before processing of entities begins. 
 	 */
-	protected void begin() {
+	protected void begin ()
+	{
+		// Empty method.
 	}
 
 	public final void process() {
@@ -62,7 +64,9 @@ public abstract class EntitySystem implements EntityObserver {
 	/**
 	 * Called after the processing of entities ends.
 	 */
-	protected void end() {
+	protected void end ()
+	{
+		// Empty method.
 	}
 	
 	/**
@@ -82,19 +86,28 @@ public abstract class EntitySystem implements EntityObserver {
 	/**
 	 * Override to implement code that gets executed when systems are initialized.
 	 */
-	protected void initialize() {};
+	protected void initialize ()
+	{
+		// Empty method.
+	};
 
 	/**
 	 * Called if the system has received a entity it is interested in, e.g. created or a component was added to it.
 	 * @param e the entity that was added to this system.
 	 */
-	protected void inserted(Entity e) {};
+	protected void inserted ( Entity e )
+	{
+		// Empty method.
+	}
 
 	/**
 	 * Called if a entity was removed from this system, e.g. deleted or had one of it's components removed.
 	 * @param e the entity that was removed from this system.
 	 */
-	protected void removed(Entity e) {};
+	protected void removed ( Entity e )
+	{
+		// Empty method.
+	}
 
 	/**
 	 * Will check if the entity is of interest to this system.
