@@ -54,7 +54,8 @@ public class Aspect {
 	 * @param types a required component type
 	 * @return an aspect that can be matched against entities
 	 */
-	public Aspect all(Class<? extends Component> type, Class<? extends Component>... types) {
+	@SafeVarargs
+	public final Aspect all(Class<? extends Component> type, Class<? extends Component>... types) {
 		allSet.set(ComponentType.getIndexFor(type));
 		
 		for (Class<? extends Component> t : types) {
@@ -72,7 +73,8 @@ public class Aspect {
 	 * @param types component type to exclude
 	 * @return an aspect that can be matched against entities
 	 */
-	public Aspect exclude(Class<? extends Component> type, Class<? extends Component>... types) {
+	@SafeVarargs
+	public final Aspect exclude(Class<? extends Component> type, Class<? extends Component>... types) {
 		exclusionSet.set(ComponentType.getIndexFor(type));
 		
 		for (Class<? extends Component> t : types) {
@@ -87,7 +89,8 @@ public class Aspect {
 	 * @param types one of the types the entity must possess
 	 * @return an aspect that can be matched against entities
 	 */
-	public Aspect one(Class<? extends Component> type, Class<? extends Component>... types) {
+	@SafeVarargs
+	public final Aspect one(Class<? extends Component> type, Class<? extends Component>... types) {
 		oneSet.set(ComponentType.getIndexFor(type));
 		
 		for (Class<? extends Component> t : types) {
