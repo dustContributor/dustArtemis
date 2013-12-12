@@ -16,7 +16,7 @@ public class EntityManager extends Manager {
 	private IdentifierPool identifierPool;
 	
 	public EntityManager() {
-		entities = new Bag<Entity>();
+		entities = new Bag<>();
 		disabled = new BitSet();
 		identifierPool = new IdentifierPool();
 	}
@@ -138,18 +138,18 @@ public class EntityManager extends Manager {
 		private int nextAvailableId;
 
 		public IdentifierPool() {
-			ids = new Bag<Integer>();
+			ids = new Bag<>();
 		}
 		
 		public int checkOut() {
 			if(ids.size() > 0) {
-				return ids.removeLast();
+				return ids.removeLast().intValue();
 			}
 			return nextAvailableId++;
 		}
 		
 		public void checkIn(int id) {
-			ids.add(id);
+			ids.add(Integer.valueOf( id ));
 		}
 	}
 
