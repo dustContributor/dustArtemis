@@ -56,9 +56,9 @@ public abstract class DelayedEntityProcessingSystem extends EntitySystem {
 	
 	@Override
 	protected void inserted(Entity e) {
-		float delay = getRemainingDelay(e);
-		if(delay > 0) {
-			offerDelay(delay);
+		float remainingDelay = getRemainingDelay(e);
+		if(remainingDelay > 0) {
+			offerDelay(remainingDelay);
 		}
 	}
 	
@@ -102,8 +102,8 @@ public abstract class DelayedEntityProcessingSystem extends EntitySystem {
 	 * 
 	 * @param delta time delay until processing starts.
 	 */
-	public void restart(float delay) {
-		this.delay = delay;
+	public void restart(float deltaTimeDelay) {
+		this.delay = deltaTimeDelay;
 		this.acc = 0;
 		running = true;
 	}
@@ -120,11 +120,11 @@ public abstract class DelayedEntityProcessingSystem extends EntitySystem {
 	 * offered delay is shorter than the time remaining, the system will
 	 * restart itself to run at the offered delay.
 	 * 
-	 * @param delay
+	 * @param offeredDelay
 	 */
-	public void offerDelay(float delay) {
-		if(!running || delay < getRemainingTimeUntilProcessing()) {
-			restart(delay);
+	public void offerDelay(float offeredDelay) {
+		if(!running || offeredDelay < getRemainingTimeUntilProcessing()) {
+			restart(offeredDelay);
 		}
 	}
 	
