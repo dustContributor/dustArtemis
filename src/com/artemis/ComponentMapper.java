@@ -64,7 +64,7 @@ public class ComponentMapper<A extends Component> {
 	 * @return a new mapper.
 	 */
 	public static <T extends Component> ComponentMapper<T> getFor(Class<T> type, World world) {
-		return new ComponentMapper<T>(type, world);
+		return new ComponentMapper<>(type, world);
 	}
 
 }

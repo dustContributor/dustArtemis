@@ -9,8 +9,8 @@ public class ComponentManager extends Manager {
 	private Bag<Entity> deleted;
 
 	public ComponentManager() {
-		componentsByType = new Bag<Bag<Component>>();
-		deleted = new Bag<Entity>();
+		componentsByType = new Bag<>();
+		deleted = new Bag<>();
 	}
 
 	@Override
@@ -32,7 +32,7 @@ public class ComponentManager extends Manager {
 		
 		Bag<Component> components = componentsByType.get(type.getIndex());
 		if(components == null) {
-			components = new Bag<Component>();
+			components = new Bag<>();
 			componentsByType.set(type.getIndex(), components);
 		}
 		
@@ -51,7 +51,7 @@ public class ComponentManager extends Manager {
 	protected Bag<Component> getComponentsByType(ComponentType type) {
 		Bag<Component> components = componentsByType.get(type.getIndex());
 		if(components == null) {
-			components = new Bag<Component>();
+			components = new Bag<>();
 			componentsByType.set(type.getIndex(), components);
 		}
 		return components;
