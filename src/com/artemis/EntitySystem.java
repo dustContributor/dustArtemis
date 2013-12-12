@@ -226,7 +226,7 @@ public abstract class EntitySystem implements EntityObserver {
 			
 			if ( index == null )
 			{
-				index = new Integer( INDEX++ );
+				index = Integer.valueOf( INDEX++ );
 				indices.put( es, index );
 			}
 			
