@@ -30,7 +30,9 @@ public class TeamManager extends Manager {
 	}
 	
 	@Override
-	protected void initialize() {
+	protected void initialize ()
+	{
+		// Empty method.
 	}
 	
 	public String getTeam(String player) {

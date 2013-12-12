@@ -5,5 +5,7 @@ package com.artemis;
  * 
  * @author Arni Arent
  */
-public abstract class Component {
+public abstract class Component
+{
+	// Empty tag class.
 }

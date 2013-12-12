@@ -59,7 +59,9 @@ public class PlayerManager extends Manager {
 	}
 
 	@Override
-	protected void initialize() {
+	protected void initialize ()
+	{
+		// Empty method.
 	}
 
 	@Override
