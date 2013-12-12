@@ -22,8 +22,8 @@ public class GroupManager extends Manager {
 	private Map<Entity, Bag<String>> groupsByEntity;
 
 	public GroupManager() {
-		entitiesByGroup = new HashMap<String, Bag<Entity>>();
-		groupsByEntity = new HashMap<Entity, Bag<String>>();
+		entitiesByGroup = new HashMap<>();
+		groupsByEntity = new HashMap<>();
 	}
 	
 
@@ -43,14 +43,14 @@ public class GroupManager extends Manager {
 	public void add(Entity e, String group) {
 		Bag<Entity> entities = entitiesByGroup.get(group);
 		if(entities == null) {
-			entities = new Bag<Entity>();
+			entities = new Bag<>();
 			entitiesByGroup.put(group, entities);
 		}
 		entities.add(e);
 		
 		Bag<String> groups = groupsByEntity.get(e);
 		if(groups == null) {
-			groups = new Bag<String>();
+			groups = new Bag<>();
 			groupsByEntity.put(e, groups);
 		}
 		groups.add(group);
@@ -94,7 +94,7 @@ public class GroupManager extends Manager {
 	public ImmutableBag<Entity> getEntities(String group) {
 		Bag<Entity> entities = entitiesByGroup.get(group);
 		if(entities == null) {
-			entities = new Bag<Entity>();
+			entities = new Bag<>();
 			entitiesByGroup.put(group, entities);
 		}
 		return entities;

@@ -20,8 +20,8 @@ public class TagManager extends Manager {
 	private Map<Entity, String> tagsByEntity;
 
 	public TagManager() {
-		entitiesByTag = new HashMap<String, Entity>();
-		tagsByEntity = new HashMap<Entity, String>();
+		entitiesByTag = new HashMap<>();
+		tagsByEntity = new HashMap<>();
 	}
 
 	public void register(String tag, Entity e) {

@@ -37,17 +37,17 @@ public class World {
 	private Bag<EntitySystem> systemsBag;
 
 	public World() {
-		managers = new HashMap<Class<? extends Manager>, Manager>();
-		managersBag = new Bag<Manager>();
+		managers = new HashMap<>();
+		managersBag = new Bag<>();
 		
-		systems = new HashMap<Class<?>, EntitySystem>();
-		systemsBag = new Bag<EntitySystem>();
+		systems = new HashMap<>();
+		systemsBag = new Bag<>();
 
-		added = new Bag<Entity>();
-		changed = new Bag<Entity>();
-		deleted = new Bag<Entity>();
-		enable = new Bag<Entity>();
-		disable = new Bag<Entity>();
+		added = new Bag<>();
+		changed = new Bag<>();
+		deleted = new Bag<>();
+		enable = new Bag<>();
+		disable = new Bag<>();
 
 		cm = new ComponentManager();
 		setManager(cm);

@@ -22,7 +22,7 @@ public class ComponentType {
 		return "ComponentType["+type.getSimpleName()+"] ("+index+")";
 	}
 
-	private static HashMap<Class<? extends Component>, ComponentType> componentTypes = new HashMap<Class<? extends Component>, ComponentType>();
+	private static HashMap<Class<? extends Component>, ComponentType> componentTypes = new HashMap<>();
 
 	public static ComponentType getTypeFor(Class<? extends Component> c) {
 		ComponentType type = componentTypes.get(c);
