@@ -106,6 +106,7 @@ public class Aspect {
 	 * @deprecated
 	 * @see getAspectForAll
 	 */
+	@SafeVarargs
 	@Deprecated
 	public static Aspect getAspectFor(Class<? extends Component> type, Class<? extends Component>... types) {
 		return getAspectForAll(type, types);
@@ -118,6 +119,7 @@ public class Aspect {
 	 * @param types a required component type
 	 * @return an aspect that can be matched against entities
 	 */
+	@SafeVarargs
 	public static Aspect getAspectForAll(Class<? extends Component> type, Class<? extends Component>... types) {
 		Aspect aspect = new Aspect();
 		aspect.all(type, types);
@@ -131,6 +133,7 @@ public class Aspect {
 	 * @param types one of the types the entity must possess
 	 * @return an aspect that can be matched against entities
 	 */
+	@SafeVarargs
 	public static Aspect getAspectForOne(Class<? extends Component> type, Class<? extends Component>... types) {
 		Aspect aspect = new Aspect();
 		aspect.one(type, types);
