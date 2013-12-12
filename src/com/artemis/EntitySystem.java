@@ -21,7 +21,7 @@ public abstract class EntitySystem implements EntityObserver {
 
 	private Bag<Entity> actives;
 
-	private Aspect aspect;
+//	private Aspect aspect;
 
 	private BitSet allSet;
 	private BitSet exclusionSet;
@@ -36,8 +36,8 @@ public abstract class EntitySystem implements EntityObserver {
 	 * @param aspect to match against entities
 	 */
 	public EntitySystem(Aspect aspect) {
-		actives = new Bag<Entity>();
-		this.aspect = aspect;
+		actives = new Bag<>();
+//		this.aspect = aspect;
 		allSet = aspect.getAllSet();
 		exclusionSet = aspect.getExclusionSet();
 		oneSet = aspect.getOneSet();
@@ -89,7 +89,7 @@ public abstract class EntitySystem implements EntityObserver {
 	protected void initialize ()
 	{
 		// Empty method.
-	};
+	}
 
 	/**
 	 * Called if the system has received a entity it is interested in, e.g. created or a component was added to it.
@@ -215,17 +215,22 @@ public abstract class EntitySystem implements EntityObserver {
 	 * Used to generate a unique bit for each system.
 	 * Only used internally in EntitySystem.
 	 */
-	private static class SystemIndexManager {
+	private static class SystemIndexManager
+	{
 		private static int INDEX = 0;
-		private static HashMap<Class<? extends EntitySystem>, Integer> indices = new HashMap<Class<? extends EntitySystem>, Integer>();
-		
-		private static int getIndexFor(Class<? extends EntitySystem> es){
-			Integer index = indices.get(es);
-			if(index == null) {
-				index = INDEX++;
-				indices.put(es, index);
+		private static final HashMap<Class<? extends EntitySystem>, Integer> indices = new HashMap<>();
+
+		static int getIndexFor ( Class<? extends EntitySystem> es )
+		{
+			Integer index = indices.get( es );
+			
+			if ( index == null )
+			{
+				index = new Integer( INDEX++ );
+				indices.put( es, index );
 			}
-			return index;
+			
+			return index.intValue();
 		}
 	}
 
