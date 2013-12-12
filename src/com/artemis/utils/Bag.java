@@ -88,6 +88,7 @@ public class Bag<E> implements ImmutableBag<E> {
 	 * @param e
 	 * @return
 	 */
+	@Override
 	public boolean contains(E e) {
 		for(int i = 0; size > i; i++) {
 			if(e == data[i]) {
@@ -133,6 +134,7 @@ public class Bag<E> implements ImmutableBag<E> {
 	 *            index of the element to return
 	 * @return the element at the specified position in bag
 	 */
+	@Override
 	public E get(int index) {
 		return data[index];
 	}
@@ -142,6 +144,7 @@ public class Bag<E> implements ImmutableBag<E> {
 	 * 
 	 * @return the number of elements in this bag
 	 */
+	@Override
 	public int size() {
 		return size;
 	}
@@ -170,6 +173,7 @@ public class Bag<E> implements ImmutableBag<E> {
 	 * 
 	 * @return true if this list contains no elements
 	 */
+	@Override
 	public boolean isEmpty() {
 		return size == 0;
 	}
