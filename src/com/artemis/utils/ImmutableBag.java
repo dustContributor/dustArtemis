@@ -1,13 +1,11 @@
 package com.artemis.utils;
 
-public interface ImmutableBag<E> {
-
-	E get(int index);
-
-	int size();
-
-	boolean isEmpty();
+public interface ImmutableBag<T>
+{
+	int size ();
 	
-	boolean contains(E e);
-
+	boolean isEmpty ();
+	boolean contains ( final T item );
+	
+	T get ( final int index );
 }
