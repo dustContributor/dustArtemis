@@ -23,7 +23,7 @@ public class Bag<T> implements ImmutableBag<T>
 	private static final int MINIMUM_CAPACITY = 32;
 
 	/**
-	 * Constructs an empty Bag with an initial capacity of {@literal 32}
+	 * Constructs an empty Bag with an initial capacity of {@value #MINIMUM_CAPACITY}
 	 * 
 	 */
 	public Bag ()
@@ -34,7 +34,7 @@ public class Bag<T> implements ImmutableBag<T>
 	/**
 	 * Constructs an empty Bag with the specified initial capacity.
 	 * 
-	 * NOTE: Minimum capacity is {@literal 32}.
+	 * <p>NOTE: If capacity is less than {@value #MINIMUM_CAPACITY}, the Bag will be created with a capacity of {@value #MINIMUM_CAPACITY} instead.</p>
 	 * 
 	 * @param capacity of the Bag
 	 */
