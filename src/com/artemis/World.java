@@ -137,7 +137,7 @@ public class World
 	 */
 	public void deleteManager ( final Manager manager )
 	{
-		managers.remove( manager );
+		managers.remove( manager.getClass() );
 		managersBag.remove( manager );
 	}	
 		
