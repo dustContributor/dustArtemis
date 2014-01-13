@@ -56,8 +56,10 @@ public class Bag<T> implements ImmutableBag<T>
 	{
 		// Item ref copy.
 		final T item = array[index]; 
+		// Decrement size.
+		--size;
 		// Overwrite item with last item.
-		array[index] = array[--size]; 
+		array[index] = array[size]; 
 		// Null last item.
 		array[size] = null;
 		// Return removed item.
@@ -74,8 +76,10 @@ public class Bag<T> implements ImmutableBag<T>
 	{
 		if ( size > 0 )
 		{
-			// Reduce size by one and get last item.
-			final T item = array[--size];
+			// Decrement size.
+			--size;
+			// Get last item.
+			final T item = array[size];
 			// Null last position.
 			array[size] = null;
 			// Return item.
@@ -99,8 +103,10 @@ public class Bag<T> implements ImmutableBag<T>
 		{
 			if ( item == array[i] )
 			{
+				// Decrement size.
+				--size;
 				// Overwrite item with last item.
-				array[i] = array[--size];
+				array[i] = array[size];
 				// Null last item.
 				array[size] = null;
 				// Item has been removed.
@@ -155,7 +161,7 @@ public class Bag<T> implements ImmutableBag<T>
 				if ( item1 == item2 )
 				{
 					remove( j );
-					j--;
+					--j;
 					modified = true;
 					break;
 				}
@@ -234,7 +240,9 @@ public class Bag<T> implements ImmutableBag<T>
 			grow();
 		}
 
-		array[size++] = item;
+		array[size] = item;
+		// Increment size.
+		++size;
 	}
 
 	/**
@@ -248,11 +256,14 @@ public class Bag<T> implements ImmutableBag<T>
 		if ( index >= array.length )
 		{
 			grow( index + array.length );
+			size = index + 1;
+		}
+		else if ( index >= size )
+		{
+			size = index + 1;
 		}
 		
 		array[index] = item;
-		
-		size = index + 1;
 	}
 
 	private void grow ()
@@ -323,6 +334,25 @@ public class Bag<T> implements ImmutableBag<T>
 		{
 			add( items.get( i ) );
 		}
+	}
+	
+	@Override
+	public String toString ()
+	{
+		final String newLine = System.lineSeparator();
+		final StringBuilder str = new StringBuilder( array.length * 10  );
+		
+		str.append( super.toString() ).append( newLine );
+		str.append( "Capacity " ).append(  this.getCapacity() ).append( newLine );
+		str.append( "Size " ).append( this.size );
+		
+		for ( int i = 0; i < size; ++i )
+		{
+			str.append( newLine );
+			str.append( array[i] );
+		}
+		
+		return str.toString();
 	}
 
 }
