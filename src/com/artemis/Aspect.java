@@ -3,48 +3,55 @@ package com.artemis;
 import java.util.BitSet;
 
 /**
- * An Aspects is used by systems as a matcher against entities, to check if a system is
+ * <p>An Aspects is used by systems as a matcher against entities, to check if a system is
  * interested in an entity. Aspects define what sort of component types an entity must
- * possess, or not possess.
+ * possess, or not possess.</p>
  * 
- * This creates an aspect where an entity must possess A and B and C:
- * Aspect.getAspectForAll(A.class, B.class, C.class)
+ * <p>This creates an aspect where an entity must possess A and B and C:
  * 
- * This creates an aspect where an entity must possess A and B and C, but must not possess U or V.
- * Aspect.getAspectForAll(A.class, B.class, C.class).exclude(U.class, V.class)
+ * <p>Aspect.getAspectForAll(A.class, B.class, C.class)</p>
  * 
- * This creates an aspect where an entity must possess A and B and C, but must not possess U or V, but must possess one of X or Y or Z.
- * Aspect.getAspectForAll(A.class, B.class, C.class).exclude(U.class, V.class).one(X.class, Y.class, Z.class)
+ * <p>This creates an aspect where an entity must possess A and B and C, but must not possess U or V.</p>
+ * 
+ * <p>Aspect.getAspectForAll(A.class, B.class, C.class).exclude(U.class, V.class)</p>
+ * 
+ * <p>This creates an aspect where an entity must possess A and B and C, but must not possess U or V, but must possess one of X or Y or Z.</p>
+ * 
+ * <p>Aspect.getAspectForAll(A.class, B.class, C.class).exclude(U.class, V.class).one(X.class, Y.class, Z.class)</p>
  *
- * You can create and compose aspects in many ways:
- * Aspect.getEmpty().one(X.class, Y.class, Z.class).all(A.class, B.class, C.class).exclude(U.class, V.class)
- * is the same as:
- * Aspect.getAspectForAll(A.class, B.class, C.class).exclude(U.class, V.class).one(X.class, Y.class, Z.class)
+ * <p>You can create and compose aspects in many ways:</p>
+ * 
+ * <p>Aspect.getEmpty().one(X.class, Y.class, Z.class).all(A.class, B.class, C.class).exclude(U.class, V.class) is the same as:</p>
+ * 
+ * <p>Aspect.getAspectForAll(A.class, B.class, C.class).exclude(U.class, V.class).one(X.class, Y.class, Z.class)</p>
  *
  * @author Arni Arent
  *
  */
-public class Aspect {
+public class Aspect
+{
+
+	private final BitSet allSet = new BitSet();
+	private final BitSet exclusionSet = new BitSet();
+	private final BitSet oneSet = new BitSet();
+
+	private Aspect ()
+	{
 	
-	private BitSet allSet;
-	private BitSet exclusionSet;
-	private BitSet oneSet;
-	
-	private Aspect() {
-		this.allSet = new BitSet();
-		this.exclusionSet = new BitSet();
-		this.oneSet = new BitSet();
 	}
-	
-	protected BitSet getAllSet() {
+
+	protected BitSet getAllSet ()
+	{
 		return allSet;
 	}
-	
-	protected BitSet getExclusionSet() {
+
+	protected BitSet getExclusionSet ()
+	{
 		return exclusionSet;
 	}
-	
-	protected BitSet getOneSet() {
+
+	protected BitSet getOneSet ()
+	{
 		return oneSet;
 	}
 	
@@ -55,11 +62,13 @@ public class Aspect {
 	 * @return an aspect that can be matched against entities
 	 */
 	@SafeVarargs
-	public final Aspect all(Class<? extends Component> type, Class<? extends Component>... types) {
-		allSet.set(ComponentType.getIndexFor(type));
-		
-		for (Class<? extends Component> t : types) {
-			allSet.set(ComponentType.getIndexFor(t));
+	public final Aspect all ( final Class<? extends Component> type, final Class<? extends Component>... types )
+	{
+		allSet.set( ComponentType.getIndexFor( type ) );
+
+		for ( final Class<? extends Component> t : types )
+		{
+			allSet.set( ComponentType.getIndexFor( t ) );
 		}
 
 		return this;
@@ -74,12 +83,15 @@ public class Aspect {
 	 * @return an aspect that can be matched against entities
 	 */
 	@SafeVarargs
-	public final Aspect exclude(Class<? extends Component> type, Class<? extends Component>... types) {
-		exclusionSet.set(ComponentType.getIndexFor(type));
-		
-		for (Class<? extends Component> t : types) {
-			exclusionSet.set(ComponentType.getIndexFor(t));
+	public final Aspect exclude ( final Class<? extends Component> type, final Class<? extends Component>... types )
+	{
+		exclusionSet.set( ComponentType.getIndexFor( type ) );
+
+		for ( final Class<? extends Component> t : types )
+		{
+			exclusionSet.set( ComponentType.getIndexFor( t ) );
 		}
+		
 		return this;
 	}
 	
@@ -90,12 +102,15 @@ public class Aspect {
 	 * @return an aspect that can be matched against entities
 	 */
 	@SafeVarargs
-	public final Aspect one(Class<? extends Component> type, Class<? extends Component>... types) {
-		oneSet.set(ComponentType.getIndexFor(type));
-		
-		for (Class<? extends Component> t : types) {
-			oneSet.set(ComponentType.getIndexFor(t));
+	public final Aspect one ( final Class<? extends Component> type, final Class<? extends Component>... types )
+	{
+		oneSet.set( ComponentType.getIndexFor( type ) );
+
+		for ( final Class<? extends Component> t : types )
+		{
+			oneSet.set( ComponentType.getIndexFor( t ) );
 		}
+		
 		return this;
 	}
 	
@@ -111,8 +126,9 @@ public class Aspect {
 	 */
 	@SafeVarargs
 	@Deprecated
-	public static Aspect getAspectFor(Class<? extends Component> type, Class<? extends Component>... types) {
-		return getAspectForAll(type, types);
+	public static final Aspect getAspectFor ( final Class<? extends Component> type, final Class<? extends Component>... types )
+	{
+		return getAspectForAll( type, types );
 	}
 	
 	/**
@@ -123,9 +139,11 @@ public class Aspect {
 	 * @return an aspect that can be matched against entities
 	 */
 	@SafeVarargs
-	public static Aspect getAspectForAll(Class<? extends Component> type, Class<? extends Component>... types) {
-		Aspect aspect = new Aspect();
-		aspect.all(type, types);
+	public static final Aspect getAspectForAll ( final Class<? extends Component> type, final Class<? extends Component>... types )
+	{
+		final Aspect aspect = new Aspect();
+		aspect.all( type, types );
+		
 		return aspect;
 	}
 	
@@ -137,9 +155,11 @@ public class Aspect {
 	 * @return an aspect that can be matched against entities
 	 */
 	@SafeVarargs
-	public static Aspect getAspectForOne(Class<? extends Component> type, Class<? extends Component>... types) {
-		Aspect aspect = new Aspect();
-		aspect.one(type, types);
+	public static final Aspect getAspectForOne ( final Class<? extends Component> type, final Class<? extends Component>... types )
+	{
+		final Aspect aspect = new Aspect();
+		aspect.one( type, types );
+		
 		return aspect;
 	}
 	
@@ -154,7 +174,8 @@ public class Aspect {
 	 * 
 	 * @return an empty Aspect that will reject all entities.
 	 */
-	public static Aspect getEmpty() {
+	public static final Aspect getEmpty ()
+	{
 		return new Aspect();
 	}
 
