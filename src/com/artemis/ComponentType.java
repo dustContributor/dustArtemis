@@ -2,40 +2,47 @@ package com.artemis;
 
 import java.util.HashMap;
 
-public class ComponentType {
+public class ComponentType
+{
 	private static int INDEX = 0;
 
 	private final int index;
 	private final Class<? extends Component> type;
 
-	private ComponentType(Class<? extends Component> type) {
+	private ComponentType ( Class<? extends Component> type )
+	{
 		index = INDEX++;
 		this.type = type;
 	}
 
-	public int getIndex() {
+	public int getIndex ()
+	{
 		return index;
 	}
-	
+
 	@Override
-	public String toString() {
-		return "ComponentType["+type.getSimpleName()+"] ("+index+")";
+	public String toString ()
+	{
+		return "ComponentType[" + type.getSimpleName() + "] (" + index + ")";
 	}
 
-	private static HashMap<Class<? extends Component>, ComponentType> componentTypes = new HashMap<>();
+	private static final HashMap<Class<? extends Component>, ComponentType> componentTypes = new HashMap<>();
 
-	public static ComponentType getTypeFor(Class<? extends Component> c) {
-		ComponentType type = componentTypes.get(c);
+	public static final ComponentType getTypeFor ( final Class<? extends Component> c )
+	{
+		ComponentType type = componentTypes.get( c );
 
-		if (type == null) {
-			type = new ComponentType(c);
-			componentTypes.put(c, type);
+		if ( type == null )
+		{
+			type = new ComponentType( c );
+			componentTypes.put( c, type );
 		}
 
 		return type;
 	}
 
-	public static int getIndexFor(Class<? extends Component> c) {
-		return getTypeFor(c).getIndex();
+	public static final int getIndexFor ( final Class<? extends Component> c )
+	{
+		return getTypeFor( c ).getIndex();
 	}
 }
