@@ -13,11 +13,12 @@ import com.artemis.utils.Bag;
  */
 public class ComponentMapper<T extends Component>
 {
-	private final Bag<Component> components;
+	private final Bag<T> components;
 
+	@SuppressWarnings("unchecked")
 	private ComponentMapper ( Class<T> type, World world )
 	{
-		components = world.getComponentManager().getComponentsByType( ComponentType.getTypeFor( type ) );
+		components = (Bag<T>) world.getComponentManager().getComponentsByType( ComponentType.getTypeFor( type ) );
 	}
 
 	/**
@@ -29,10 +30,9 @@ public class ComponentMapper<T extends Component>
 	 *            the entity that should possess the component
 	 * @return the instance of the component
 	 */
-	@SuppressWarnings("unchecked")
 	public T get ( Entity e )
 	{
-		return (T) components.get( e.getId() );
+		return components.get( e.getId() );
 	}
 
 	/**
@@ -43,12 +43,11 @@ public class ComponentMapper<T extends Component>
 	 *            the entity that should possess the component
 	 * @return the instance of the component
 	 */
-	@SuppressWarnings("unchecked")
 	public T getSafe ( Entity e )
 	{
 		if ( components.isIndexWithinBounds( e.getId() ) )
 		{
-			return (T) components.get( e.getId() );
+			return components.get( e.getId() );
 		}
 		
 		return null;
