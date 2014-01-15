@@ -1,33 +1,38 @@
 package com.artemis.utils;
 
-public abstract class Timer {
+public abstract class Timer
+{
+	private float delay, acc;
+	private boolean repeat, done, stopped;
 
-	private float delay;
-	private boolean repeat;
-	private float acc;
-	private boolean done;
-	private boolean stopped;
-	
-	public Timer(float delay) {
-		this(delay, false);
+	public Timer ( float delay )
+	{
+		this( delay, false );
 	}
 
-	public Timer(float delay, boolean repeat) {
+	public Timer ( float delay, boolean repeat )
+	{
 		this.delay = delay;
 		this.repeat = repeat;
 		this.acc = 0;
 	}
 
-	public void update(float delta) {
-		if (!done && !stopped) {
+	public void update ( float delta )
+	{
+		if ( !done && !stopped )
+		{
 			acc += delta;
 
-			if (acc >= delay) {
+			if ( acc >= delay )
+			{
 				acc -= delay;
 
-				if (repeat) {
+				if ( repeat )
+				{
 					reset();
-				} else {
+				}
+				else
+				{
 					done = true;
 				}
 
@@ -36,40 +41,51 @@ public abstract class Timer {
 		}
 	}
 
-	public void reset() {
+	public void reset ()
+	{
 		stopped = false;
 		done = false;
 		acc = 0;
 	}
 
-	public boolean isDone() {
+	public boolean isDone ()
+	{
 		return done;
 	}
 
-	public boolean isRunning() {
+	public boolean isRunning ()
+	{
 		return !done && acc < delay && !stopped;
 	}
 
-	public void stop() {
+	public void stop ()
+	{
 		stopped = true;
 	}
 
-	public void setDelay(int delay) {
+	public void setDelay ( int delay )
+	{
 		this.delay = delay;
 	}
 
-	public abstract void execute();
+	public abstract void execute ();
 
-	public float getPercentageRemaining() {
-		if (done)
+	public float getPercentageRemaining ()
+	{
+		if ( done )
+		{
 			return 100;
-		else if (stopped)
+		}
+		else if ( stopped )
+		{
 			return 0;
-		else
-			return 1 - (delay - acc) / delay;
+		}
+		
+		return 1 - ( delay - acc ) / delay;
 	}
 
-	public float getDelay() {
+	public float getDelay ()
+	{
 		return delay;
 	}
 
