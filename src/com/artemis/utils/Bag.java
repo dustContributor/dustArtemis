@@ -17,7 +17,7 @@ package com.artemis.utils;
  */
 public class Bag<T> implements ImmutableBag<T>
 {
-	private T[] array;
+	private T[] data;
 	private int size = 0;
 	
 	private static final int MINIMUM_CAPACITY = 8;
@@ -41,7 +41,7 @@ public class Bag<T> implements ImmutableBag<T>
 	@SuppressWarnings("unchecked")
 	public Bag ( final int capacity )
 	{
-		array = (T[]) new Object[ ( capacity > MINIMUM_CAPACITY ) ? capacity : MINIMUM_CAPACITY];
+		data = (T[]) new Object[ ( capacity > MINIMUM_CAPACITY ) ? capacity : MINIMUM_CAPACITY];
 	}
 
 	/**
@@ -55,13 +55,13 @@ public class Bag<T> implements ImmutableBag<T>
 	public T remove ( final int index )
 	{
 		// Item ref copy.
-		final T item = array[index]; 
+		final T item = data[index]; 
 		// Decrement size.
 		--size;
 		// Overwrite item with last item.
-		array[index] = array[size]; 
+		data[index] = data[size]; 
 		// Null last item.
-		array[size] = null;
+		data[size] = null;
 		// Return removed item.
 		return item;
 	}
@@ -79,9 +79,9 @@ public class Bag<T> implements ImmutableBag<T>
 			// Decrement size.
 			--size;
 			// Get last item.
-			final T item = array[size];
+			final T item = data[size];
 			// Null last position.
-			array[size] = null;
+			data[size] = null;
 			// Return item.
 			return item;
 		}
@@ -101,14 +101,14 @@ public class Bag<T> implements ImmutableBag<T>
 	{
 		for ( int i = 0; i < size; ++i )
 		{
-			if ( item == array[i] )
+			if ( item == data[i] )
 			{
 				// Decrement size.
 				--size;
 				// Overwrite item with last item.
-				array[i] = array[size];
+				data[i] = data[size];
 				// Null last item.
-				array[size] = null;
+				data[size] = null;
 				// Item has been removed.
 				return true;
 			}
@@ -126,9 +126,9 @@ public class Bag<T> implements ImmutableBag<T>
 	@Override
 	public boolean contains ( final T item )
 	{
-		for ( int i = 0; size > i; ++i )
+		for ( int i = 0; i < size; ++i )
 		{
-			if ( item == array[i] )
+			if ( item == data[i] )
 			{
 				// Item found.
 				return true;
@@ -137,6 +137,38 @@ public class Bag<T> implements ImmutableBag<T>
 		
 		// Item not found.
 		return false;
+	}
+	
+	/**
+	 * Removes from this Bag all of its items that are contained in the
+	 * specified Bag.
+	 * 
+	 * @param bag containing items to be removed from this Bag
+	 * @return {@code true} if this Bag changed as a result of the call
+	 */
+	public boolean removeAll ( final Bag<T> bag )
+	{
+		boolean modified = false;
+		
+		final T[] bagData = bag.data;
+		
+		for ( int i = 0; i < bag.size(); ++i )
+		{
+			final T item1 = bagData[i];
+			
+			for ( int j = 0; j < size; ++j )
+			{
+				if ( item1 == data[j] )
+				{
+					remove( j );
+					--j;
+					modified = true;
+					break;
+				}
+			}
+		}
+
+		return modified;
 	}
 
 	/**
@@ -149,16 +181,14 @@ public class Bag<T> implements ImmutableBag<T>
 	public boolean removeAll ( final ImmutableBag<T> bag )
 	{
 		boolean modified = false;
-
+		
 		for ( int i = 0; i < bag.size(); ++i )
 		{
 			final T item1 = bag.get( i );
 
 			for ( int j = 0; j < size; ++j )
 			{
-				final T item2 = array[j];
-
-				if ( item1 == item2 )
+				if ( item1 == data[j] )
 				{
 					remove( j );
 					--j;
@@ -180,7 +210,7 @@ public class Bag<T> implements ImmutableBag<T>
 	@Override
 	public T get ( final int index )
 	{
-		return array[index];
+		return data[index];
 	}
 
 	/**
@@ -201,7 +231,7 @@ public class Bag<T> implements ImmutableBag<T>
 	 */
 	public int getCapacity ()
 	{
-		return array.length;
+		return data.length;
 	}
 	
 	/**
@@ -212,7 +242,7 @@ public class Bag<T> implements ImmutableBag<T>
 	 */
 	public boolean isIndexWithinBounds ( final int index )
 	{
-		return index < array.length;
+		return index < data.length;
 	}
 
 	/**
@@ -235,12 +265,12 @@ public class Bag<T> implements ImmutableBag<T>
 	public void add ( final T item )
 	{
 		// if size greater than capacity then increase capacity.
-		if ( size >= array.length )
+		if ( size >= data.length )
 		{
 			grow();
 		}
 
-		array[size] = item;
+		data[size] = item;
 		// Increment size.
 		++size;
 	}
@@ -253,9 +283,9 @@ public class Bag<T> implements ImmutableBag<T>
 	 */
 	public void set ( final int index, final T item )
 	{
-		if ( index >= array.length )
+		if ( index >= data.length )
 		{
-			grow( index + array.length );
+			grow( index + data.length );
 			size = index + 1;
 		}
 		else if ( index >= size )
@@ -263,12 +293,12 @@ public class Bag<T> implements ImmutableBag<T>
 			size = index + 1;
 		}
 		
-		array[index] = item;
+		data[index] = item;
 	}
 
 	private void grow ()
 	{
-		final int len = array.length;
+		final int len = data.length;
 		final int newLen = len + ( len >> 1 );
 		grow( newLen );
 	}
@@ -277,15 +307,15 @@ public class Bag<T> implements ImmutableBag<T>
 	private void grow ( final int newCapacity )
 	{
 		final T[] newArray = (T[]) new Object[newCapacity];
-		System.arraycopy( array, 0, newArray, 0, size );
-		array = newArray;
+		System.arraycopy( data, 0, newArray, 0, size );
+		data = newArray;
 	}
 	
 	public void ensureCapacity ( final int index )
 	{
-		if ( index >= array.length )
+		if ( index >= data.length )
 		{
-			grow( index + array.length );
+			grow( index + data.length );
 		}
 	}
 
@@ -297,11 +327,11 @@ public class Bag<T> implements ImmutableBag<T>
 		// Null all items.
 		
 		// This is OpsArray.fastArrayFill() inlined into the method.
-		array[0] = null;
+		data[0] = null;
 
-		for ( int i = 1; i < array.length; i += i )
+		for ( int i = 1; i < data.length; i += i )
 		{
-			System.arraycopy( array, 0, array, i, ( ( array.length - i ) < i ) ? ( array.length - i ) : i );
+			System.arraycopy( data, 0, data, i, ( ( data.length - i ) < i ) ? ( data.length - i ) : i );
 		}
 
 		size = 0;
@@ -316,7 +346,7 @@ public class Bag<T> implements ImmutableBag<T>
 	{
 		ensureCapacity( items.size() + size );
 		
-		System.arraycopy( items.array, 0, array, size, items.size() );
+		System.arraycopy( items.data, 0, data, size, items.size() );
 		
 		size += items.size();
 	}
@@ -340,7 +370,7 @@ public class Bag<T> implements ImmutableBag<T>
 	public String toString ()
 	{
 		final String newLine = System.lineSeparator();
-		final StringBuilder str = new StringBuilder( array.length * 10  );
+		final StringBuilder str = new StringBuilder( data.length * 10  );
 		
 		str.append( super.toString() ).append( newLine );
 		str.append( "Capacity " ).append(  this.getCapacity() ).append( newLine );
@@ -349,7 +379,7 @@ public class Bag<T> implements ImmutableBag<T>
 		for ( int i = 0; i < size; ++i )
 		{
 			str.append( newLine );
-			str.append( array[i] );
+			str.append( data[i] );
 		}
 		
 		return str.toString();
