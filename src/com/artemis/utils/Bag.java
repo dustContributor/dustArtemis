@@ -20,7 +20,7 @@ public class Bag<T> implements ImmutableBag<T>
 	private T[] array;
 	private int size = 0;
 	
-	private static final int MINIMUM_CAPACITY = 32;
+	private static final int MINIMUM_CAPACITY = 8;
 
 	/**
 	 * Constructs an empty Bag with an initial capacity of {@value #MINIMUM_CAPACITY}
