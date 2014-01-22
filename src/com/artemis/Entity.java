@@ -1,7 +1,7 @@
 package com.artemis;
 
 import java.util.BitSet;
-import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.artemis.utils.Bag;
 
@@ -14,7 +14,10 @@ import com.artemis.utils.Bag;
  */
 public final class Entity
 {
-	private UUID uuid;
+	
+	private static final AtomicInteger entityUniqueIDs = new AtomicInteger();
+	
+	private int uniqueID;
 
 	private final int id;
 	private final BitSet componentBits;
@@ -30,10 +33,10 @@ public final class Entity
 		this.id = id;
 		this.entityManager = world.getEntityManager();
 		this.componentManager = world.getComponentManager();
-		systemBits = new BitSet();
-		componentBits = new BitSet();
+		this.systemBits = new BitSet();
+		this.componentBits = new BitSet();
 
-		reset();
+		this.uniqueID = entityUniqueIDs.getAndIncrement();
 	}
 
 	/**
@@ -77,7 +80,7 @@ public final class Entity
 	{
 		systemBits.clear();
 		componentBits.clear();
-		uuid = UUID.randomUUID();
+		uniqueID = entityUniqueIDs.getAndIncrement();
 	}
 
 	@Override
@@ -272,14 +275,14 @@ public final class Entity
 	}
 
 	/**
-	 * Get the UUID for this entity. This UUID is unique per entity (re-used
-	 * entities get a new UUID).
+	 * Get the unique ID for this entity. This unique ID is unique per entity (re-used
+	 * entities get a new unique ID).
 	 * 
 	 * @return uuid instance for this entity.
 	 */
-	public UUID getUuid ()
+	public int getUniqueID ()
 	{
-		return uuid;
+		return uniqueID;
 	}
 
 	/**
