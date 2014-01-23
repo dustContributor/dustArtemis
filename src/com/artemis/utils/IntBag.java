@@ -9,10 +9,10 @@ package com.artemis.utils;
  */
 public class IntBag
 {
-	private int[] array;
+	private int[] data;
 	private int size = 0;
 	
-	private static final int MINIMUM_CAPACITY = 32;
+	private static final int MINIMUM_CAPACITY = 8;
 	public static final int NOT_RETURN = Integer.MIN_VALUE;
 
 	/**
@@ -33,7 +33,7 @@ public class IntBag
 	 */
 	public IntBag ( final int capacity )
 	{
-		array = new int[ ( capacity > MINIMUM_CAPACITY ) ? capacity : MINIMUM_CAPACITY];
+		data = new int[ ( capacity > MINIMUM_CAPACITY ) ? capacity : MINIMUM_CAPACITY];
 	}
 
 	/**
@@ -43,21 +43,44 @@ public class IntBag
 	 * @param index of the value to be removed
 	 * @return value that was removed from the IntBag
 	 */
-	public int removeValueAt ( final int index )
+	public int remove ( final int index )
 	{
 		// value copy.
-		final int value = array[index]; 
+		final int value = data[index]; 
 		// Decrement size.
 		--size;
 		// Overwrite value with last value.
-		array[index] = array[size]; 
+		data[index] = data[size]; 
 		// Return removed value.
 		return value;
 	}
 	
+	/**
+	 * Removes the first value in the bag.
+	 * 
+	 * @return the first value in the bag, or {@value #NOT_RETURN} if it has no values.
+	 */
+	public int removeFirst ()
+	{
+		if ( size > 0 )
+		{
+			// Decrement size.
+			--size;
+			// Save first value.
+			final int value = data[0];
+			// Replace first value with the last.
+			data[0] = data[size];
+			// Return saved value.
+			return value;
+		}
+		
+		// The Bag is empty.
+		return NOT_RETURN;
+	}
+	
 	
 	/**
-	 * Removes the last object in the bag.
+	 * Removes the last value in the bag.
 	 * 
 	 * @return the last value in the bag, or {@value #NOT_RETURN} if it has no values.
 	 */
@@ -68,7 +91,7 @@ public class IntBag
 			// Decrement size.
 			--size;
 			// Return last value.
-			return array[size];
+			return data[size];
 		}
 		
 		// IntBag is empty.
@@ -86,12 +109,12 @@ public class IntBag
 	{
 		for ( int i = 0; i < size; ++i )
 		{
-			if ( value == array[i] )
+			if ( value == data[i] )
 			{
 				// Decrement size.
 				--size;
 				// Overwrite value with last value.
-				array[i] = array[size];
+				data[i] = data[size];
 				// value has been removed.
 				return true;
 			}
@@ -111,7 +134,7 @@ public class IntBag
 	{
 		for ( int i = 0; size > i; ++i )
 		{
-			if ( value == array[i] )
+			if ( value == data[i] )
 			{
 				// value found.
 				return true;
@@ -132,18 +155,18 @@ public class IntBag
 	public boolean removeAll ( final IntBag bag )
 	{
 		boolean modified = false;
-
+		
+		final int[] bagData = bag.data;
+		
 		for ( int i = 0; i < bag.size(); ++i )
 		{
-			final int item1 = bag.get( i );
-
+			final int item1 = bagData[i];
+			
 			for ( int j = 0; j < size; ++j )
 			{
-				final int item2 = array[j];
-
-				if ( item1 == item2 )
+				if ( item1 == data[j] )
 				{
-					removeValueAt( j );
+					remove( j );
 					--j;
 					modified = true;
 					break;
@@ -162,7 +185,7 @@ public class IntBag
 	 */
 	public int get ( final int index )
 	{
-		return array[index];
+		return data[index];
 	}
 
 	/**
@@ -182,7 +205,7 @@ public class IntBag
 	 */
 	public int getCapacity ()
 	{
-		return array.length;
+		return data.length;
 	}
 	
 	/**
@@ -193,7 +216,7 @@ public class IntBag
 	 */
 	public boolean isIndexWithinBounds ( final int index )
 	{
-		return index < array.length;
+		return index < data.length;
 	}
 
 	/**
@@ -215,12 +238,12 @@ public class IntBag
 	public void add ( final int value )
 	{
 		// if size greater than capacity then increase capacity.
-		if ( size >= array.length )
+		if ( size >= data.length )
 		{
 			grow();
 		}
 
-		array[size] = value;
+		data[size] = value;
 		// Increment size.
 		++size;
 	}
@@ -233,9 +256,9 @@ public class IntBag
 	 */
 	public void set ( final int index, final int value )
 	{
-		if ( index >= array.length )
+		if ( index >= data.length )
 		{
-			grow( index + array.length );
+			grow( index + data.length );
 			size = index + 1;
 		}
 		else if ( index >= size )
@@ -243,12 +266,12 @@ public class IntBag
 			size = index + 1;
 		}
 		
-		array[index] = value;
+		data[index] = value;
 	}
 
 	private void grow ()
 	{
-		final int len = array.length;
+		final int len = data.length;
 		final int newLen = len + ( len >> 1 );
 		grow( newLen );
 	}
@@ -256,15 +279,15 @@ public class IntBag
 	private void grow ( final int newCapacity )
 	{
 		final int[] newArray = new int[newCapacity];
-		System.arraycopy( array, 0, newArray, 0, size );
-		array = newArray;
+		System.arraycopy( data, 0, newArray, 0, size );
+		data = newArray;
 	}
 	
 	public void ensureCapacity ( final int index )
 	{
-		if ( index >= array.length )
+		if ( index >= data.length )
 		{
-			grow( index + array.length );
+			grow( index + data.length );
 		}
 	}
 
@@ -273,9 +296,9 @@ public class IntBag
 	 */
 	public void clear ()
 	{
-		for ( int i = 0; i < array.length; ++i )
+		for ( int i = 0; i < data.length; ++i )
 		{
-			array[i] = 0;
+			data[i] = 0;
 		}
 
 		size = 0;
@@ -290,7 +313,7 @@ public class IntBag
 	{
 		ensureCapacity( values.size() + size );
 		
-		System.arraycopy( values.array, 0, array, size, values.size() );
+		System.arraycopy( values.data, 0, data, size, values.size() );
 		
 		size += values.size();
 	}
@@ -299,7 +322,7 @@ public class IntBag
 	public String toString ()
 	{
 		final String newLine = System.lineSeparator();
-		final StringBuilder str = new StringBuilder( array.length * 10  );
+		final StringBuilder str = new StringBuilder( data.length * 10  );
 		
 		str.append( super.toString() ).append( newLine );
 		str.append( "Capacity " ).append(  this.getCapacity() ).append( newLine );
@@ -308,7 +331,7 @@ public class IntBag
 		for ( int i = 0; i < size; ++i )
 		{
 			str.append( newLine );
-			str.append( array[i] );
+			str.append( data[i] );
 		}
 		
 		return str.toString();
