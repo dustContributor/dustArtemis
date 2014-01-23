@@ -66,6 +66,28 @@ public class Bag<T> implements ImmutableBag<T>
 		return item;
 	}
 	
+	/**
+	 * Removes the first value in the bag.
+	 * 
+	 * @return the first value in the bag, or null if it has no values.
+	 */
+	public T removeFirst ()
+	{
+		if ( size > 0 )
+		{
+			// Decrement size.
+			--size;
+			// Save first value.
+			final T value = data[0];
+			// Replace first value with the last.
+			data[0] = data[size];
+			// Return saved value.
+			return value;
+		}
+		
+		// The Bag is empty.
+		return null;
+	}
 	
 	/**
 	 * Removes the last object in the bag.
