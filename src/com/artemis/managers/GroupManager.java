@@ -1,7 +1,6 @@
 package com.artemis.managers;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import com.artemis.Entity;
 import com.artemis.Manager;
@@ -9,136 +8,171 @@ import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
 
 /**
- * If you need to group your entities together, e.g. tanks going into "units" group or explosions into "effects",
- * then use this manager. You must retrieve it using world instance.
+ * If you need to group your entities together, e.g. tanks going into "units"
+ * group or explosions into "effects", then use this manager. You must retrieve
+ * it using world instance.
  * 
  * A entity can be assigned to more than one group.
  * 
  * @author Arni Arent
- *
+ * 
  */
-public class GroupManager extends Manager {
-	private Map<String, Bag<Entity>> entitiesByGroup;
-	private Map<Entity, Bag<String>> groupsByEntity;
+public class GroupManager extends Manager
+{
+	final private HashMap<String, Bag<Entity>> entitiesByGroup;
+	final private HashMap<Entity, Bag<String>> groupsByEntity;
 
-	public GroupManager() {
+	public GroupManager ()
+	{
 		entitiesByGroup = new HashMap<>();
 		groupsByEntity = new HashMap<>();
 	}
-	
 
 	@Override
 	protected void initialize ()
 	{
 		// Empty method.
 	}
-	
-	
+
 	/**
 	 * Set the group of the entity.
 	 * 
-	 * @param group group to add the entity into.
-	 * @param e entity to add into the group.
+	 * @param group
+	 *            group to add the entity into.
+	 * @param e
+	 *            entity to add into the group.
 	 */
-	public void add(Entity e, String group) {
-		Bag<Entity> entities = entitiesByGroup.get(group);
-		if(entities == null) {
+	public void add ( final Entity e, final String group )
+	{
+		Bag<Entity> entities = entitiesByGroup.get( group );
+		if ( entities == null )
+		{
 			entities = new Bag<>();
-			entitiesByGroup.put(group, entities);
+			entitiesByGroup.put( group, entities );
 		}
-		entities.add(e);
-		
-		Bag<String> groups = groupsByEntity.get(e);
-		if(groups == null) {
+		entities.add( e );
+
+		Bag<String> groups = groupsByEntity.get( e );
+		if ( groups == null )
+		{
 			groups = new Bag<>();
-			groupsByEntity.put(e, groups);
+			groupsByEntity.put( e, groups );
 		}
-		groups.add(group);
+		groups.add( group );
 	}
-	
+
 	/**
 	 * Remove the entity from the specified group.
+	 * 
 	 * @param e
 	 * @param group
 	 */
-	public void remove(Entity e, String group) {
-		Bag<Entity> entities = entitiesByGroup.get(group);
-		if(entities != null) {
-			entities.remove(e);
+	public void remove ( final Entity e, final String group )
+	{
+		final Bag<Entity> entities = entitiesByGroup.get( group );
+		if ( entities != null )
+		{
+			entities.remove( e );
+		}
+
+		final Bag<String> groups = groupsByEntity.get( e );
+		if ( groups != null )
+		{
+			groups.remove( group );
+		}
+	}
+
+	public void removeFromAllGroups ( final Entity e )
+	{
+		final Bag<String> groups = groupsByEntity.get( e );
+		if ( groups == null )
+		{
+			return;
 		}
 		
-		Bag<String> groups = groupsByEntity.get(e);
-		if(groups != null) {
-			groups.remove(group);
-		}
-	}
-	
-	public void removeFromAllGroups(Entity e) {
-		Bag<String> groups = groupsByEntity.get(e);
-		if(groups != null) {
-			for(int i = 0; groups.size() > i; i++) {
-				Bag<Entity> entities = entitiesByGroup.get(groups.get(i));
-				if(entities != null) {
-					entities.remove(e);
-				}
+		for ( int i = 0; i < groups.size(); ++i )
+		{
+			final Bag<Entity> entities = entitiesByGroup.get( groups.get( i ) );
+			if ( entities != null )
+			{
+				entities.remove( e );
 			}
-			groups.clear();
 		}
+		
+		groupsByEntity.remove( e );
 	}
-	
+
 	/**
 	 * Get all entities that belong to the provided group.
-	 * @param group name of the group.
+	 * 
+	 * @param group
+	 *            name of the group.
 	 * @return read-only bag of entities belonging to the group.
 	 */
-	public ImmutableBag<Entity> getEntities(String group) {
-		Bag<Entity> entities = entitiesByGroup.get(group);
-		if(entities == null) {
+	public ImmutableBag<Entity> getEntities ( final String group )
+	{
+		Bag<Entity> entities = entitiesByGroup.get( group );
+		if ( entities == null )
+		{
 			entities = new Bag<>();
-			entitiesByGroup.put(group, entities);
+			entitiesByGroup.put( group, entities );
 		}
 		return entities;
 	}
-	
+
 	/**
-	 * @param e entity
+	 * @param e
+	 *            entity
 	 * @return the groups the entity belongs to, null if none.
 	 */
-	public ImmutableBag<String> getGroups(Entity e) {
-		return groupsByEntity.get(e);
+	public ImmutableBag<String> getGroups ( final Entity e )
+	{
+		return groupsByEntity.get( e );
 	}
-	
+
 	/**
 	 * Checks if the entity belongs to any group.
-	 * @param e the entity to check.
+	 * 
+	 * @param e
+	 *            the entity to check.
 	 * @return true if it is in any group, false if none.
 	 */
-	public boolean isInAnyGroup(Entity e) {
-		return getGroups(e) != null;
+	public boolean isInAnyGroup ( final Entity e )
+	{
+		return getGroups( e ) != null;
 	}
-	
+
 	/**
 	 * Check if the entity is in the supplied group.
-	 * @param group the group to check in.
-	 * @param e the entity to check for.
+	 * 
+	 * @param group
+	 *            the group to check in.
+	 * @param e
+	 *            the entity to check for.
 	 * @return true if the entity is in the supplied group, false if not.
 	 */
-	public boolean isInGroup(Entity e, String group) {
-		if(group != null) {
-			Bag<String> groups = groupsByEntity.get(e);
-			for(int i = 0; groups.size() > i; i++) {
-				String g = groups.get(i);
-				if(group == g || group.equals(g)) {
+	public boolean isInGroup ( final Entity e, final String group )
+	{
+		final Bag<String> groups = groupsByEntity.get( e );
+		
+		if ( groups != null )
+		{
+			for ( int i = 0; i < groups.size(); ++i )
+			{
+				if ( group.equals( groups.get( i ) ) )
+				{
 					return true;
 				}
 			}
 		}
+
 		return false;
 	}
 
 	@Override
-	public void deleted(Entity e) {
-		removeFromAllGroups(e);
+	public void deleted ( final Entity e )
+	{
+		removeFromAllGroups( e );
 	}
-	
+
 }
