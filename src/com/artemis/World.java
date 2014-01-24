@@ -345,7 +345,7 @@ public class World
 		check( added, new Performer()
 		{
 			@Override
-			public void perform ( EntityObserver observer, Entity e )
+			public void perform ( final EntityObserver observer, final Entity e )
 			{
 				observer.added( e );
 			}
@@ -354,7 +354,7 @@ public class World
 		check( changed, new Performer()
 		{
 			@Override
-			public void perform ( EntityObserver observer, Entity e )
+			public void perform ( final EntityObserver observer, final Entity e )
 			{
 				observer.changed( e );
 			}
@@ -363,7 +363,7 @@ public class World
 		check( disable, new Performer()
 		{
 			@Override
-			public void perform ( EntityObserver observer, Entity e )
+			public void perform ( final EntityObserver observer, final Entity e )
 			{
 				observer.disabled( e );
 			}
@@ -372,7 +372,7 @@ public class World
 		check( enable, new Performer()
 		{
 			@Override
-			public void perform ( EntityObserver observer, Entity e )
+			public void perform ( final EntityObserver observer, final Entity e )
 			{
 				observer.enabled( e );
 			}
@@ -381,7 +381,7 @@ public class World
 		check( deleted, new Performer()
 		{
 			@Override
-			public void perform ( EntityObserver observer, Entity e )
+			public void perform ( final EntityObserver observer, final Entity e )
 			{
 				observer.deleted( e );
 			}

@@ -16,7 +16,7 @@ public class ComponentMapper<T extends Component>
 	private final Bag<T> components;
 
 	@SuppressWarnings("unchecked")
-	private ComponentMapper ( Class<T> type, World world )
+	private ComponentMapper ( final Class<T> type, final World world )
 	{
 		components = (Bag<T>) world.getComponentManager().getComponentsByType( ComponentType.getTypeFor( type ) );
 	}
@@ -30,7 +30,7 @@ public class ComponentMapper<T extends Component>
 	 *            the entity that should possess the component
 	 * @return the instance of the component
 	 */
-	public T get ( Entity e )
+	public T get ( final Entity e )
 	{
 		return components.get( e.getId() );
 	}
@@ -43,7 +43,7 @@ public class ComponentMapper<T extends Component>
 	 *            the entity that should possess the component
 	 * @return the instance of the component
 	 */
-	public T getSafe ( Entity e )
+	public T getSafe ( final Entity e )
 	{
 		if ( components.isIndexWithinBounds( e.getId() ) )
 		{
@@ -60,7 +60,7 @@ public class ComponentMapper<T extends Component>
 	 *            the entity to check
 	 * @return true if the entity has this component type, false if it doesn't.
 	 */
-	public boolean has ( Entity e )
+	public boolean has ( final Entity e )
 	{
 		return getSafe( e ) != null;
 	}
@@ -74,7 +74,7 @@ public class ComponentMapper<T extends Component>
 	 *            the world that this component mapper should use.
 	 * @return a new mapper.
 	 */
-	public static final <T extends Component> ComponentMapper<T> getFor ( Class<T> type, World world )
+	public static final <T extends Component> ComponentMapper<T> getFor ( final Class<T> type, final World world )
 	{
 		return new ComponentMapper<>( type, world );
 	}
