@@ -21,7 +21,7 @@ public class ComponentManager extends Manager
 		// Empty method.
 	}
 
-	private void removeComponentsOfEntity ( Entity e )
+	private void removeComponentsOfEntity ( final Entity e )
 	{
 		final BitSet componentBits = e.getComponentBits();
 		
@@ -33,7 +33,7 @@ public class ComponentManager extends Manager
 		componentBits.clear();
 	}
 
-	protected void addComponent ( Entity e, ComponentType type, Component component )
+	protected void addComponent ( final Entity e, final ComponentType type, final Component component )
 	{
 		componentsByType.ensureCapacity( type.getIndex() );
 
@@ -50,7 +50,7 @@ public class ComponentManager extends Manager
 		e.getComponentBits().set( type.getIndex() );
 	}
 
-	protected void removeComponent ( Entity e, ComponentType type )
+	protected void removeComponent ( final Entity e, final ComponentType type )
 	{
 		if ( e.getComponentBits().get( type.getIndex() ) )
 		{
@@ -59,7 +59,7 @@ public class ComponentManager extends Manager
 		}
 	}
 
-	protected Bag<Component> getComponentsByType ( ComponentType type )
+	protected Bag<Component> getComponentsByType ( final ComponentType type )
 	{
 		Bag<Component> components = componentsByType.get( type.getIndex() );
 		
@@ -72,9 +72,9 @@ public class ComponentManager extends Manager
 		return components;
 	}
 
-	protected Component getComponent ( Entity e, ComponentType type )
+	protected Component getComponent ( final Entity e, final ComponentType type )
 	{
-		Bag<Component> components = componentsByType.get( type.getIndex() );
+		final Bag<Component> components = componentsByType.get( type.getIndex() );
 		
 		if ( components != null )
 		{
@@ -84,7 +84,7 @@ public class ComponentManager extends Manager
 		return null;
 	}
 
-	public Bag<Component> getComponentsFor ( Entity e, Bag<Component> fillBag )
+	public Bag<Component> getComponentsFor ( final Entity e, final Bag<Component> fillBag )
 	{
 		final BitSet componentBits = e.getComponentBits();
 
@@ -97,7 +97,7 @@ public class ComponentManager extends Manager
 	}
 
 	@Override
-	public void deleted ( Entity e )
+	public void deleted ( final Entity e )
 	{
 		deleted.add( e );
 	}

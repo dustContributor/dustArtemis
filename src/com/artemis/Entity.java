@@ -27,7 +27,7 @@ public final class Entity
 	private final EntityManager entityManager;
 	private final ComponentManager componentManager;
 
-	protected Entity ( World world, int id )
+	protected Entity ( final World world, final int id )
 	{
 		this.world = world;
 		this.id = id;
@@ -97,7 +97,7 @@ public final class Entity
 	 * 
 	 * @return this entity for chaining.
 	 */
-	public Entity addComponent ( Component component )
+	public Entity addComponent ( final Component component )
 	{
 		addComponent( component, ComponentType.getTypeFor( component.getClass() ) );
 		return this;
@@ -114,7 +114,7 @@ public final class Entity
 	 * 
 	 * @return this entity for chaining.
 	 */
-	public Entity addComponent ( Component component, ComponentType type )
+	public Entity addComponent ( final Component component, final ComponentType type )
 	{
 		componentManager.addComponent( this, type, component );
 		return this;
@@ -128,7 +128,7 @@ public final class Entity
 	 * 
 	 * @return this entity for chaining.
 	 */
-	public Entity removeComponent ( Component component )
+	public Entity removeComponent ( final Component component )
 	{
 		removeComponent( component.getClass() );
 		return this;
@@ -142,7 +142,7 @@ public final class Entity
 	 * 
 	 * @return this entity for chaining.
 	 */
-	public Entity removeComponent ( ComponentType type )
+	public Entity removeComponent ( final ComponentType type )
 	{
 		componentManager.removeComponent( this, type );
 		return this;
@@ -155,7 +155,7 @@ public final class Entity
 	 * 
 	 * @return this entity for chaining.
 	 */
-	public Entity removeComponent ( Class<? extends Component> type )
+	public Entity removeComponent ( final Class<? extends Component> type )
 	{
 		removeComponent( ComponentType.getTypeFor( type ) );
 		return this;
@@ -194,7 +194,7 @@ public final class Entity
 	 *            ComponentType instance for the expected component.
 	 * @return
 	 */
-	public Component getComponent ( ComponentType type )
+	public Component getComponent ( final ComponentType type )
 	{
 		return componentManager.getComponent( this, type );
 	}
@@ -211,7 +211,7 @@ public final class Entity
 	 * @return component that matches, or null if none is found.
 	 */
 	@SuppressWarnings("unchecked")
-	public <T extends Component> T getComponent ( Class<T> type )
+	public <T extends Component> T getComponent ( final Class<T> type )
 	{
 		return (T) getComponent( ComponentType.getTypeFor( type ) );
 	}
@@ -224,7 +224,7 @@ public final class Entity
 	 *            the bag to put the components into.
 	 * @return the fillBag with the components in.
 	 */
-	public Bag<Component> getComponents ( Bag<Component> fillBag )
+	public Bag<Component> getComponents ( final Bag<Component> fillBag )
 	{
 		return componentManager.getComponentsFor( this, fillBag );
 	}

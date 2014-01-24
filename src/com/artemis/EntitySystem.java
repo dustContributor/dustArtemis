@@ -1,18 +1,18 @@
 package com.artemis;
 
 import java.util.BitSet;
-import java.util.HashMap;
+import java.util.IdentityHashMap;
 
 import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
 
 /**
- * The most raw entity system. It should not typically be used, but you can create your own
- * entity system handling by extending this. It is recommended that you use the other provided
- * entity system implementations.
+ * The most raw entity system. It should not typically be used, but you can
+ * create your own entity system handling by extending this. It is recommended
+ * that you use the other provided entity system implementations.
  * 
  * @author Arni Arent
- *
+ * 
  */
 public abstract class EntitySystem implements EntityObserver
 {
@@ -22,9 +22,6 @@ public abstract class EntitySystem implements EntityObserver
 
 	private final Bag<Entity> actives;
 
-	// Commented out since it wasn't used.
-//	private Aspect aspect;
-
 	private final BitSet allSet;
 	private final BitSet exclusionSet;
 	private final BitSet oneSet;
@@ -32,12 +29,15 @@ public abstract class EntitySystem implements EntityObserver
 	private boolean passive;
 
 	private final boolean dummy;
-	
+
 	/**
-	 * Creates an entity system that uses the specified aspect as a matcher against entities.
-	 * @param aspect to match against entities
+	 * Creates an entity system that uses the specified aspect as a matcher
+	 * against entities.
+	 * 
+	 * @param aspect
+	 *            to match against entities
 	 */
-	public EntitySystem ( Aspect aspect )
+	public EntitySystem ( final Aspect aspect )
 	{
 		actives = new Bag<>();
 		// this.aspect = aspect;
@@ -45,12 +45,13 @@ public abstract class EntitySystem implements EntityObserver
 		exclusionSet = aspect.getExclusionSet();
 		oneSet = aspect.getOneSet();
 		systemIndex = SystemIndexManager.getIndexFor( this.getClass() );
-		// This system can't possibly be interested in any entity, so it must be "dummy"
-		dummy = allSet.isEmpty() && oneSet.isEmpty(); 
+		// This system can't possibly be interested in any entity, so it must be
+		// "dummy"
+		dummy = allSet.isEmpty() && oneSet.isEmpty();
 	}
-	
+
 	/**
-	 * Called before processing of entities begins. 
+	 * Called before processing of entities begins.
 	 */
 	protected void begin ()
 	{
@@ -66,7 +67,7 @@ public abstract class EntitySystem implements EntityObserver
 			end();
 		}
 	}
-	
+
 	/**
 	 * Called after the processing of entities ends.
 	 */
@@ -74,23 +75,25 @@ public abstract class EntitySystem implements EntityObserver
 	{
 		// Empty method.
 	}
-	
+
 	/**
 	 * Any implementing entity system must implement this method and the logic
 	 * to process the given entities of the system.
 	 * 
-	 * @param entities the entities this system contains.
+	 * @param entities
+	 *            the entities this system contains.
 	 */
-	protected abstract void processEntities(ImmutableBag<Entity> entities);
-	
+	protected abstract void processEntities ( ImmutableBag<Entity> entities );
+
 	/**
 	 * 
 	 * @return true if the system should be processed, false if not.
 	 */
-	protected abstract boolean checkProcessing();
+	protected abstract boolean checkProcessing ();
 
 	/**
-	 * Override to implement code that gets executed when systems are initialized.
+	 * Override to implement code that gets executed when systems are
+	 * initialized.
 	 */
 	protected void initialize ()
 	{
@@ -98,26 +101,34 @@ public abstract class EntitySystem implements EntityObserver
 	}
 
 	/**
-	 * Called if the system has received a entity it is interested in, e.g. created or a component was added to it.
-	 * @param e the entity that was added to this system.
+	 * Called if the system has received a entity it is interested in, e.g.
+	 * created or a component was added to it.
+	 * 
+	 * @param e
+	 *            the entity that was added to this system.
 	 */
-	protected void inserted ( Entity e )
+	protected void inserted ( final Entity e )
 	{
 		// Empty method.
 	}
 
 	/**
-	 * Called if a entity was removed from this system, e.g. deleted or had one of it's components removed.
-	 * @param e the entity that was removed from this system.
+	 * Called if a entity was removed from this system, e.g. deleted or had one
+	 * of it's components removed.
+	 * 
+	 * @param e
+	 *            the entity that was removed from this system.
 	 */
-	protected void removed ( Entity e )
+	protected void removed ( final Entity e )
 	{
 		// Empty method.
 	}
 
 	/**
 	 * Will check if the entity is of interest to this system.
-	 * @param e entity to check
+	 * 
+	 * @param e
+	 *            entity to check
 	 */
 	protected final void check ( final Entity e )
 	{
@@ -127,7 +138,7 @@ public abstract class EntitySystem implements EntityObserver
 		}
 
 		final BitSet componentBits = e.getComponentBits();
-		
+
 		boolean interested = true; // possibly interested, let's try to prove it wrong.
 
 		// Check if the entity possesses ALL of the components defined in the
@@ -143,7 +154,7 @@ public abstract class EntitySystem implements EntityObserver
 				}
 			}
 		}
-		
+
 		// Check if the entity possesses ANY of the exclusion components, if it
 		// does then the system is not interested.
 		if ( !exclusionSet.isEmpty() && interested )
@@ -159,7 +170,7 @@ public abstract class EntitySystem implements EntityObserver
 		}
 
 		final boolean contains = e.getSystemBits().get( systemIndex );
-		
+
 		if ( interested && !contains )
 		{
 			insertToSystem( e );
@@ -185,19 +196,19 @@ public abstract class EntitySystem implements EntityObserver
 	}
 
 	@Override
-	public final void added ( Entity e )
+	public final void added ( final Entity e )
 	{
 		check( e );
 	}
 
 	@Override
-	public final void changed ( Entity e )
+	public final void changed ( final Entity e )
 	{
 		check( e );
 	}
 
 	@Override
-	public final void deleted ( Entity e )
+	public final void deleted ( final Entity e )
 	{
 		if ( e.getSystemBits().get( systemIndex ) )
 		{
@@ -206,7 +217,7 @@ public abstract class EntitySystem implements EntityObserver
 	}
 
 	@Override
-	public final void disabled ( Entity e )
+	public final void disabled ( final Entity e )
 	{
 		if ( e.getSystemBits().get( systemIndex ) )
 		{
@@ -215,12 +226,12 @@ public abstract class EntitySystem implements EntityObserver
 	}
 
 	@Override
-	public final void enabled ( Entity e )
+	public final void enabled ( final Entity e )
 	{
 		check( e );
 	}
 
-	protected final void setWorld ( World world )
+	protected final void setWorld ( final World world )
 	{
 		this.world = world;
 	}
@@ -230,7 +241,7 @@ public abstract class EntitySystem implements EntityObserver
 		return passive;
 	}
 
-	protected void setPassive ( boolean passive )
+	protected void setPassive ( final boolean passive )
 	{
 		this.passive = passive;
 	}
@@ -239,17 +250,15 @@ public abstract class EntitySystem implements EntityObserver
 	{
 		return actives;
 	}
-	
-	
-	
+
 	/**
-	 * Used to generate a unique bit for each system. 
-	 * Only used internally in EntitySystem.
+	 * Used to generate a unique bit for each system. Only used internally in
+	 * EntitySystem.
 	 */
 	private static final class SystemIndexManager
 	{
 		private static int INDEX = 0;
-		private static final HashMap<Class<? extends EntitySystem>, Integer> indices = new HashMap<>();
+		private static final IdentityHashMap<Class<? extends EntitySystem>, Integer> indices = new IdentityHashMap<>();
 
 		static final int getIndexFor ( final Class<? extends EntitySystem> es )
 		{
