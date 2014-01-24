@@ -323,69 +323,67 @@ public class World
 	 */
 	private void check ( final Bag<Entity> entities, final Performer performer )
 	{
-		if ( !entities.isEmpty() )
+		for ( int i = 0; i < entities.size(); ++i )
 		{
-			for ( int i = 0; i < entities.size(); ++i )
-			{
-				final Entity e = entities.get( i );
-				notifyManagers( performer, e );
-				notifySystems( performer, e );
-			}
-			
-			entities.clear();
+			final Entity e = entities.get( i );
+			notifyManagers( performer, e );
+			notifySystems( performer, e );
 		}
+
+		entities.clear();
 	}
 
+	private final Performer addedPerformer = new Performer()
+	{
+		@Override
+		public void perform ( final EntityObserver observer, final Entity e )
+		{
+			observer.added( e );
+		}
+	}, 
+	changedPerformer = new Performer()
+	{
+		@Override
+		public void perform ( final EntityObserver observer, final Entity e )
+		{
+			observer.changed( e );
+		}
+	},
+	disabledPerformer = new Performer ()
+	{
+		@Override
+		public void perform ( final EntityObserver observer, final Entity e )
+		{
+			observer.disabled( e );
+		}
+	},
+	enabledPerformer = new Performer ()
+	{
+		@Override
+		public void perform ( final EntityObserver observer, final Entity e )
+		{
+			observer.enabled( e );
+		}
+	},
+	deletedPerformer = new Performer ()
+	{
+		@Override
+		public void perform ( final EntityObserver observer, final Entity e )
+		{
+			observer.deleted( e );
+		}
+	};
 	
 	/**
 	 * Process all non-passive systems.
 	 */
 	public void process ()
 	{
-		check( added, new Performer()
-		{
-			@Override
-			public void perform ( final EntityObserver observer, final Entity e )
-			{
-				observer.added( e );
-			}
-		} );
-
-		check( changed, new Performer()
-		{
-			@Override
-			public void perform ( final EntityObserver observer, final Entity e )
-			{
-				observer.changed( e );
-			}
-		} );
-
-		check( disable, new Performer()
-		{
-			@Override
-			public void perform ( final EntityObserver observer, final Entity e )
-			{
-				observer.disabled( e );
-			}
-		} );
-
-		check( enable, new Performer()
-		{
-			@Override
-			public void perform ( final EntityObserver observer, final Entity e )
-			{
-				observer.enabled( e );
-			}
-		} );
-
-		check( deleted, new Performer()
-		{
-			@Override
-			public void perform ( final EntityObserver observer, final Entity e )
-			{
-				observer.deleted( e );
-			}
-		} );
+		check( added, addedPerformer );
+		check( changed, changedPerformer );
+		check( disable, disabledPerformer );
+		check( enable, enabledPerformer );
+		check( deleted, deletedPerformer );
 
 		cm.clean();
 
@@ -416,9 +414,9 @@ public class World
 	/*
 	 * Only used internally to maintain clean code.
 	 */
-	private interface Performer
+	private static interface Performer
 	{
-		void perform ( EntityObserver observer, Entity e );
+		void perform ( final EntityObserver observer, final Entity e );
 	}
 	
 	private static final class ComponentMapperInitHelper
