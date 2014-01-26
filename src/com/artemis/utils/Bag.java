@@ -173,8 +173,9 @@ public class Bag<T> implements ImmutableBag<T>
 		boolean modified = false;
 		
 		final T[] bagData = bag.data;
+		final int bagSize = bag.size;
 		
-		for ( int i = 0; i < bag.size(); ++i )
+		for ( int i = 0; i < bagSize; ++i )
 		{
 			final T item1 = bagData[i];
 			
@@ -204,7 +205,9 @@ public class Bag<T> implements ImmutableBag<T>
 	{
 		boolean modified = false;
 		
-		for ( int i = 0; i < bag.size(); ++i )
+		final int bagSize = bag.size();
+		
+		for ( int i = 0; i < bagSize; ++i )
 		{
 			final T item1 = bag.get( i );
 
@@ -366,11 +369,12 @@ public class Bag<T> implements ImmutableBag<T>
 	 */
 	public void addAll ( final Bag<T> items )
 	{
-		ensureCapacity( items.size() + size );
+		final int itemsSize = items.size();
 		
-		System.arraycopy( items.data, 0, data, size, items.size() );
+		ensureCapacity( itemsSize + size );
+		System.arraycopy( items.data, 0, data, size, itemsSize );
 		
-		size += items.size();
+		size += itemsSize;
 	}
 	
 	/**
@@ -380,9 +384,11 @@ public class Bag<T> implements ImmutableBag<T>
 	 */
 	public void addAll ( final ImmutableBag<T> items )
 	{
-		ensureCapacity( items.size() + size );
+		final int itemsSize = items.size();
 		
-		for ( int i = 0; i < items.size(); ++i )
+		ensureCapacity( itemsSize  + size );
+		
+		for ( int i = 0; i < itemsSize; ++i )
 		{
 			add( items.get( i ) );
 		}
