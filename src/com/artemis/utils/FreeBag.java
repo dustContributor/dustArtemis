@@ -1,5 +1,7 @@
 package com.artemis.utils;
 
+import java.lang.reflect.Array;
+
 
 /**
  * Free bag has less restrictions than Bag. It doesn't has a minimum capacity,
@@ -13,14 +15,15 @@ public class FreeBag<T>
 {
 	public T[] data;
 	public int size = 0;
+	public final Class<T> type;
 
 	/**
 	 * Constructs an empty Bag with an initial capacity of {@value #MINIMUM_CAPACITY}
 	 * 
 	 */
-	public FreeBag ()
+	public FreeBag ( Class<T> type )
 	{
-		this( 8 );
+		this( type, 8 );
 	}
 
 	/**
@@ -29,9 +32,10 @@ public class FreeBag<T>
 	 * @param capacity of the Bag
 	 */
 	@SuppressWarnings("unchecked")
-	public FreeBag ( final int capacity )
+	public FreeBag ( Class<T> type, final int capacity )
 	{
-		data = (T[]) new Object[ capacity ];
+		data = (T[]) Array.newInstance( type, capacity );
+		this.type = type;
 	}
 
 	/**
@@ -162,8 +166,9 @@ public class FreeBag<T>
 		boolean modified = false;
 		
 		final T[] bagData = bag.data;
+		final int bagSize = bag.size;
 		
-		for ( int i = 0; i < bag.size(); ++i )
+		for ( int i = 0; i < bagSize; ++i )
 		{
 			final T item1 = bagData[i];
 			
@@ -193,7 +198,9 @@ public class FreeBag<T>
 	{
 		boolean modified = false;
 		
-		for ( int i = 0; i < bag.size(); ++i )
+		final int bagSize = bag.size();
+		
+		for ( int i = 0; i < bagSize; ++i )
 		{
 			final T item1 = bag.get( i );
 
@@ -314,7 +321,7 @@ public class FreeBag<T>
 	@SuppressWarnings("unchecked")
 	private void grow ( final int newCapacity )
 	{
-		final T[] newArray = (T[]) new Object[newCapacity];
+		final T[] newArray = (T[]) Array.newInstance( type, newCapacity );
 		System.arraycopy( data, 0, newArray, 0, size );
 		data = newArray;
 	}
@@ -352,11 +359,12 @@ public class FreeBag<T>
 	 */
 	public void addAll ( final FreeBag<T> items )
 	{
-		ensureCapacity( items.size() + size );
+		final int itemsSize = items.size();
 		
-		System.arraycopy( items.data, 0, data, size, items.size() );
+		ensureCapacity( itemsSize + size );
+		System.arraycopy( items.data, 0, data, size, itemsSize );
 		
-		size += items.size();
+		size += itemsSize;
 	}
 	
 	/**
@@ -366,9 +374,11 @@ public class FreeBag<T>
 	 */
 	public void addAll ( final ImmutableBag<T> items )
 	{
-		ensureCapacity( items.size() + size );
+		final int itemsSize = items.size();
 		
-		for ( int i = 0; i < items.size(); ++i )
+		ensureCapacity( itemsSize  + size );
+		
+		for ( int i = 0; i < itemsSize; ++i )
 		{
 			add( items.get( i ) );
 		}
