@@ -157,8 +157,9 @@ public class IntBag
 		boolean modified = false;
 		
 		final int[] bagData = bag.data;
+		final int bagSize = bag.size;
 		
-		for ( int i = 0; i < bag.size(); ++i )
+		for ( int i = 0; i < bagSize; ++i )
 		{
 			final int item1 = bagData[i];
 			
