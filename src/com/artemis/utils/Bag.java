@@ -1,5 +1,7 @@
 package com.artemis.utils;
 
+import java.lang.reflect.Array;
+
 
 /**
  * Customized unordered Bag of stuff.
@@ -19,6 +21,7 @@ public class Bag<T> implements ImmutableBag<T>
 {
 	private T[] data;
 	private int size = 0;
+	public final Class<?> type;
 	
 	private static final int MINIMUM_CAPACITY = 16;
 
@@ -42,6 +45,32 @@ public class Bag<T> implements ImmutableBag<T>
 	public Bag ( final int capacity )
 	{
 		data = (T[]) new Object[ ( capacity > MINIMUM_CAPACITY ) ? capacity : MINIMUM_CAPACITY];
+		type = Object.class;
+	}
+	
+	/**
+	 * Uses reflection to instantiate a backing array of the proper type.
+	 * 
+	 * @param capacity of the Bag, unrestricted by {@value #MINIMUM_CAPACITY}.
+	 */
+	@SuppressWarnings("unchecked")
+	public Bag ( final Class<T> type, final int capacity )
+	{
+		data = (T[]) Array.newInstance( type, capacity );
+		this.type = type;
+	}
+	
+	/**
+	 * Constructs an empty Bag with an initial capacity of {@value #MINIMUM_CAPACITY}
+	 * Uses reflection to instantiate a backing array of the proper type.
+	 * 
+	 * @param capacity of the Bag
+	 */
+	@SuppressWarnings("unchecked")
+	public Bag ( final Class<T> type )
+	{
+		data = (T[]) Array.newInstance( type, MINIMUM_CAPACITY );
+		this.type = type;
 	}
 
 	/**
@@ -331,7 +360,7 @@ public class Bag<T> implements ImmutableBag<T>
 	@SuppressWarnings("unchecked")
 	private void grow ( final int newCapacity )
 	{
-		final T[] newArray = (T[]) new Object[newCapacity];
+		final T[] newArray = (T[]) Array.newInstance( type, newCapacity );
 		System.arraycopy( data, 0, newArray, 0, size );
 		data = newArray;
 	}
@@ -392,6 +421,11 @@ public class Bag<T> implements ImmutableBag<T>
 		{
 			add( items.get( i ) );
 		}
+	}
+	
+	public T[] getData ()
+	{
+		return this.data;
 	}
 	
 	@Override
