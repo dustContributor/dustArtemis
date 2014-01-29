@@ -164,7 +164,7 @@ public class EntityManager extends Manager
 		{
 			if ( idStack.size() > 0 )
 			{
-				return idStack.pop();
+				return idStack.unsafePop();
 			}
 			
 			return nextAvailableId++;
