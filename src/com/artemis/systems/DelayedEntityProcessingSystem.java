@@ -3,6 +3,7 @@ package com.artemis.systems;
 import com.artemis.Aspect;
 import com.artemis.Entity;
 import com.artemis.EntitySystem;
+import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
 
 /**
@@ -44,19 +45,24 @@ public abstract class DelayedEntityProcessingSystem extends EntitySystem
 	@Override
 	protected final void processEntities ( final ImmutableBag<Entity> entities )
 	{
-		for ( int i = 0, s = entities.size(); s > i; i++ )
+		final Entity[] entityArray = ( (Bag<Entity>) entities ).getData();
+		final int size = entities.size();
+		
+		for ( int i = 0; i < size; ++i )
 		{
-			final Entity entity = entities.get( i );
+			final Entity entity = entityArray[i];
+			
 			processDelta( entity, acc );
+			
 			final float remaining = getRemainingDelay( entity );
-			if ( remaining <= 0 )
-			{
-				processExpired( entity );
-			}
-			else
+			
+			if ( remaining > 0 )
 			{
 				offerDelay( remaining );
+				continue;
 			}
+			
+			processExpired( entity );
 		}
 		stop();
 	}
