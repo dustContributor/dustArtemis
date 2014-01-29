@@ -50,7 +50,7 @@ public class TeamManager extends Manager
 		
 		if ( players == null )
 		{
-			players = new Bag<>();
+			players = new Bag<>( String.class );
 			playersByTeam.put( team, players );
 		}
 		
