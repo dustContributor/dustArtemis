@@ -12,7 +12,7 @@ public class ComponentManager extends Manager
 	public ComponentManager ()
 	{
 		componentsByType = new Bag<>();
-		deleted = new Bag<>();
+		deleted = new Bag<>( Entity.class );
 	}
 
 	@Override
@@ -41,7 +41,7 @@ public class ComponentManager extends Manager
 		
 		if ( components == null )
 		{
-			components = new Bag<>();
+			components = new Bag<>( Component.class );
 			componentsByType.set( type.getIndex(), components );
 		}
 
@@ -65,7 +65,7 @@ public class ComponentManager extends Manager
 		
 		if ( components == null )
 		{
-			components = new Bag<>();
+			components = new Bag<>( Component.class );
 			componentsByType.set( type.getIndex(), components );
 		}
 		

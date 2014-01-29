@@ -30,7 +30,7 @@ public class PlayerManager extends Manager {
 		playerByEntity.put(e, player);
 		Bag<Entity> entities = entitiesByPlayer.get(player);
 		if(entities == null) {
-			entities = new Bag<>();
+			entities = new Bag<>( Entity.class );
 			entitiesByPlayer.put(player, entities);
 		}
 		entities.add(e);
@@ -39,7 +39,7 @@ public class PlayerManager extends Manager {
 	public ImmutableBag<Entity> getEntitiesOfPlayer(String player) {
 		Bag<Entity> entities = entitiesByPlayer.get(player);
 		if(entities == null) {
-			entities = new Bag<>();
+			entities = new Bag<>( Entity.class );
 		}
 		return entities;
 	}

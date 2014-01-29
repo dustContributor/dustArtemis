@@ -19,7 +19,7 @@ public class EntityManager extends Manager
 
 	public EntityManager ()
 	{
-		entities = new Bag<>();
+		entities = new Bag<>( Entity.class );
 		disabled = new BitSet();
 		identifierPool = new IdentifierPool();
 	}

@@ -47,7 +47,7 @@ public class GroupManager extends Manager
 		Bag<Entity> entities = entitiesByGroup.get( group );
 		if ( entities == null )
 		{
-			entities = new Bag<>();
+			entities = new Bag<>( Entity.class );
 			entitiesByGroup.put( group, entities );
 		}
 		entities.add( e );
@@ -55,7 +55,7 @@ public class GroupManager extends Manager
 		Bag<String> groups = groupsByEntity.get( e );
 		if ( groups == null )
 		{
-			groups = new Bag<>();
+			groups = new Bag<>( String.class );
 			groupsByEntity.put( e, groups );
 		}
 		groups.add( group );
@@ -114,7 +114,7 @@ public class GroupManager extends Manager
 		Bag<Entity> entities = entitiesByGroup.get( group );
 		if ( entities == null )
 		{
-			entities = new Bag<>();
+			entities = new Bag<>( Entity.class );
 			entitiesByGroup.put( group, entities );
 		}
 		return entities;

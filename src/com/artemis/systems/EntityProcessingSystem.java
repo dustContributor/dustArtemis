@@ -3,6 +3,7 @@ package com.artemis.systems;
 import com.artemis.Aspect;
 import com.artemis.Entity;
 import com.artemis.EntitySystem;
+import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
 
 /**
@@ -31,9 +32,12 @@ public abstract class EntityProcessingSystem extends EntitySystem
 	@Override
 	protected final void processEntities ( final ImmutableBag<Entity> entities )
 	{
-		for ( int i = 0; i < entities.size(); ++i )
+		final Entity[] entityArray = ( (Bag<Entity>) entities ).getData();
+		final int size = entities.size();
+		
+		for ( int i = 0; i < size; ++i )
 		{
-			process( entities.get( i ) );
+			process( entityArray[i] );
 		}
 	}
 

@@ -39,7 +39,7 @@ public abstract class EntitySystem implements EntityObserver
 	 */
 	public EntitySystem ( final Aspect aspect )
 	{
-		actives = new Bag<>();
+		actives = new Bag<>( Entity.class );
 		// this.aspect = aspect;
 		allSet = aspect.getAllSet();
 		exclusionSet = aspect.getExclusionSet();

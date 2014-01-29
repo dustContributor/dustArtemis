@@ -34,22 +34,22 @@ public class World
 	private final Map<Class<? extends Manager>, Manager> managers;
 	private final Bag<Manager> managersBag;
 
-	private final Map<Class<?>, EntitySystem> systems;
+	private final Map<Class<? extends EntitySystem>, EntitySystem> systems;
 	private final Bag<EntitySystem> systemsBag;
 
 	public World ()
 	{
 		managers = new HashMap<>();
-		managersBag = new Bag<>();
+		managersBag = new Bag<>( Manager.class );
 
 		systems = new HashMap<>();
-		systemsBag = new Bag<>();
+		systemsBag = new Bag<>( EntitySystem.class );
 
-		added = new Bag<>();
-		changed = new Bag<>();
-		deleted = new Bag<>();
-		enable = new Bag<>();
-		disable = new Bag<>();
+		added = new Bag<>( Entity.class );
+		changed = new Bag<>( Entity.class );
+		deleted = new Bag<>( Entity.class );
+		enable = new Bag<>( Entity.class );
+		disable = new Bag<>( Entity.class );
 
 		cm = new ComponentManager();
 		setManager( cm );
