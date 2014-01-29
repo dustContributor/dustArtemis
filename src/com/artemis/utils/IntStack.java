@@ -11,7 +11,7 @@ public final class IntStack
 	private int size = 0;
 
 	private static final int MINIMUM_CAPACITY = 8;
-	public static final int NOT_RETURN = Integer.MIN_VALUE;
+	public static final int EMPTY_STACK = Integer.MIN_VALUE;
 
 	/**
 	 * Constructs an empty IntStack with an initial capacity of
@@ -42,7 +42,7 @@ public final class IntStack
 	/**
 	 * Removes the value in the top of the stack.
 	 * 
-	 * @return the top of the stack, or {@value #NOT_RETURN} if it has no
+	 * @return the top of the stack, or {@value #EMPTY_STACK} if it has no
 	 *         values.
 	 */
 	public final int pop ()
@@ -56,7 +56,7 @@ public final class IntStack
 		}
 
 		// IntBag is empty.
-		return NOT_RETURN;
+		return EMPTY_STACK;
 	}
 
 	/**
@@ -64,7 +64,7 @@ public final class IntStack
 	 * 
 	 * Doesn't checks bounds.
 	 * 
-	 * @return the top of the stack, or {@value #NOT_RETURN} if it has no
+	 * @return the top of the stack, or {@value #EMPTY_STACK} if it has no
 	 *         values.
 	 */
 	public final int unsafePop ()
@@ -129,6 +129,7 @@ public final class IntStack
 			grow();
 		}
 
+		// Put value on the top.
 		data[size] = value;
 		// Increment size.
 		++size;
@@ -144,6 +145,7 @@ public final class IntStack
 	 */
 	public final void unsafePush ( final int value )
 	{
+		// Put value on the top.
 		data[size] = value;
 		// Increment size.
 		++size;
