@@ -3,7 +3,6 @@ package com.artemis;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.HashMap;
-import java.util.Map;
 
 import com.artemis.annotations.Mapper;
 import com.artemis.utils.Bag;
@@ -31,10 +30,10 @@ public class World
 	private final Bag<Entity> enable;
 	private final Bag<Entity> disable;
 
-	private final Map<Class<? extends Manager>, Manager> managers;
+	private final HashMap<Class<? extends Manager>, Manager> managers;
 	private final Bag<Manager> managersBag;
 
-	private final Map<Class<? extends EntitySystem>, EntitySystem> systems;
+	private final HashMap<Class<? extends EntitySystem>, EntitySystem> systems;
 	private final Bag<EntitySystem> systemsBag;
 
 	public World ()
@@ -422,31 +421,32 @@ public class World
 	private static final class ComponentMapperInitHelper
 	{
 		@SuppressWarnings("unchecked")
-		public static void config ( final Object target, final World world )
+		public static final void config ( final Object trg, final World world )
 		{
-			final Class<?> clazz = target.getClass();
+			final Field[] fields = trg.getClass().getDeclaredFields();
 
-			for ( final Field field : clazz.getDeclaredFields() )
+			for ( int i = 0; i < fields.length; ++i )
 			{
-				final Mapper annotation = field.getAnnotation( Mapper.class );
+				final Field field = fields[i];
 
-				if ( annotation != null && Mapper.class.isAssignableFrom( Mapper.class ) )
+				if ( field.getAnnotation( Mapper.class ) != null )
 				{
 					final ParameterizedType genericType = (ParameterizedType) field.getGenericType();
 					final Class<? extends Component> componentType = (Class<? extends Component>) genericType.getActualTypeArguments()[0];
+					final ComponentMapper<? extends Component> mapper = ComponentMapper.getFor( componentType, world );
 
 					field.setAccessible( true );
 
 					try
 					{
-						field.set( target, world.getMapper( componentType ) );
+						field.set( trg, mapper );
 					}
 					catch ( IllegalArgumentException | IllegalAccessException e )
 					{
 						throw new RuntimeException( "Error while setting component mappers", e );
 					}
-
 				}
+
 			}
 		}
 
