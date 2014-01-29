@@ -24,6 +24,7 @@ public class Bag<T> implements ImmutableBag<T>
 	public final Class<?> type;
 	
 	private static final int MINIMUM_CAPACITY = 16;
+	private static final int MINIMUM_WORKING_CAPACITY = 4;
 
 	/**
 	 * Constructs an empty Bag with an initial capacity of {@value #MINIMUM_CAPACITY}
@@ -32,6 +33,17 @@ public class Bag<T> implements ImmutableBag<T>
 	public Bag ()
 	{
 		this( MINIMUM_CAPACITY );
+	}
+	
+	/**
+	 * Constructs an empty Bag with an initial capacity of {@value #MINIMUM_CAPACITY}
+	 * Uses reflection to instantiate a backing array of the proper type.
+	 * 
+	 * @param capacity of the Bag
+	 */
+	public Bag ( final Class<T> type )
+	{
+		this( type, MINIMUM_CAPACITY );
 	}
 
 	/**
@@ -51,25 +63,14 @@ public class Bag<T> implements ImmutableBag<T>
 	/**
 	 * Uses reflection to instantiate a backing array of the proper type.
 	 * 
-	 * @param capacity of the Bag, unrestricted by {@value #MINIMUM_CAPACITY}.
-	 */
-	@SuppressWarnings("unchecked")
-	public Bag ( final Class<T> type, final int capacity )
-	{
-		data = (T[]) Array.newInstance( type, capacity );
-		this.type = type;
-	}
-	
-	/**
-	 * Constructs an empty Bag with an initial capacity of {@value #MINIMUM_CAPACITY}
-	 * Uses reflection to instantiate a backing array of the proper type.
+	 * <p>NOTE: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY}, the Bag will be created with a capacity of {@value #MINIMUM_WORKING_CAPACITY} instead.</p>
 	 * 
 	 * @param capacity of the Bag
 	 */
 	@SuppressWarnings("unchecked")
-	public Bag ( final Class<T> type )
+	public Bag ( final Class<T> type, final int capacity )
 	{
-		data = (T[]) Array.newInstance( type, MINIMUM_CAPACITY );
+		data = (T[]) Array.newInstance( type, ( capacity > MINIMUM_WORKING_CAPACITY ) ? capacity : MINIMUM_WORKING_CAPACITY );
 		this.type = type;
 	}
 
