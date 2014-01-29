@@ -104,13 +104,17 @@ public class ComponentManager extends Manager
 
 	protected void clean ()
 	{
-		if ( deleted.size() > 0 )
+		final int size = deleted.size();
+		
+		if ( size > 0 )
 		{
-			for ( int i = 0; i < deleted.size(); ++i )
+			final Entity[] eArray = deleted.getData();
+
+			for ( int i = 0; i < size; ++i )
 			{
-				removeComponentsOfEntity( deleted.get( i ) );
+				removeComponentsOfEntity( eArray[i] );
 			}
-			
+
 			deleted.clear();
 		}
 	}
