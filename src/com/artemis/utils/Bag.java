@@ -110,6 +110,8 @@ public class Bag<T> implements ImmutableBag<T>
 			final T value = data[0];
 			// Replace first value with the last.
 			data[0] = data[size];
+			// Null last value.
+			data[size] = null;
 			// Return saved value.
 			return value;
 		}
