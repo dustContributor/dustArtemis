@@ -1,7 +1,7 @@
 package com.artemis;
 
 import java.util.BitSet;
-import java.util.IdentityHashMap;
+import java.util.HashMap;
 
 import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
@@ -258,7 +258,7 @@ public abstract class EntitySystem implements EntityObserver
 	private static final class SystemIndexManager
 	{
 		private static int INDEX = 0;
-		private static final IdentityHashMap<Class<? extends EntitySystem>, Integer> indices = new IdentityHashMap<>();
+		private static final HashMap<Class<? extends EntitySystem>, Integer> indices = new HashMap<>();
 
 		static final int getIndexFor ( final Class<? extends EntitySystem> es )
 		{

@@ -11,7 +11,7 @@ import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
 
 /**
- * Parrallel version of IntervalEntityProcessingSystem.
+ * Parallel version of IntervalEntityProcessingSystem.
  * 
  * @author The Chubu
  * 
