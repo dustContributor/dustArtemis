@@ -13,7 +13,8 @@ import com.artemis.utils.ImmutableBag;
  * 
  * You must use this to create, delete and retrieve entities.
  * 
- * It is also important to set the delta each game loop iteration, and initialize before game loop.
+ * It is also important to set the delta each game loop iteration, and
+ * initialize before game loop.
  * 
  * @author Arni Arent
  * 
@@ -57,27 +58,34 @@ public class World
 		setManager( em );
 	}
 
-	
 	/**
-	 * Makes sure all managers systems are initialized in the order they were added.
+	 * Makes sure all managers systems are initialized in the order they were
+	 * added.
 	 */
 	public void initialize ()
 	{
-		for ( int i = 0; i < managersBag.size(); ++i )
 		{
-			managersBag.get( i ).initialize();
+			final Manager[] mArray = managersBag.getData();
+			final int size = managersBag.size();
+
+			for ( int i = 0; i < size; ++i )
+			{
+				mArray[i].initialize();
+			}
 		}
 
-		for ( int i = 0; i < systemsBag.size(); ++i )
+		final EntitySystem[] sArray = systemsBag.getData();
+		final int size = systemsBag.size();
+
+		for ( int i = 0; i < size; ++i )
 		{
-			final EntitySystem eSys = systemsBag.get( i );
-			
-			ComponentMapperInitHelper.config( eSys , this );
+			final EntitySystem eSys = sArray[i];
+
+			ComponentMapperInitHelper.config( eSys, this );
 			eSys.initialize();
 		}
 	}
-	
-	
+
 	/**
 	 * Returns a manager that takes care of all the entities in the world.
 	 * entities of this world.
@@ -88,7 +96,7 @@ public class World
 	{
 		return em;
 	}
-	
+
 	/**
 	 * Returns a manager that takes care of all the components in the world.
 	 * 
@@ -98,15 +106,13 @@ public class World
 	{
 		return cm;
 	}
-	
-	
-	
 
 	/**
-	 * Add a manager into this world. It can be retrieved later.
-	 * World will notify this manager of changes to entity.
+	 * Add a manager into this world. It can be retrieved later. World will
+	 * notify this manager of changes to entity.
 	 * 
-	 * @param manager to be added
+	 * @param manager
+	 *            to be added
 	 */
 	public <T extends Manager> T setManager ( final T manager )
 	{
@@ -129,17 +135,19 @@ public class World
 	{
 		return (T) managers.get( managerType );
 	}
-	
+
 	/**
 	 * Deletes the manager from this world.
-	 * @param manager to delete.
+	 * 
+	 * @param manager
+	 *            to delete.
 	 */
 	public void deleteManager ( final Manager manager )
 	{
 		managers.remove( manager.getClass() );
 		managersBag.remove( manager );
-	}	
-		
+	}
+
 	/**
 	 * Time since last game loop.
 	 * 
@@ -153,39 +161,43 @@ public class World
 	/**
 	 * You must specify the delta for the game here.
 	 * 
-	 * @param delta time since last game loop.
+	 * @param delta
+	 *            time since last game loop.
 	 */
 	public void setDelta ( final float delta )
 	{
 		this.delta = delta;
 	}
-	
+
 	/**
 	 * Adds a entity to this world.
 	 * 
-	 * @param e entity
+	 * @param e
+	 *            entity
 	 */
 	public void addEntity ( final Entity e )
 	{
 		added.add( e );
 	}
-	
+
 	/**
-	 * Ensure all systems are notified of changes to this entity.
-	 * If you're adding a component to an entity after it's been
-	 * added to the world, then you need to invoke this method.
+	 * Ensure all systems are notified of changes to this entity. If you're
+	 * adding a component to an entity after it's been added to the world, then
+	 * you need to invoke this method.
 	 * 
-	 * @param e entity
+	 * @param e
+	 *            entity
 	 */
 	public void changedEntity ( final Entity e )
 	{
 		changed.add( e );
 	}
-	
+
 	/**
 	 * Delete the entity from the world.
 	 * 
-	 * @param e entity
+	 * @param e
+	 *            entity
 	 */
 	public void deleteEntity ( final Entity e )
 	{
@@ -196,8 +208,8 @@ public class World
 	}
 
 	/**
-	 * (Re)enable the entity in the world, after it having being disabled.
-	 * Won't do anything unless it was already disabled.
+	 * (Re)enable the entity in the world, after it having being disabled. Won't
+	 * do anything unless it was already disabled.
 	 */
 	public void enable ( final Entity e )
 	{
@@ -213,10 +225,9 @@ public class World
 		disable.add( e );
 	}
 
-
 	/**
-	 * Create and return a new or reused entity instance.
-	 * Will NOT add the entity to the world, use World.addEntity(Entity) for that.
+	 * Create and return a new or reused entity instance. Will NOT add the
+	 * entity to the world, use World.addEntity(Entity) for that.
 	 * 
 	 * @return entity
 	 */
@@ -249,7 +260,8 @@ public class World
 	/**
 	 * Adds a system to this world that will be processed by World.process()
 	 * 
-	 * @param system the system to add.
+	 * @param system
+	 *            the system to add.
 	 * @return the added system.
 	 */
 	public <T extends EntitySystem> T setSystem ( final T system )
@@ -259,9 +271,11 @@ public class World
 
 	/**
 	 * Will add a system to this world.
-	 *  
-	 * @param system the system to add.
-	 * @param passive wether or not this system will be processed by World.process()
+	 * 
+	 * @param system
+	 *            the system to add.
+	 * @param passive
+	 *            wether or not this system will be processed by World.process()
 	 * @return the added system.
 	 */
 	public <T extends EntitySystem> T setSystem ( final T system, final boolean passive )
@@ -274,37 +288,46 @@ public class World
 
 		return system;
 	}
-	
+
 	/**
 	 * Removed the specified system from the world.
-	 * @param system to be deleted from world.
+	 * 
+	 * @param system
+	 *            to be deleted from world.
 	 */
 	public void deleteSystem ( final EntitySystem system )
 	{
 		systems.remove( system.getClass() );
 		systemsBag.remove( system );
 	}
-	
+
 	private void notifySystems ( final Performer performer, final Entity e )
 	{
-		for ( int i = 0; i < systemsBag.size(); ++i )
+		final EntitySystem[] sArray = systemsBag.getData();
+		final int size = systemsBag.size();
+
+		for ( int i = 0; i < size; ++i )
 		{
-			performer.perform( systemsBag.get( i ), e );
+			performer.perform( sArray[i], e );
 		}
 	}
 
 	private void notifyManagers ( final Performer performer, final Entity e )
 	{
-		for ( int i = 0; i < managersBag.size(); ++i )
+		final Manager[] mArray = managersBag.getData();
+		final int size = managersBag.size();
+
+		for ( int i = 0; i < size; ++i )
 		{
-			performer.perform( managersBag.get( i ), e );
+			performer.perform( mArray[i], e );
 		}
 	}
-	
+
 	/**
 	 * Retrieve a system for specified system type.
 	 * 
-	 * @param type type of system.
+	 * @param type
+	 *            type of system.
 	 * @return instance of the system in this world.
 	 */
 	@SuppressWarnings("unchecked")
@@ -313,7 +336,6 @@ public class World
 		return (T) systems.get( type );
 	}
 
-	
 	/**
 	 * Performs an action on each entity.
 	 * 
@@ -322,9 +344,12 @@ public class World
 	 */
 	private void check ( final Bag<Entity> entities, final Performer performer )
 	{
-		for ( int i = 0; i < entities.size(); ++i )
+		final Entity[] eArray = entities.getData();
+		final int size = entities.size();
+
+		for ( int i = 0; i < size; ++i )
 		{
-			final Entity e = entities.get( i );
+			final Entity e = eArray[i];
 			notifyManagers( performer, e );
 			notifySystems( performer, e );
 		}
@@ -332,47 +357,12 @@ public class World
 		entities.clear();
 	}
 
-	private final Performer addedPerformer = new Performer()
-	{
-		@Override
-		public void perform ( final EntityObserver observer, final Entity e )
-		{
-			observer.added( e );
-		}
-	}, 
-	changedPerformer = new Performer()
-	{
-		@Override
-		public void perform ( final EntityObserver observer, final Entity e )
-		{
-			observer.changed( e );
-		}
-	},
-	disabledPerformer = new Performer ()
-	{
-		@Override
-		public void perform ( final EntityObserver observer, final Entity e )
-		{
-			observer.disabled( e );
-		}
-	},
-	enabledPerformer = new Performer ()
-	{
-		@Override
-		public void perform ( final EntityObserver observer, final Entity e )
-		{
-			observer.enabled( e );
-		}
-	},
-	deletedPerformer = new Performer ()
-	{
-		@Override
-		public void perform ( final EntityObserver observer, final Entity e )
-		{
-			observer.deleted( e );
-		}
-	};
-	
+	private final Performer addedPerformer = ( o, e ) -> o.added( e ), 
+							changedPerformer = ( o, e ) -> o.changed( e ), 
+							disabledPerformer = ( o, e ) -> o.disabled( e ), 
+							enabledPerformer = ( o, e ) -> o.enabled( e ), 
+							deletedPerformer = ( o, e ) -> o.deleted( e );
+
 	/**
 	 * Process all non-passive systems.
 	 */
@@ -386,29 +376,32 @@ public class World
 
 		cm.clean();
 
-		for ( int i = 0; i < systemsBag.size(); ++i )
+		final EntitySystem[] sArray = systemsBag.getData();
+		final int size = systemsBag.size();
+
+		for ( int i = 0; i < size; ++i )
 		{
-			final EntitySystem system = systemsBag.get( i );
-			
+			final EntitySystem system = sArray[i];
+
 			if ( !system.isPassive() )
 			{
 				system.process();
 			}
 		}
 	}
-	
 
 	/**
-	 * Retrieves a ComponentMapper instance for fast retrieval of components from entities.
+	 * Retrieves a ComponentMapper instance for fast retrieval of components
+	 * from entities.
 	 * 
-	 * @param type of component to get mapper for.
+	 * @param type
+	 *            of component to get mapper for.
 	 * @return mapper for specified component type.
 	 */
 	public <T extends Component> ComponentMapper<T> getMapper ( final Class<T> type )
 	{
 		return ComponentMapper.getFor( type, this );
 	}
-	
 
 	/*
 	 * Only used internally to maintain clean code.
@@ -417,7 +410,7 @@ public class World
 	{
 		void perform ( final EntityObserver observer, final Entity e );
 	}
-	
+
 	private static final class ComponentMapperInitHelper
 	{
 		@SuppressWarnings("unchecked")
