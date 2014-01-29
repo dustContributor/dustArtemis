@@ -66,9 +66,9 @@ public class Aspect
 	{
 		allSet.set( ComponentType.getIndexFor( type ) );
 
-		for ( final Class<? extends Component> t : types )
+		for ( int i = 0; i < types.length; ++i )
 		{
-			allSet.set( ComponentType.getIndexFor( t ) );
+			allSet.set( ComponentType.getIndexFor( types[i] ) );
 		}
 
 		return this;
@@ -87,9 +87,9 @@ public class Aspect
 	{
 		exclusionSet.set( ComponentType.getIndexFor( type ) );
 
-		for ( final Class<? extends Component> t : types )
+		for ( int i = 0; i < types.length; ++i )
 		{
-			exclusionSet.set( ComponentType.getIndexFor( t ) );
+			exclusionSet.set( ComponentType.getIndexFor( types[i] ) );
 		}
 		
 		return this;
@@ -106,9 +106,9 @@ public class Aspect
 	{
 		oneSet.set( ComponentType.getIndexFor( type ) );
 
-		for ( final Class<? extends Component> t : types )
+		for ( int i = 0; i < types.length; ++i )
 		{
-			oneSet.set( ComponentType.getIndexFor( t ) );
+			oneSet.set( ComponentType.getIndexFor( types[i] ) );
 		}
 		
 		return this;
