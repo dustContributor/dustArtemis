@@ -79,27 +79,32 @@ public class GroupManager extends Manager
 		if ( groups != null )
 		{
 			groups.remove( group );
+			// Artemis-ODB guys did this down here, commented out.
+			// if (groups.size() == 0) groupsByEntity.remove(e);
 		}
 	}
 
 	public void removeFromAllGroups ( final Entity e )
 	{
 		final Bag<String> groups = groupsByEntity.get( e );
-		if ( groups == null )
-		{
-			return;
-		}
 		
-		for ( int i = 0; i < groups.size(); ++i )
+		if ( groups != null )
 		{
-			final Bag<Entity> entities = entitiesByGroup.get( groups.get( i ) );
-			if ( entities != null )
+			final String[] grpArray = groups.getData();
+			final int size = groups.size();
+			
+			for ( int i = 0; i < size; ++i )
 			{
-				entities.remove( e );
+				final Bag<Entity> entities = entitiesByGroup.get( grpArray[i] );
+				
+				if ( entities != null )
+				{
+					entities.remove( e );
+				}
 			}
+			
+			groupsByEntity.remove( e );
 		}
-		
-		groupsByEntity.remove( e );
 	}
 
 	/**
@@ -157,9 +162,12 @@ public class GroupManager extends Manager
 		
 		if ( groups != null )
 		{
-			for ( int i = 0; i < groups.size(); ++i )
+			final String[] grpArray = groups.getData();
+			final int size = groups.size();
+			
+			for ( int i = 0; i < size; ++i )
 			{
-				if ( group.equals( groups.get( i ) ) )
+				if ( group.equals( grpArray[i] ) )
 				{
 					return true;
 				}
