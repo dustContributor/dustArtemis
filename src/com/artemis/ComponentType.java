@@ -1,6 +1,6 @@
 package com.artemis;
 
-import java.util.IdentityHashMap;
+import java.util.HashMap;
 
 public class ComponentType
 {
@@ -26,7 +26,7 @@ public class ComponentType
 		return "ComponentType[" + type.getSimpleName() + "] (" + index + ")";
 	}
 
-	private static final IdentityHashMap<Class<? extends Component>, ComponentType> componentTypes = new IdentityHashMap<>();
+	private static final HashMap<Class<? extends Component>, ComponentType> componentTypes = new HashMap<>();
 
 	public static final ComponentType getTypeFor ( final Class<? extends Component> c )
 	{
