@@ -3,7 +3,7 @@ package com.artemis;
 import java.util.BitSet;
 
 import com.artemis.utils.Bag;
-import com.artemis.utils.IntBag;
+import com.artemis.utils.IntStack;
 
 public class EntityManager extends Manager
 {
@@ -150,31 +150,29 @@ public class EntityManager extends Manager
 	 * Used only internally to generate distinct ids for entities and reuse
 	 * them.
 	 */
-	private final class IdentifierPool
+	private static final class IdentifierPool
 	{
-		private final IntBag ids;
+		private final IntStack idStack;
 		private int nextAvailableId;
 
 		public IdentifierPool ()
 		{
-			ids = new IntBag();
+			idStack = new IntStack( 512 );
 		}
 
-		public int checkOut ()
+		public final int checkOut ()
 		{
-			final int tmpId = ids.removeLast();
-			
-			if ( tmpId != IntBag.NOT_RETURN )
+			if ( idStack.size() > 0 )
 			{
-				return tmpId;
+				return idStack.pop();
 			}
 			
 			return nextAvailableId++;
 		}
 
-		public void checkIn ( final int id )
+		public final void checkIn ( final int id )
 		{
-			ids.add( id );
+			idStack.push( id );
 		}
 	}
 
