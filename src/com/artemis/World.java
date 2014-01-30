@@ -1,10 +1,7 @@
 package com.artemis;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
 import java.util.HashMap;
 
-import com.artemis.annotations.Mapper;
 import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
 
@@ -77,12 +74,16 @@ public class World
 		final EntitySystem[] sArray = systemsBag.getData();
 		final int size = systemsBag.size();
 
+		// Injecting all ComponentMappers into the systems.
 		for ( int i = 0; i < size; ++i )
 		{
-			final EntitySystem eSys = sArray[i];
-
-			ComponentMapperInitHelper.config( eSys, this );
-			eSys.initialize();
+			MapperImplementor.initFor( sArray[i], this );
+		}
+		
+		// Now initializing the systems.
+		for ( int i = 0; i < size; ++i )
+		{
+			sArray[i].initialize();
 		}
 	}
 
@@ -409,40 +410,6 @@ public class World
 	private static interface Performer
 	{
 		void perform ( final EntityObserver observer, final Entity e );
-	}
-
-	private static final class ComponentMapperInitHelper
-	{
-		@SuppressWarnings("unchecked")
-		public static final void config ( final Object trg, final World world )
-		{
-			final Field[] fields = trg.getClass().getDeclaredFields();
-
-			for ( int i = 0; i < fields.length; ++i )
-			{
-				final Field field = fields[i];
-
-				if ( field.getAnnotation( Mapper.class ) != null )
-				{
-					final ParameterizedType genericType = (ParameterizedType) field.getGenericType();
-					final Class<? extends Component> componentType = (Class<? extends Component>) genericType.getActualTypeArguments()[0];
-					final ComponentMapper<? extends Component> mapper = ComponentMapper.getFor( componentType, world );
-
-					field.setAccessible( true );
-
-					try
-					{
-						field.set( trg, mapper );
-					}
-					catch ( IllegalArgumentException | IllegalAccessException e )
-					{
-						throw new RuntimeException( "Error while setting component mappers", e );
-					}
-				}
-
-			}
-		}
-
 	}
 
 }
