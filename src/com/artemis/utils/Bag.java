@@ -286,20 +286,9 @@ public class Bag<T> implements ImmutableBag<T>
 	 * 
 	 * @return number of items the bag can hold without growing.
 	 */
-	public int getCapacity ()
+	public int capacity ()
 	{
 		return data.length;
-	}
-	
-	/**
-	 * Checks if the internal storage supports this index.
-	 * 
-	 * @param index
-	 * @return
-	 */
-	public boolean isIndexWithinBounds ( final int index )
-	{
-		return index < data.length;
 	}
 
 	/**
@@ -426,7 +415,7 @@ public class Bag<T> implements ImmutableBag<T>
 		}
 	}
 	
-	public T[] getData ()
+	public T[] data ()
 	{
 		return this.data;
 	}
@@ -438,7 +427,7 @@ public class Bag<T> implements ImmutableBag<T>
 		final StringBuilder str = new StringBuilder( data.length * 10  );
 		
 		str.append( super.toString() ).append( newLine );
-		str.append( "Capacity " ).append(  this.getCapacity() ).append( newLine );
+		str.append( "Capacity " ).append(  this.capacity() ).append( newLine );
 		str.append( "Size " ).append( this.size );
 		
 		for ( int i = 0; i < size; ++i )

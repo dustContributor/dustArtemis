@@ -62,7 +62,7 @@ public class World
 	public void initialize ()
 	{
 		{
-			final Manager[] mArray = managersBag.getData();
+			final Manager[] mArray = managersBag.data();
 			final int size = managersBag.size();
 
 			for ( int i = 0; i < size; ++i )
@@ -71,7 +71,7 @@ public class World
 			}
 		}
 
-		final EntitySystem[] sArray = systemsBag.getData();
+		final EntitySystem[] sArray = systemsBag.data();
 		final int size = systemsBag.size();
 
 		// Injecting all ComponentMappers into the systems.
@@ -304,7 +304,7 @@ public class World
 
 	private void notifySystems ( final Performer performer, final Entity e )
 	{
-		final EntitySystem[] sArray = systemsBag.getData();
+		final EntitySystem[] sArray = systemsBag.data();
 		final int size = systemsBag.size();
 
 		for ( int i = 0; i < size; ++i )
@@ -315,7 +315,7 @@ public class World
 
 	private void notifyManagers ( final Performer performer, final Entity e )
 	{
-		final Manager[] mArray = managersBag.getData();
+		final Manager[] mArray = managersBag.data();
 		final int size = managersBag.size();
 
 		for ( int i = 0; i < size; ++i )
@@ -345,7 +345,7 @@ public class World
 	 */
 	private void check ( final Bag<Entity> entities, final Performer performer )
 	{
-		final Entity[] eArray = entities.getData();
+		final Entity[] eArray = entities.data();
 		final int size = entities.size();
 
 		for ( int i = 0; i < size; ++i )
@@ -377,7 +377,7 @@ public class World
 
 		cm.clean();
 
-		final EntitySystem[] sArray = systemsBag.getData();
+		final EntitySystem[] sArray = systemsBag.data();
 		final int size = systemsBag.size();
 
 		for ( int i = 0; i < size; ++i )

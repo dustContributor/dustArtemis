@@ -45,9 +45,11 @@ public class ComponentMapper<T extends Component>
 	 */
 	public T getSafe ( final Entity e )
 	{
-		if ( components.isIndexWithinBounds( e.getId() ) )
+		final int id = e.getId();
+		
+		if ( id < components.capacity() )
 		{
-			return components.get( e.getId() );
+			return components.get( id );
 		}
 		
 		return null;

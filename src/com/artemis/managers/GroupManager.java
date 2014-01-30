@@ -90,7 +90,7 @@ public class GroupManager extends Manager
 		
 		if ( groups != null )
 		{
-			final String[] grpArray = groups.getData();
+			final String[] grpArray = groups.data();
 			final int size = groups.size();
 			
 			for ( int i = 0; i < size; ++i )
@@ -162,7 +162,7 @@ public class GroupManager extends Manager
 		
 		if ( groups != null )
 		{
-			final String[] grpArray = groups.getData();
+			final String[] grpArray = groups.data();
 			final int size = groups.size();
 			
 			for ( int i = 0; i < size; ++i )

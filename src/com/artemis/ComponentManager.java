@@ -108,7 +108,7 @@ public class ComponentManager extends Manager
 		
 		if ( size > 0 )
 		{
-			final Entity[] eArray = deleted.getData();
+			final Entity[] eArray = deleted.data();
 
 			for ( int i = 0; i < size; ++i )
 			{

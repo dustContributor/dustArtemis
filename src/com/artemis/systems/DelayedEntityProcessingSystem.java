@@ -45,7 +45,7 @@ public abstract class DelayedEntityProcessingSystem extends EntitySystem
 	@Override
 	protected final void processEntities ( final ImmutableBag<Entity> entities )
 	{
-		final Entity[] entityArray = ( (Bag<Entity>) entities ).getData();
+		final Entity[] entityArray = ( (Bag<Entity>) entities ).data();
 		final int size = entities.size();
 		
 		for ( int i = 0; i < size; ++i )
