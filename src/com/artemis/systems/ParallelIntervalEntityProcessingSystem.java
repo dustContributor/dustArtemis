@@ -37,7 +37,7 @@ public abstract class ParallelIntervalEntityProcessingSystem extends IntervalEnt
 	{
 		final Bag<Entity> bag = (Bag<Entity>) entities;
 		
-		final Spliterator<Entity> split = Spliterators.spliterator( bag.getData(), Spliterator.IMMUTABLE );
+		final Spliterator<Entity> split = Spliterators.spliterator( bag.data(), Spliterator.IMMUTABLE );
 		
 		final Stream<Entity> stream = StreamSupport.stream( split, true );
 		
