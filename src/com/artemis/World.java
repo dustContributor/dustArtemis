@@ -61,30 +61,12 @@ public class World
 	 */
 	public void initialize ()
 	{
-		{
-			final Manager[] mArray = managersBag.data();
-			final int size = managersBag.size();
-
-			for ( int i = 0; i < size; ++i )
-			{
-				mArray[i].initialize();
-			}
-		}
-
-		final EntitySystem[] sArray = systemsBag.data();
-		final int size = systemsBag.size();
-
+		// Initializing entity managers.
+		managersBag.stream().forEach( m -> m.initialize() );
 		// Injecting all ComponentMappers into the systems.
-		for ( int i = 0; i < size; ++i )
-		{
-			MapperImplementor.initFor( sArray[i], this );
-		}
-		
+		systemsBag.stream().forEach( s -> MapperImplementor.initFor( s, this ) );
 		// Now initializing the systems.
-		for ( int i = 0; i < size; ++i )
-		{
-			sArray[i].initialize();
-		}
+		systemsBag.stream().forEach( s -> s.initialize() );
 	}
 
 	/**
@@ -379,7 +361,7 @@ public class World
 
 		final EntitySystem[] sArray = systemsBag.data();
 		final int size = systemsBag.size();
-
+		
 		for ( int i = 0; i < size; ++i )
 		{
 			final EntitySystem system = sArray[i];
