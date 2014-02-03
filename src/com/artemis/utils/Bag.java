@@ -1,6 +1,10 @@
 package com.artemis.utils;
 
 import java.lang.reflect.Array;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 
 /**
@@ -418,6 +422,22 @@ public class Bag<T> implements ImmutableBag<T>
 	public T[] data ()
 	{
 		return this.data;
+	}
+	
+	@Override
+	public Stream<T> stream ()
+	{
+		final Spliterator<T> split = Spliterators.spliterator( data, Spliterator.IMMUTABLE );
+		
+		return StreamSupport.stream( split, false ).limit( size );
+	}
+	
+	@Override
+	public Stream<T> parallelStream ()
+	{
+		final Spliterator<T> split = Spliterators.spliterator( data, Spliterator.IMMUTABLE );
+		
+		return StreamSupport.stream( split, true ).limit( size );
 	}
 	
 	@Override

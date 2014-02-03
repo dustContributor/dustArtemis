@@ -1,5 +1,7 @@
 package com.artemis.utils;
 
+import java.util.stream.Stream;
+
 public interface ImmutableBag<T>
 {
 	int size ();
@@ -8,4 +10,7 @@ public interface ImmutableBag<T>
 	boolean contains ( final T item );
 	
 	T get ( final int index );
+	
+	Stream<T> stream();
+	Stream<T> parallelStream();
 }
