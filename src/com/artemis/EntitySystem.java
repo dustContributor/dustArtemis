@@ -1,7 +1,6 @@
 package com.artemis;
 
 import java.util.BitSet;
-import java.util.HashMap;
 
 import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
@@ -44,7 +43,10 @@ public abstract class EntitySystem implements EntityObserver
 		allSet = aspect.getAllSet();
 		exclusionSet = aspect.getExclusionSet();
 		oneSet = aspect.getOneSet();
-		systemIndex = SystemIndexManager.getIndexFor( this.getClass() );
+		systemIndex = ClassIndexer.getIndexFor ( this.getClass(), EntitySystem.class );
+		
+		System.out.println("System " + this.getClass() + " has index " + systemIndex);
+		
 		// This system can't possibly be interested in any entity, so it must be
 		// "dummy"
 		dummy = allSet.isEmpty() && oneSet.isEmpty();
@@ -249,29 +251,6 @@ public abstract class EntitySystem implements EntityObserver
 	public ImmutableBag<Entity> getActives ()
 	{
 		return actives;
-	}
-
-	/**
-	 * Used to generate a unique bit for each system. Only used internally in
-	 * EntitySystem.
-	 */
-	private static final class SystemIndexManager
-	{
-		private static int INDEX = 0;
-		private static final HashMap<Class<? extends EntitySystem>, Integer> indices = new HashMap<>();
-
-		static final int getIndexFor ( final Class<? extends EntitySystem> es )
-		{
-			Integer index = indices.get( es );
-
-			if ( index == null )
-			{
-				index = Integer.valueOf( INDEX++ );
-				indices.put( es, index );
-			}
-
-			return index.intValue();
-		}
 	}
 
 }
