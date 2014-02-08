@@ -1,17 +1,18 @@
 package com.artemis;
 
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ComponentType
 {
-	private static int INDEX = 0;
+	private static final AtomicInteger cmpTypeIndex = new AtomicInteger();
 
 	private final int index;
 	private final Class<? extends Component> type;
 
 	private ComponentType ( Class<? extends Component> type )
 	{
-		index = INDEX++;
+		this.index = cmpTypeIndex.getAndIncrement();
 		this.type = type;
 	}
 
