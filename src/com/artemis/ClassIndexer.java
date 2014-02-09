@@ -1,18 +1,20 @@
 package com.artemis;
-import java.util.HashMap;
+
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Thread safe class indexer, used for getting unique indices
- * per subclass for classes that extend whatever superclass
- * you specify.
+ * Thread safe class indexer, used for getting unique indices per subclass for
+ * classes that extend whatever superclass you specify.
  * 
  * @author dustContributor
  *
  */
 public class ClassIndexer
 {
-	private static HashMap<Class<?>, Integer> indexMap = new HashMap<>();
-	private static HashMap<Class<?>, IntCounter> counterMap = new HashMap<>();
+	private static ConcurrentHashMap<Class<?>, Integer> indexMap = 
+			new ConcurrentHashMap<>( 64, 0.75f, Runtime.getRuntime().availableProcessors() * 2 );
+	private static ConcurrentHashMap<Class<?>, IntCounter> counterMap = 
+			new ConcurrentHashMap<>( 64, 0.75f, Runtime.getRuntime().availableProcessors() * 2 );
 
 	public static <T> int getIndexFor ( Class<? extends T> type, Class<T> superType )
 	{
@@ -23,12 +25,9 @@ public class ClassIndexer
 			return i.intValue();
 		}
 
-		synchronized (ClassIndexer.class)
-		{
-			i = Integer.valueOf( getNextIndex( superType ) );
-			indexMap.put( type, i );
-			return i.intValue();
-		}
+		i = Integer.valueOf( getNextIndex( superType ) );
+		indexMap.put( type, i );
+		return i.intValue();
 	}
 
 	private static int getNextIndex ( Class<?> type )

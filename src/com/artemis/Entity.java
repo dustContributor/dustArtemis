@@ -99,24 +99,7 @@ public final class Entity
 	 */
 	public Entity addComponent ( final Component component )
 	{
-		addComponent( component, ComponentType.getTypeFor( component.getClass() ) );
-		return this;
-	}
-
-	/**
-	 * Faster adding of components into the entity. Not neccessery to use this,
-	 * but in some cases you might need the extra performance.
-	 * 
-	 * @param component
-	 *            the component to add
-	 * @param type
-	 *            of the component
-	 * 
-	 * @return this entity for chaining.
-	 */
-	public Entity addComponent ( final Component component, final ComponentType type )
-	{
-		componentManager.addComponent( this, type, component );
+		componentManager.addComponent( this, component );
 		return this;
 	}
 
@@ -135,20 +118,6 @@ public final class Entity
 	}
 
 	/**
-	 * Faster removal of components from a entity.
-	 * 
-	 * @param component
-	 *            to remove from this entity.
-	 * 
-	 * @return this entity for chaining.
-	 */
-	public Entity removeComponent ( final ComponentType type )
-	{
-		componentManager.removeComponent( this, type );
-		return this;
-	}
-
-	/**
 	 * Remove component by its type.
 	 * 
 	 * @param type
@@ -157,7 +126,7 @@ public final class Entity
 	 */
 	public Entity removeComponent ( final Class<? extends Component> type )
 	{
-		removeComponent( ComponentType.getTypeFor( type ) );
+		componentManager.removeComponent( this, type );
 		return this;
 	}
 
@@ -185,24 +154,9 @@ public final class Entity
 	}
 
 	/**
-	 * This is the preferred method to use when retrieving a component from a
-	 * entity. It will provide good performance. But the recommended way to
-	 * retrieve components from an entity is using the ComponentMapper.
-	 * 
-	 * @param type
-	 *            in order to retrieve the component fast you must provide a
-	 *            ComponentType instance for the expected component.
-	 * @return
-	 */
-	public Component getComponent ( final ComponentType type )
-	{
-		return componentManager.getComponent( this, type );
-	}
-
-	/**
-	 * Slower retrieval of components from this entity. Minimize usage of this,
-	 * but is fine to use e.g. when creating new entities and setting data in
-	 * components.
+	 * Slower retrieval of components from this entity. The recommended way to
+	 * retrieve components from an entity is using the ComponentMapper. Is fine to use 
+	 * e.g. when creating new entities and setting data in components.
 	 * 
 	 * @param <T>
 	 *            the expected return component type.
@@ -213,7 +167,7 @@ public final class Entity
 	@SuppressWarnings("unchecked")
 	public <T extends Component> T getComponent ( final Class<T> type )
 	{
-		return (T) getComponent( ComponentType.getTypeFor( type ) );
+		return (T) componentManager.getComponent( this, type );
 	}
 
 	/**

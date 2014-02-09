@@ -18,7 +18,7 @@ public class ComponentMapper<T extends Component>
 	@SuppressWarnings("unchecked")
 	private ComponentMapper ( final Class<T> type, final World world )
 	{
-		components = (Bag<T>) world.getComponentManager().getComponentsByType( ComponentType.getTypeFor( type ) );
+		components = (Bag<T>) world.getComponentManager().getComponentsByType( type );
 	}
 
 	/**
