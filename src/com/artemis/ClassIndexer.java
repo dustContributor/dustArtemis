@@ -1,6 +1,6 @@
 package com.artemis;
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
 
 /**
  * Thread safe class indexer, used for getting unique indices per subclass for
@@ -9,28 +9,41 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author dustContributor
  *
  */
-public class ClassIndexer
+public final class ClassIndexer
 {
-	private static ConcurrentHashMap<Class<?>, Integer> indexMap = 
-			new ConcurrentHashMap<>( 64, 0.75f, Runtime.getRuntime().availableProcessors() * 2 );
-	private static ConcurrentHashMap<Class<?>, IntCounter> counterMap = 
-			new ConcurrentHashMap<>( 64, 0.75f, Runtime.getRuntime().availableProcessors() * 2 );
+	private static final HashMap<Class<?>, Integer> resolvedMap = new HashMap<>();
+	private static final HashMap<Class<?>, IntCounter> counterMap = new HashMap<>();
 
-	public static <T> int getIndexFor ( Class<? extends T> type, Class<T> superType )
+	public static final <T> int getIndexFor ( Class<? extends T> type, Class<T> superType )
 	{
-		Integer i = indexMap.get( type );
+		Integer i = resolvedMap.get( type );
 
 		if ( i != null )
 		{
 			return i.intValue();
 		}
+		
+		return fallbackIndexOf( type, superType );
 
-		i = Integer.valueOf( getNextIndex( superType ) );
-		indexMap.put( type, i );
+	}
+	
+	public static final synchronized <T> int fallbackIndexOf ( Class<? extends T> type, Class<T> superType )
+	{
+		Integer i = resolvedMap.get( type );
+		
+		if ( i != null )
+		{
+			return i.intValue();
+		}
+		
+		i = Integer.valueOf( nextIndex( superType ) );
+		
+		resolvedMap.put( type, i );
+		
 		return i.intValue();
 	}
 
-	private static int getNextIndex ( Class<?> type )
+	private static final int nextIndex ( Class<?> type )
 	{
 		IntCounter i = counterMap.get( type );
 
@@ -45,7 +58,7 @@ public class ClassIndexer
 		return i.getAndIncrement();
 	}
 
-	private static class IntCounter
+	private static final class IntCounter
 	{
 		private int count;
 
@@ -54,7 +67,7 @@ public class ClassIndexer
 			count = 0;
 		}
 
-		public int getAndIncrement ()
+		public final int getAndIncrement ()
 		{
 			++count;
 			return count - 1;
