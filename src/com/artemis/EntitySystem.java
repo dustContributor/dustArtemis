@@ -45,8 +45,6 @@ public abstract class EntitySystem implements EntityObserver
 		oneSet = aspect.getOneSet();
 		systemIndex = ClassIndexer.getIndexFor ( this.getClass(), EntitySystem.class );
 		
-		System.out.println("System " + this.getClass() + " has index " + systemIndex);
-		
 		// This system can't possibly be interested in any entity, so it must be
 		// "dummy"
 		dummy = allSet.isEmpty() && oneSet.isEmpty();
