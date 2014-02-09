@@ -33,48 +33,56 @@ public class ComponentManager extends Manager
 		componentBits.clear();
 	}
 
-	protected void addComponent ( final Entity e, final ComponentType type, final Component component )
+	protected void addComponent ( final Entity e, final Component component )
 	{
-		componentsByType.ensureCapacity( type.getIndex() );
+		final int cmpIndex = ClassIndexer.getIndexFor( component.getClass(), Component.class );
+		
+		componentsByType.ensureCapacity( cmpIndex );
 
-		Bag<Component> components = componentsByType.get( type.getIndex() );
+		Bag<Component> components = componentsByType.get( cmpIndex );
 		
 		if ( components == null )
 		{
 			components = new Bag<>( Component.class );
-			componentsByType.set( type.getIndex(), components );
+			componentsByType.set( cmpIndex, components );
 		}
 
 		components.set( e.getId(), component );
 
-		e.getComponentBits().set( type.getIndex() );
+		e.getComponentBits().set( cmpIndex );
 	}
 
-	protected void removeComponent ( final Entity e, final ComponentType type )
+	protected void removeComponent ( final Entity e, final Class<? extends Component> type )
 	{
-		if ( e.getComponentBits().get( type.getIndex() ) )
+		final int cmpIndex = ClassIndexer.getIndexFor( type, Component.class );
+		
+		if ( e.getComponentBits().get( cmpIndex ) )
 		{
-			componentsByType.get( type.getIndex() ).set( e.getId(), null );
-			e.getComponentBits().clear( type.getIndex() );
+			componentsByType.get( cmpIndex ).set( e.getId(), null );
+			e.getComponentBits().clear( cmpIndex );
 		}
 	}
 
-	protected Bag<Component> getComponentsByType ( final ComponentType type )
+	protected Bag<Component> getComponentsByType ( final Class<? extends Component> type )
 	{
-		Bag<Component> components = componentsByType.get( type.getIndex() );
+		final int cmpIndex = ClassIndexer.getIndexFor( type, Component.class );
+		
+		Bag<Component> components = componentsByType.get( cmpIndex );
 		
 		if ( components == null )
 		{
 			components = new Bag<>( Component.class );
-			componentsByType.set( type.getIndex(), components );
+			componentsByType.set( cmpIndex, components );
 		}
 		
 		return components;
 	}
 
-	protected Component getComponent ( final Entity e, final ComponentType type )
+	protected Component getComponent ( final Entity e, final Class<? extends Component> type )
 	{
-		final Bag<Component> components = componentsByType.get( type.getIndex() );
+		final int cmpIndex = ClassIndexer.getIndexFor( type, Component.class );
+		
+		final Bag<Component> components = componentsByType.get( cmpIndex );
 		
 		if ( components != null )
 		{

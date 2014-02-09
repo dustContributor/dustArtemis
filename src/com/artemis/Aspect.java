@@ -64,11 +64,11 @@ public class Aspect
 	@SafeVarargs
 	public final Aspect all ( final Class<? extends Component> type, final Class<? extends Component>... types )
 	{
-		allSet.set( ComponentType.getIndexFor( type ) );
+		allSet.set( ClassIndexer.getIndexFor( type, Component.class ) );
 
 		for ( int i = 0; i < types.length; ++i )
 		{
-			allSet.set( ComponentType.getIndexFor( types[i] ) );
+			allSet.set( ClassIndexer.getIndexFor( types[i], Component.class ) );
 		}
 
 		return this;
@@ -85,11 +85,11 @@ public class Aspect
 	@SafeVarargs
 	public final Aspect exclude ( final Class<? extends Component> type, final Class<? extends Component>... types )
 	{
-		exclusionSet.set( ComponentType.getIndexFor( type ) );
+		exclusionSet.set( ClassIndexer.getIndexFor( type, Component.class ) );
 
 		for ( int i = 0; i < types.length; ++i )
 		{
-			exclusionSet.set( ComponentType.getIndexFor( types[i] ) );
+			exclusionSet.set( ClassIndexer.getIndexFor( type, Component.class ) );
 		}
 		
 		return this;
@@ -104,11 +104,11 @@ public class Aspect
 	@SafeVarargs
 	public final Aspect one ( final Class<? extends Component> type, final Class<? extends Component>... types )
 	{
-		oneSet.set( ComponentType.getIndexFor( type ) );
+		oneSet.set( ClassIndexer.getIndexFor( type, Component.class ) );
 
 		for ( int i = 0; i < types.length; ++i )
 		{
-			oneSet.set( ComponentType.getIndexFor( types[i] ) );
+			oneSet.set( ClassIndexer.getIndexFor( type, Component.class ) );
 		}
 		
 		return this;
