@@ -1,6 +1,6 @@
-package com.artemis;
+package com.artemis.utils;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Thread safe class indexer, used for getting unique indices per subclass for
@@ -11,10 +11,18 @@ import java.util.HashMap;
  */
 public final class ClassIndexer
 {
-	private static final HashMap<Class<?>, Integer> resolvedMap = new HashMap<>();
-	private static final HashMap<Class<?>, IntCounter> counterMap = new HashMap<>();
+	private static final ConcurrentHashMap<Class<?>, Integer> resolvedMap;
+	private static final ConcurrentHashMap<Class<?>, IntCounter> counterMap;
+	
+	static
+	{
+		final int concurrency = Runtime.getRuntime().availableProcessors() * 2;
+		
+		resolvedMap = new ConcurrentHashMap<>( 32, 0.75f, concurrency );
+		counterMap = new ConcurrentHashMap<>( 32, 0.75f, concurrency );
+	}
 
-	public static final <T> int getIndexFor ( Class<? extends T> type, Class<T> superType )
+	public static final <T> int getIndexFor ( final Class<? extends T> type, final Class<T> superType )
 	{
 		Integer i = resolvedMap.get( type );
 
@@ -27,7 +35,7 @@ public final class ClassIndexer
 
 	}
 	
-	public static final synchronized <T> int fallbackIndexOf ( Class<? extends T> type, Class<T> superType )
+	private static final synchronized <T> int fallbackIndexOf ( final Class<? extends T> type, final Class<T> superType )
 	{
 		Integer i = resolvedMap.get( type );
 		
@@ -43,7 +51,7 @@ public final class ClassIndexer
 		return i.intValue();
 	}
 
-	private static final int nextIndex ( Class<?> type )
+	private static final int nextIndex ( final Class<?> type )
 	{
 		IntCounter i = counterMap.get( type );
 

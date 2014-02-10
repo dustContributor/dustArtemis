@@ -3,6 +3,7 @@ package com.artemis;
 import java.util.BitSet;
 
 import com.artemis.utils.Bag;
+import com.artemis.utils.ClassIndexer;
 import com.artemis.utils.ImmutableBag;
 
 /**
