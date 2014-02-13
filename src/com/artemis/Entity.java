@@ -19,7 +19,13 @@ public final class Entity
 	
 	private int uniqueID;
 
-	private final int id;
+	/**
+	 * The internal id for this entity within the framework. No other entity
+	 * will have the same ID, but ID's are however reused so another entity may
+	 * acquire this ID if the previous entity was deleted.
+	 */
+	public final int id;
+	
 	private final BitSet componentBits;
 	private final BitSet systemBits;
 
@@ -37,18 +43,6 @@ public final class Entity
 		this.componentBits = new BitSet();
 
 		this.uniqueID = entityUniqueIDs.getAndIncrement();
-	}
-
-	/**
-	 * The internal id for this entity within the framework. No other entity
-	 * will have the same ID, but ID's are however reused so another entity may
-	 * acquire this ID if the previous entity was deleted.
-	 * 
-	 * @return id of the entity.
-	 */
-	public int getId ()
-	{
-		return id;
 	}
 
 	/**

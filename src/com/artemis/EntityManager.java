@@ -42,29 +42,29 @@ public class EntityManager extends Manager
 	{
 		active++;
 		added++;
-		entities.set( e.getId(), e );
+		entities.set( e.id, e );
 	}
 
 	@Override
 	public void enabled ( final Entity e )
 	{
-		disabled.clear( e.getId() );
+		disabled.clear( e.id );
 	}
 
 	@Override
 	public void disabled ( final Entity e )
 	{
-		disabled.set( e.getId() );
+		disabled.set( e.id );
 	}
 
 	@Override
 	public void deleted ( final Entity e )
 	{
-		entities.set( e.getId(), null );
+		entities.set( e.id, null );
 
-		disabled.clear( e.getId() );
+		disabled.clear( e.id );
 
-		identifierPool.checkIn( e.getId() );
+		identifierPool.checkIn( e.id );
 
 		active--;
 		deleted++;

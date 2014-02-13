@@ -32,7 +32,7 @@ public class ComponentMapper<T extends Component>
 	 */
 	public T get ( final Entity e )
 	{
-		return components.get( e.getId() );
+		return components.get( e.id );
 	}
 
 	/**
@@ -45,7 +45,7 @@ public class ComponentMapper<T extends Component>
 	 */
 	public T getSafe ( final Entity e )
 	{
-		final int id = e.getId();
+		final int id = e.id;
 		
 		if ( id < components.capacity() )
 		{
