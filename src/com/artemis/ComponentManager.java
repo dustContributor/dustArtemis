@@ -28,7 +28,7 @@ public class ComponentManager extends Manager
 		
 		for ( int i = componentBits.nextSetBit( 0 ); i >= 0; i = componentBits.nextSetBit( i + 1 ) )
 		{
-			componentsByType.get( i ).set( e.getId(), null );
+			componentsByType.get( i ).set( e.id, null );
 		}
 		
 		componentBits.clear();
@@ -48,7 +48,7 @@ public class ComponentManager extends Manager
 			componentsByType.set( cmpIndex, components );
 		}
 
-		components.set( e.getId(), component );
+		components.set( e.id, component );
 
 		e.getComponentBits().set( cmpIndex );
 	}
@@ -59,7 +59,7 @@ public class ComponentManager extends Manager
 		
 		if ( e.getComponentBits().get( cmpIndex ) )
 		{
-			componentsByType.get( cmpIndex ).set( e.getId(), null );
+			componentsByType.get( cmpIndex ).set( e.id, null );
 			e.getComponentBits().clear( cmpIndex );
 		}
 	}
@@ -87,7 +87,7 @@ public class ComponentManager extends Manager
 		
 		if ( components != null )
 		{
-			return components.get( e.getId() );
+			return components.get( e.id );
 		}
 		
 		return null;
@@ -99,7 +99,7 @@ public class ComponentManager extends Manager
 
 		for ( int i = componentBits.nextSetBit( 0 ); i >= 0; i = componentBits.nextSetBit( i + 1 ) )
 		{
-			fillBag.add( componentsByType.get( i ).get( e.getId() ) );
+			fillBag.add( componentsByType.get( i ).get( e.id ) );
 		}
 
 		return fillBag;
