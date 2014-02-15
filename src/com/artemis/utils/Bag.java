@@ -8,15 +8,16 @@ import java.util.stream.StreamSupport;
 
 
 /**
- * Customized unordered Bag of stuff.
+ * Customized unordered Bag of objects.
  * 
- * Warnings removed, changed array storing methods,
- * added more comments, established minimum capacity for the bag,
- * changed various methods (specially grow related ones),
- * added 'final' keyword where it was possible, fixed warnings, etc.
+ * Warnings removed, changed array storing methods, added more comments,
+ * established minimum capacity for the bag, changed various methods (specially
+ * grow related ones), added 'final' keyword where it was possible, fixed
+ * warnings, etc.
  * 
  * Hopefully some operations will be faster.
  * 
+ * @author Arni Arent
  * @author TheChubu
  *
  * @param <T>
@@ -27,54 +28,67 @@ public class Bag<T> implements ImmutableBag<T>
 	private int size = 0;
 	public final Class<?> type;
 	
-	private static final int MINIMUM_CAPACITY = 16;
+	private static final int DEFAULT_CAPACITY = 16;
 	private static final int MINIMUM_WORKING_CAPACITY = 4;
 
 	/**
-	 * Constructs an empty Bag with an initial capacity of {@value #MINIMUM_CAPACITY}
+	 * Constructs an empty Bag with an initial capacity of
+	 * {@value #DEFAULT_CAPACITY}
 	 * 
 	 */
+	@SuppressWarnings ( "unchecked" )
 	public Bag ()
 	{
-		this( MINIMUM_CAPACITY );
-	}
-	
-	/**
-	 * Constructs an empty Bag with an initial capacity of {@value #MINIMUM_CAPACITY}
-	 * Uses reflection to instantiate a backing array of the proper type.
-	 * 
-	 * @param capacity of the Bag
-	 */
-	public Bag ( final Class<T> type )
-	{
-		this( type, MINIMUM_CAPACITY );
+		this( (Class<T>) Object.class, DEFAULT_CAPACITY );
 	}
 
 	/**
 	 * Constructs an empty Bag with the specified initial capacity.
 	 * 
-	 * <p>NOTE: If capacity is less than {@value #MINIMUM_CAPACITY}, the Bag will be created with a capacity of {@value #MINIMUM_CAPACITY} instead.</p>
+	 * <p>
+	 * NOTE: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY}, the
+	 * Bag will be created with a capacity of {@value #MINIMUM_WORKING_CAPACITY}
+	 * instead.
+	 * </p>
 	 * 
-	 * @param capacity of the Bag
+	 * @param capacity
+	 *            of the Bag
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings ( "unchecked" )
 	public Bag ( final int capacity )
 	{
-		data = (T[]) new Object[ ( capacity > MINIMUM_CAPACITY ) ? capacity : MINIMUM_CAPACITY];
-		type = Object.class;
+		this( (Class<T>) Object.class, capacity );
+	}
+	
+	/**
+	 * Constructs an empty Bag with an initial capacity of
+	 * {@value #DEFAULT_CAPACITY} Uses reflection to instantiate a backing array
+	 * of the proper type.
+	 * 
+	 * @param capacity
+	 *            of the Bag
+	 */
+	public Bag ( final Class<T> type )
+	{
+		this( type, DEFAULT_CAPACITY );
 	}
 	
 	/**
 	 * Uses reflection to instantiate a backing array of the proper type.
 	 * 
-	 * <p>NOTE: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY}, the Bag will be created with a capacity of {@value #MINIMUM_WORKING_CAPACITY} instead.</p>
+	 * <p>
+	 * NOTE: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY}, the
+	 * Bag will be created with a capacity of {@value #MINIMUM_WORKING_CAPACITY}
+	 * instead.
+	 * </p>
 	 * 
-	 * @param capacity of the Bag
+	 * @param capacity
+	 *            of the Bag
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings ( "unchecked" )
 	public Bag ( final Class<T> type, final int capacity )
 	{
-		data = (T[]) Array.newInstance( type, ( capacity > MINIMUM_WORKING_CAPACITY ) ? capacity : MINIMUM_WORKING_CAPACITY );
+		this.data = (T[]) Array.newInstance( type, ( capacity > MINIMUM_WORKING_CAPACITY ) ? capacity : MINIMUM_WORKING_CAPACITY );
 		this.type = type;
 	}
 
@@ -333,15 +347,12 @@ public class Bag<T> implements ImmutableBag<T>
 	 */
 	public void set ( final int index, final T item )
 	{
-		if ( index >= data.length )
+		if ( data.length <= index )
 		{
-			grow( index + data.length );
-			size = index + 1;
+			grow( data.length + index );
 		}
-		else if ( index >= size )
-		{
-			size = index + 1;
-		}
+		
+		size = Math.max( size, index + 1 );
 		
 		data[index] = item;
 	}
