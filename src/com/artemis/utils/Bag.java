@@ -29,7 +29,10 @@ public class Bag<T> implements ImmutableBag<T>
 	public final Class<?> type;
 	
 	private static final int DEFAULT_CAPACITY = 16;
-	private static final int MINIMUM_WORKING_CAPACITY = 4;
+	private static final int MINIMUM_WORKING_CAPACITY = 8;
+	private static final int GROW_RATE_THRESHOLD = 1024;
+	
+	private GrowStrategy growStrategy;
 
 	/**
 	 * Constructs an empty Bag with an initial capacity of
@@ -90,6 +93,25 @@ public class Bag<T> implements ImmutableBag<T>
 	{
 		this.data = (T[]) Array.newInstance( type, ( capacity > MINIMUM_WORKING_CAPACITY ) ? capacity : MINIMUM_WORKING_CAPACITY );
 		this.type = type;
+		this.growStrategy = () -> 
+		{
+			if ( size < GROW_RATE_THRESHOLD )
+			{
+				// Exponential growth.
+				int len = data.length;
+				grow( len + len );
+				return;
+			}
+			
+			growStrategy = () ->
+			{
+				// Grow by half the capacity.
+				int len = data.length;
+				grow( len + ( len >> 1 ) );
+			};
+			
+			growStrategy.grow();
+		};
 	}
 
 	/**
@@ -331,7 +353,7 @@ public class Bag<T> implements ImmutableBag<T>
 		// if size greater than capacity then increase capacity.
 		if ( size >= data.length )
 		{
-			grow();
+			growStrategy.grow();
 		}
 
 		data[size] = item;
@@ -357,13 +379,6 @@ public class Bag<T> implements ImmutableBag<T>
 		data[index] = item;
 	}
 
-	private void grow ()
-	{
-		final int len = data.length;
-		final int newLen = len + ( len >> 1 );
-		grow( newLen );
-	}
-	
 	@SuppressWarnings("unchecked")
 	private void grow ( final int newCapacity )
 	{
@@ -449,6 +464,12 @@ public class Bag<T> implements ImmutableBag<T>
 		final Spliterator<T> split = Spliterators.spliterator( data, Spliterator.IMMUTABLE );
 		
 		return StreamSupport.stream( split, true ).limit( size );
+	}
+	
+	@FunctionalInterface
+	private interface GrowStrategy
+	{
+		public void grow();
 	}
 	
 	@Override
