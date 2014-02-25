@@ -187,7 +187,7 @@ public class World
 	 */
 	public void deleteEntity ( final Entity e )
 	{
-		if ( !deleted.contains( e ) )
+		if ( deleted.contains( e ) < 0 )
 		{
 			deleted.add( e );
 		}

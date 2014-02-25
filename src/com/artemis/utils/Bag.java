@@ -113,16 +113,110 @@ public class Bag<T> implements ImmutableBag<T>
 			growStrategy.grow();
 		};
 	}
+	
+
+	/**
+	 * Adds the specified item to the end of this bag.
+	 * 
+	 * It will increase the size of the bag as required.
+	 * 
+	 * @param item to be added to this list
+	 */
+	public void add ( final T item )
+	{
+		// if size greater than capacity then increase capacity.
+		if ( size >= data.length )
+		{
+			growStrategy.grow();
+		}
+
+		addUnsafe( item );
+	}
+	
+	/**
+	 * Adds the specified item to the end of this bag. 
+	 * 
+	 * <p><b>UNSAFE: Avoids doing any bounds check.</b></p>
+	 * 
+	 * @param item to be added to this list
+	 */
+	public void addUnsafe ( final T item )
+	{
+		// Set the new item.
+		data[size] = item;
+		// Increment size.
+		++size;
+	}
+
+	/**
+	 * Set item at specified index in the bag.
+	 * 
+	 * It will increase the size of the bag as required.
+	 * 
+	 * @param index of item
+	 * @param item
+	 */
+	public void set ( final int index, final T item )
+	{
+		if ( index < 0 )
+		{
+			return;
+		}
+		
+		if ( index >= data.length )
+		{
+			grow( data.length + index );
+		}
+		
+		setUnsafe( index, item );
+	}
+	
+	/**
+	 * Set item at specified index in the bag.
+	 * 
+	 * <p><b>UNSAFE: Avoids doing any bounds check.</b></p>
+	 * 
+	 * @param index of item
+	 * @param item
+	 */
+	public void setUnsafe ( final int index, final T item )
+	{
+		size = Math.max( size, index + 1 );
+		data[index] = item;
+	}
+	
+	/**
+	 * Removes the item at the specified position in this Bag. Does this by
+	 * overwriting it was last item then removing last item.
+	 * 
+	 * It returns null if the index its outside bounds or
+	 * if the item at the index was null.
+	 * 
+	 * @param index
+	 *            the index of item to be removed
+	 * @return item that was removed from the Bag.
+	 */
+	public T remove ( final int index )
+	{
+		if ( isInBounds( index ) )
+		{
+			return removeUnsafe( index );
+		}
+		
+		return null;
+	}
 
 	/**
 	 * Removes the item at the specified position in this Bag. Does this by
-	 * overwriting it was last item then removing last item
+	 * overwriting it was last item then removing last item.
+	 * 
+	 * <p><b>UNSAFE: Avoids doing any bounds check.</b></p>
 	 * 
 	 * @param index
 	 *            the index of item to be removed
 	 * @return item that was removed from the Bag
 	 */
-	public T remove ( final int index )
+	public T removeUnsafe ( final int index )
 	{
 		// Item ref copy.
 		final T item = data[index]; 
@@ -134,6 +228,23 @@ public class Bag<T> implements ImmutableBag<T>
 		data[size] = null;
 		// Return removed item.
 		return item;
+	}
+	
+	@Override
+	public T get ( final int index )
+	{
+		if ( isInBounds( index ) )
+		{
+			return getUnsafe( index );
+		}
+		
+		return null;
+	}
+
+	@Override
+	public T getUnsafe ( final int index )
+	{
+		return data[index];
 	}
 	
 	/**
@@ -211,26 +322,20 @@ public class Bag<T> implements ImmutableBag<T>
 		return false;
 	}
 	
-	/**
-	 * Check if the bag contains this item.
-	 * 
-	 * @param item
-	 * @return
-	 */
 	@Override
-	public boolean contains ( final T item )
+	public int contains ( final T item )
 	{
 		for ( int i = 0; i < size; ++i )
 		{
 			if ( item == data[i] )
 			{
-				// Item found.
-				return true;
+				// Item found. Return its index.
+				return i;
 			}
 		}
 		
 		// Item not found.
-		return false;
+		return -1;
 	}
 	
 	/**
@@ -255,7 +360,7 @@ public class Bag<T> implements ImmutableBag<T>
 			{
 				if ( item1 == data[j] )
 				{
-					remove( j );
+					removeUnsafe( j );
 					--j;
 					modified = true;
 					break;
@@ -281,13 +386,13 @@ public class Bag<T> implements ImmutableBag<T>
 		
 		for ( int i = 0; i < bagSize; ++i )
 		{
-			final T item1 = bag.get( i );
+			final T item1 = bag.getUnsafe( i );
 
 			for ( int j = 0; j < size; ++j )
 			{
 				if ( item1 == data[j] )
 				{
-					remove( j );
+					removeUnsafe( j );
 					--j;
 					modified = true;
 					break;
@@ -298,85 +403,22 @@ public class Bag<T> implements ImmutableBag<T>
 		return modified;
 	}
 
-	/**
-	 * Returns the item at the specified position in Bag.
-	 * 
-	 * @param index of the item to return
-	 * @return item at the specified position in bag
-	 */
-	@Override
-	public T get ( final int index )
-	{
-		return data[index];
-	}
-
-	/**
-	 * Returns the number of items in this bag.
-	 * 
-	 * @return number of items in this bag.
-	 */
 	@Override
 	public int size ()
 	{
 		return size;
 	}
 	
-	/**
-	 * Returns the number of items the bag can hold without growing.
-	 * 
-	 * @return number of items the bag can hold without growing.
-	 */
+	@Override
 	public int capacity ()
 	{
 		return data.length;
 	}
 
-	/**
-	 * Returns true if this list contains no items.
-	 * 
-	 * @return true if this list contains no items
-	 */
 	@Override
 	public boolean isEmpty ()
 	{
 		return size < 1;
-	}
-
-	/**
-	 * Adds the specified item to the end of this bag. if needed also
-	 * increases the capacity of the bag.
-	 * 
-	 * @param item to be added to this list
-	 */
-	public void add ( final T item )
-	{
-		// if size greater than capacity then increase capacity.
-		if ( size >= data.length )
-		{
-			growStrategy.grow();
-		}
-
-		data[size] = item;
-		// Increment size.
-		++size;
-	}
-
-	/**
-	 * Set item at specified index in the bag.
-	 * 
-	 * @param index of item
-	 * @param item
-	 */
-	public void set ( final int index, final T item )
-	{
-		if ( data.length <= index )
-		{
-			grow( data.length + index );
-		}
-		
-		size = Math.max( size, index + 1 );
-		
-		data[index] = item;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -441,7 +483,7 @@ public class Bag<T> implements ImmutableBag<T>
 		
 		for ( int i = 0; i < itemsSize; ++i )
 		{
-			add( items.get( i ) );
+			add( items.getUnsafe( i ) );
 		}
 	}
 	
@@ -464,6 +506,11 @@ public class Bag<T> implements ImmutableBag<T>
 		final Spliterator<T> split = Spliterators.spliterator( data, Spliterator.IMMUTABLE );
 		
 		return StreamSupport.stream( split, true ).limit( size );
+	}
+	
+	private boolean isInBounds ( final int index )
+	{
+		return ( index > -1 && index < data.length );
 	}
 	
 	@FunctionalInterface

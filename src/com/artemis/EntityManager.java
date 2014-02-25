@@ -79,7 +79,7 @@ public class EntityManager extends Manager
 	 */
 	public boolean isActive ( final int entityId )
 	{
-		return entities.get( entityId ) != null;
+		return entities.getUnsafe( entityId ) != null;
 	}
 
 	/**
@@ -101,7 +101,7 @@ public class EntityManager extends Manager
 	 */
 	protected Entity getEntity ( final int entityId )
 	{
-		return entities.get( entityId );
+		return entities.getUnsafe( entityId );
 	}
 
 	/**
