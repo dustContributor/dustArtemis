@@ -22,6 +22,7 @@ public class World
 	private final ComponentManager cm;
 
 	public float delta;
+	
 	private final Bag<Entity> added;
 	private final Bag<Entity> changed;
 	private final Bag<Entity> deleted;
@@ -63,8 +64,10 @@ public class World
 	{
 		// Initializing entity managers.
 		managersBag.stream().forEach( m -> m.initialize() );
+		
 		// Injecting all ComponentMappers into the systems.
-		systemsBag.stream().forEach( s -> MapperImplementor.initFor( s, this ) );
+		MapperImplementor.initFor( systemsBag, this );
+		
 		// Now initializing the systems.
 		systemsBag.stream().forEach( s -> s.initialize() );
 	}

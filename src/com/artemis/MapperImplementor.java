@@ -3,6 +3,8 @@ package com.artemis;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 
+import com.artemis.utils.Bag;
+
 final class MapperImplementor
 {
 	/** Non-instantiable class */
@@ -12,17 +14,38 @@ final class MapperImplementor
 	}
 
 	@SuppressWarnings("unchecked")
-	static final void initFor ( final Object trg, final World world )
+	static final void initFor ( final Bag<? extends EntitySystem> systems, final World world )
 	{
-		final Field[] fields = trg.getClass().getDeclaredFields();
-		final int size = fields.length;
+		final EntitySystem[] arSystems = systems.data();
+		final int sysLen = systems.size();
 		
-		for ( int i = 0; i < size; ++i )
+		final Bag<Field> fieldBag = new Bag<>( Field.class, 32 );
+		
+		for ( int s = 0; s < sysLen; ++s )
 		{
-			final Field field = fields[i];
-			
-			if ( field.getType() == ComponentMapper.class )
+			final EntitySystem trg = arSystems[s];
 			{
+				final Field[] fields = trg.getClass().getDeclaredFields();
+				final int fieldsLen = fields.length;
+
+				for ( int i = 0; i < fieldsLen; ++i )
+				{
+					final Field field = fields[i];
+
+					if ( field.getType() == ComponentMapper.class )
+					{
+						fieldBag.add( field );
+					}
+				}
+			}
+			
+			final Field[] fields = fieldBag.data();
+			final int fieldsLen = fieldBag.size();
+			
+			for ( int f = 0; f < fieldsLen; ++f )
+			{
+				final Field field = fields[f];
+				
 				final ParameterizedType genericType = (ParameterizedType) field.getGenericType();
 				final Class<? extends Component> componentType = (Class<? extends Component>) genericType.getActualTypeArguments()[0];
 				final ComponentMapper<? extends Component> mapper = ComponentMapper.getFor( componentType, world );
@@ -42,6 +65,8 @@ final class MapperImplementor
 					field.setAccessible( false );
 				}
 			}
+			
+			fieldBag.clear();
 		}
 	}
 }
