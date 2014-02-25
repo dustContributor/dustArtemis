@@ -1,5 +1,6 @@
 package com.artemis.utils;
 
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public interface ImmutableBag<T>
@@ -26,13 +27,23 @@ public interface ImmutableBag<T>
 	boolean isEmpty ();
 	
 	/**
-	 * Check if the bag contains this item.
+	 * Check if the bag contains this item. Uses '==' to compare items.
 	 * 
 	 * @param item
 	 * @return -1 if the item isn't contained in the bag. Otherwise
 	 * 			it returns its index.
 	 */
 	int contains ( final T item );
+	
+	/**
+	 * Iterates over the items of this Bag applying the criteria
+	 * supplied.
+	 * 
+	 * @param criteria to be used to find an item.
+	 * @return the index of the item that met the criteria, -1 if none of
+	 *         such items were found.
+	 */
+	int find ( final Predicate<T> criteria );
 	
 	/**
 	 * Returns the item at the specified position in Bag.

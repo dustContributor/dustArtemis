@@ -3,6 +3,7 @@ package com.artemis.utils;
 import java.lang.reflect.Array;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -325,9 +326,15 @@ public class Bag<T> implements ImmutableBag<T>
 	@Override
 	public int contains ( final T item )
 	{
+		return find( (i) -> i == item );
+	}
+	
+	@Override
+	public int find ( final Predicate<T> criteria )
+	{
 		for ( int i = 0; i < size; ++i )
 		{
-			if ( item == data[i] )
+			if ( criteria.test( data[i]  ) )
 			{
 				// Item found. Return its index.
 				return i;
