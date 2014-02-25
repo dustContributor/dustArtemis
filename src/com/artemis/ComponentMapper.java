@@ -32,7 +32,7 @@ public class ComponentMapper<T extends Component>
 	 */
 	public T get ( final Entity e )
 	{
-		return components.get( e.id );
+		return components.getUnsafe( e.id );
 	}
 
 	/**
@@ -49,7 +49,7 @@ public class ComponentMapper<T extends Component>
 		
 		if ( id < components.capacity() )
 		{
-			return components.get( id );
+			return components.getUnsafe( id );
 		}
 		
 		return null;

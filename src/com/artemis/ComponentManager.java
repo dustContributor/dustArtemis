@@ -28,7 +28,7 @@ public class ComponentManager extends Manager
 		
 		for ( int i = componentBits.nextSetBit( 0 ); i >= 0; i = componentBits.nextSetBit( i + 1 ) )
 		{
-			componentsByType.get( i ).set( e.id, null );
+			componentsByType.getUnsafe( i ).set( e.id, null );
 		}
 		
 		componentBits.clear();
@@ -40,7 +40,7 @@ public class ComponentManager extends Manager
 		
 		componentsByType.ensureCapacity( cmpIndex );
 
-		Bag<Component> components = componentsByType.get( cmpIndex );
+		Bag<Component> components = componentsByType.getUnsafe( cmpIndex );
 		
 		if ( components == null )
 		{
@@ -59,7 +59,7 @@ public class ComponentManager extends Manager
 		
 		if ( e.getComponentBits().get( cmpIndex ) )
 		{
-			componentsByType.get( cmpIndex ).set( e.id, null );
+			componentsByType.getUnsafe( cmpIndex ).set( e.id, null );
 			e.getComponentBits().clear( cmpIndex );
 		}
 	}
@@ -68,7 +68,7 @@ public class ComponentManager extends Manager
 	{
 		final int cmpIndex = ClassIndexer.getIndexFor( type, Component.class );
 		
-		Bag<Component> components = componentsByType.get( cmpIndex );
+		Bag<Component> components = componentsByType.getUnsafe( cmpIndex );
 		
 		if ( components == null )
 		{
@@ -83,11 +83,11 @@ public class ComponentManager extends Manager
 	{
 		final int cmpIndex = ClassIndexer.getIndexFor( type, Component.class );
 		
-		final Bag<Component> components = componentsByType.get( cmpIndex );
+		final Bag<Component> components = componentsByType.getUnsafe( cmpIndex );
 		
 		if ( components != null )
 		{
-			return components.get( e.id );
+			return components.getUnsafe( e.id );
 		}
 		
 		return null;
@@ -99,7 +99,7 @@ public class ComponentManager extends Manager
 
 		for ( int i = componentBits.nextSetBit( 0 ); i >= 0; i = componentBits.nextSetBit( i + 1 ) )
 		{
-			fillBag.add( componentsByType.get( i ).get( e.id ) );
+			fillBag.add( componentsByType.getUnsafe( i ).getUnsafe( e.id ) );
 		}
 
 		return fillBag;
