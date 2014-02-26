@@ -24,7 +24,7 @@ public class ComponentManager extends Manager
 
 	private void removeComponentsOfEntity ( final Entity e )
 	{
-		final BitSet componentBits = e.getComponentBits();
+		final BitSet componentBits = e.componentBits;
 		
 		for ( int i = componentBits.nextSetBit( 0 ); i >= 0; i = componentBits.nextSetBit( i + 1 ) )
 		{
@@ -50,17 +50,17 @@ public class ComponentManager extends Manager
 
 		components.set( e.id, component );
 
-		e.getComponentBits().set( cmpIndex );
+		e.componentBits.set( cmpIndex );
 	}
 
 	protected void removeComponent ( final Entity e, final Class<? extends Component> type )
 	{
 		final int cmpIndex = ClassIndexer.getIndexFor( type, Component.class );
 		
-		if ( e.getComponentBits().get( cmpIndex ) )
+		if ( e.componentBits.get( cmpIndex ) )
 		{
 			componentsByType.getUnsafe( cmpIndex ).set( e.id, null );
-			e.getComponentBits().clear( cmpIndex );
+			e.componentBits.clear( cmpIndex );
 		}
 	}
 
@@ -95,7 +95,7 @@ public class ComponentManager extends Manager
 
 	public Bag<Component> getComponentsFor ( final Entity e, final Bag<Component> fillBag )
 	{
-		final BitSet componentBits = e.getComponentBits();
+		final BitSet componentBits = e.componentBits;
 
 		for ( int i = componentBits.nextSetBit( 0 ); i >= 0; i = componentBits.nextSetBit( i + 1 ) )
 		{
