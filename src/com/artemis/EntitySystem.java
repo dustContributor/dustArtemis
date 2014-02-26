@@ -41,9 +41,9 @@ public abstract class EntitySystem implements EntityObserver
 	{
 		actives = new Bag<>( Entity.class );
 		// this.aspect = aspect;
-		allSet = aspect.getAllSet();
-		exclusionSet = aspect.getExclusionSet();
-		oneSet = aspect.getOneSet();
+		allSet = aspect.allSet;
+		exclusionSet = aspect.exclusionSet;
+		oneSet = aspect.oneSet;
 		systemIndex = ClassIndexer.getIndexFor ( this.getClass(), EntitySystem.class );
 		
 		// This system can't possibly be interested in any entity, so it must be
