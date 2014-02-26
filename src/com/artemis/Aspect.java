@@ -91,7 +91,7 @@ public class Aspect
 
 		for ( int i = 0; i < types.length; ++i )
 		{
-			exclusionSet.set( ClassIndexer.getIndexFor( type, Component.class ) );
+			exclusionSet.set( ClassIndexer.getIndexFor( types[i], Component.class ) );
 		}
 		
 		return this;
@@ -110,7 +110,7 @@ public class Aspect
 
 		for ( int i = 0; i < types.length; ++i )
 		{
-			oneSet.set( ClassIndexer.getIndexFor( type, Component.class ) );
+			oneSet.set( ClassIndexer.getIndexFor( types[i], Component.class ) );
 		}
 		
 		return this;
