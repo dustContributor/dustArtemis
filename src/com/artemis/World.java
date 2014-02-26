@@ -1,6 +1,7 @@
 package com.artemis;
 
 import java.util.HashMap;
+import java.util.function.BiConsumer;
 
 import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
@@ -289,25 +290,25 @@ public class World
 		systemsBag.remove( system );
 	}
 
-	private void notifySystems ( final Performer performer, final Entity e )
+	private void notifySystems ( final BiConsumer<EntityObserver, Entity> performer, final Entity e )
 	{
 		final EntitySystem[] sArray = systemsBag.data();
 		final int size = systemsBag.size();
 
 		for ( int i = 0; i < size; ++i )
 		{
-			performer.perform( sArray[i], e );
+			performer.accept( sArray[i], e );
 		}
 	}
 
-	private void notifyManagers ( final Performer performer, final Entity e )
+	private void notifyManagers ( final BiConsumer<EntityObserver, Entity> performer, final Entity e )
 	{
 		final Manager[] mArray = managersBag.data();
 		final int size = managersBag.size();
 
 		for ( int i = 0; i < size; ++i )
 		{
-			performer.perform( mArray[i], e );
+			performer.accept( mArray[i], e );
 		}
 	}
 
@@ -330,7 +331,7 @@ public class World
 	 * @param entities
 	 * @param performer
 	 */
-	private void check ( final Bag<Entity> entities, final Performer performer )
+	private void check ( final Bag<Entity> entities, final BiConsumer<EntityObserver, Entity> performer )
 	{
 		final Entity[] eArray = entities.data();
 		final int size = entities.size();
@@ -345,22 +346,16 @@ public class World
 		entities.clear();
 	}
 
-	private final Performer addedPerformer = ( o, e ) -> o.added( e ), 
-							changedPerformer = ( o, e ) -> o.changed( e ), 
-							disabledPerformer = ( o, e ) -> o.disabled( e ), 
-							enabledPerformer = ( o, e ) -> o.enabled( e ), 
-							deletedPerformer = ( o, e ) -> o.deleted( e );
-
 	/**
 	 * Process all non-passive systems.
 	 */
 	public void process ()
 	{
-		check( added, addedPerformer );
-		check( changed, changedPerformer );
-		check( disable, disabledPerformer );
-		check( enable, enabledPerformer );
-		check( deleted, deletedPerformer );
+		check( added, ( o, e ) -> o.added( e ) );
+		check( changed, ( o, e ) -> o.changed( e ) );
+		check( disable, ( o, e ) -> o.disabled( e ) );
+		check( enable, ( o, e ) -> o.enabled( e ) );
+		check( deleted, ( o, e ) -> o.deleted( e ) );
 
 		cm.clean();
 
@@ -389,14 +384,6 @@ public class World
 	public <T extends Component> ComponentMapper<T> getMapper ( final Class<T> type )
 	{
 		return new ComponentMapper<>( type, this );
-	}
-
-	/*
-	 * Only used internally to maintain clean code.
-	 */
-	private static interface Performer
-	{
-		void perform ( final EntityObserver observer, final Entity e );
 	}
 
 }
