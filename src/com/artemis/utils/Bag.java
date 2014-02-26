@@ -3,6 +3,7 @@ package com.artemis.utils;
 import java.lang.reflect.Array;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.function.IntSupplier;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -26,24 +27,24 @@ import java.util.stream.StreamSupport;
 public class Bag<T> implements ImmutableBag<T>
 {
 	private T[] data;
-	private int size = 0;
+	private int size;
+	
 	public final Class<?> type;
 	
-	private static final int DEFAULT_CAPACITY = 16;
-	private static final int MINIMUM_WORKING_CAPACITY = 8;
-	private static final int GROW_RATE_THRESHOLD = 1024;
+	private static final int 	DEFAULT_CAPACITY = 16,
+								MINIMUM_WORKING_CAPACITY = 8,
+								GROW_RATE_THRESHOLD = 2048;
 	
-	private GrowStrategy growStrategy;
+	private IntSupplier growStrategy;
 
 	/**
 	 * Constructs an empty Bag with an initial capacity of
 	 * {@value #DEFAULT_CAPACITY}
 	 * 
 	 */
-	@SuppressWarnings ( "unchecked" )
 	public Bag ()
 	{
-		this( (Class<T>) Object.class, DEFAULT_CAPACITY );
+		this( DEFAULT_CAPACITY );
 	}
 
 	/**
@@ -98,20 +99,17 @@ public class Bag<T> implements ImmutableBag<T>
 		{
 			if ( size < GROW_RATE_THRESHOLD )
 			{
-				// Exponential growth.
-				int len = data.length;
-				grow( len + len );
-				return;
+				// Exponential 2 growth.
+				return ( data.length << 1 );
 			}
 			
 			growStrategy = () ->
 			{
-				// Grow by half the capacity.
-				int len = data.length;
-				grow( len + ( len >> 1 ) );
+				// Exponential 1.5 growth.
+				return data.length + ( data.length >> 1 );
 			};
 			
-			growStrategy.grow();
+			return growStrategy.getAsInt();
 		};
 	}
 	
@@ -128,7 +126,7 @@ public class Bag<T> implements ImmutableBag<T>
 		// if size greater than capacity then increase capacity.
 		if ( size >= data.length )
 		{
-			growStrategy.grow();
+			grow( growStrategy.getAsInt() );
 		}
 
 		addUnsafe( item );
@@ -518,12 +516,6 @@ public class Bag<T> implements ImmutableBag<T>
 	private boolean isInBounds ( final int index )
 	{
 		return ( index > -1 && index < data.length );
-	}
-	
-	@FunctionalInterface
-	private interface GrowStrategy
-	{
-		public void grow();
 	}
 	
 	@Override
