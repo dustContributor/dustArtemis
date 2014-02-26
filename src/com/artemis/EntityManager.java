@@ -15,13 +15,14 @@ public class EntityManager extends Manager
 	private long created;
 	private long deleted;
 
-	private final IdentifierPool identifierPool;
+	private final IntStack idStack;
+	private int nextAvailableId;
 
 	public EntityManager ()
 	{
 		entities = new Bag<>( Entity.class );
 		disabled = new BitSet();
-		identifierPool = new IdentifierPool();
+		idStack = new IntStack( 512 );
 	}
 
 	@Override
@@ -32,7 +33,7 @@ public class EntityManager extends Manager
 
 	protected Entity createEntityInstance ()
 	{
-		final Entity e = new Entity( world, identifierPool.checkOut() );
+		final Entity e = new Entity( world, checkOutId() );
 		created++;
 		return e;
 	}
@@ -64,7 +65,7 @@ public class EntityManager extends Manager
 
 		disabled.clear( e.id );
 
-		identifierPool.checkIn( e.id );
+		checkInId( e.id );
 
 		active--;
 		deleted++;
@@ -145,35 +146,20 @@ public class EntityManager extends Manager
 	{
 		return deleted;
 	}
-
-	/*
-	 * Used only internally to generate distinct ids for entities and reuse
-	 * them.
-	 */
-	private static final class IdentifierPool
+	
+	private final int checkOutId ()
 	{
-		private final IntStack idStack;
-		private int nextAvailableId;
-
-		public IdentifierPool ()
+		if ( idStack.size() > 0 )
 		{
-			idStack = new IntStack( 512 );
+			return idStack.unsafePop();
 		}
+		
+		return nextAvailableId++;
+	}
 
-		public final int checkOut ()
-		{
-			if ( idStack.size() > 0 )
-			{
-				return idStack.unsafePop();
-			}
-			
-			return nextAvailableId++;
-		}
-
-		public final void checkIn ( final int id )
-		{
-			idStack.push( id );
-		}
+	private final void checkInId ( final int id )
+	{
+		idStack.push( id );
 	}
 
 }

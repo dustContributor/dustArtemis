@@ -12,16 +12,6 @@ public abstract class Manager implements EntityObserver
 
 	protected abstract void initialize ();
 
-	protected void setWorld ( World world )
-	{
-		this.world = world;
-	}
-
-	protected World getWorld ()
-	{
-		return world;
-	}
-
 	@Override
 	public void added ( Entity e )
 	{

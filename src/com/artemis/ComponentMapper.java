@@ -15,8 +15,16 @@ public class ComponentMapper<T extends Component>
 {
 	private final Bag<T> components;
 
+	/**
+	 * Creates a component mapper for this type of components.
+	 * 
+	 * @param type
+	 *            the type of components this mapper uses.
+	 * @param world
+	 *            the world that this component mapper should use.
+	 */
 	@SuppressWarnings("unchecked")
-	private ComponentMapper ( final Class<T> type, final World world )
+	public ComponentMapper ( final Class<T> type, final World world )
 	{
 		components = (Bag<T>) world.getComponentManager().getComponentsByType( type );
 	}
@@ -45,14 +53,7 @@ public class ComponentMapper<T extends Component>
 	 */
 	public T getSafe ( final Entity e )
 	{
-		final int id = e.id;
-		
-		if ( id < components.capacity() )
-		{
-			return components.getUnsafe( id );
-		}
-		
-		return null;
+		return components.get( e.id );
 	}
 
 	/**
@@ -65,20 +66,6 @@ public class ComponentMapper<T extends Component>
 	public boolean has ( final Entity e )
 	{
 		return getSafe( e ) != null;
-	}
-
-	/**
-	 * Returns a component mapper for this type of components.
-	 * 
-	 * @param type
-	 *            the type of components this mapper uses.
-	 * @param world
-	 *            the world that this component mapper should use.
-	 * @return a new mapper.
-	 */
-	public static final <T extends Component> ComponentMapper<T> getFor ( final Class<T> type, final World world )
-	{
-		return new ComponentMapper<>( type, world );
 	}
 
 }

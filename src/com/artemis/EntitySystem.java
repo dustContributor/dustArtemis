@@ -138,7 +138,7 @@ public abstract class EntitySystem implements EntityObserver
 			return;
 		}
 
-		final BitSet componentBits = e.getComponentBits();
+		final BitSet componentBits = e.componentBits;
 
 		boolean interested = true; // possibly interested, let's try to prove it wrong.
 
@@ -170,7 +170,7 @@ public abstract class EntitySystem implements EntityObserver
 			interested = oneSet.intersects( componentBits );
 		}
 
-		final boolean contains = e.getSystemBits().get( systemIndex );
+		final boolean contains = e.systemBits.get( systemIndex );
 
 		if ( interested && !contains )
 		{
@@ -185,14 +185,14 @@ public abstract class EntitySystem implements EntityObserver
 	private void removeFromSystem ( final Entity e )
 	{
 		actives.remove( e );
-		e.getSystemBits().clear( systemIndex );
+		e.systemBits.clear( systemIndex );
 		removed( e );
 	}
 
 	private void insertToSystem ( final Entity e )
 	{
 		actives.add( e );
-		e.getSystemBits().set( systemIndex );
+		e.systemBits.set( systemIndex );
 		inserted( e );
 	}
 
@@ -211,7 +211,7 @@ public abstract class EntitySystem implements EntityObserver
 	@Override
 	public final void deleted ( final Entity e )
 	{
-		if ( e.getSystemBits().get( systemIndex ) )
+		if ( e.systemBits.get( systemIndex ) )
 		{
 			removeFromSystem( e );
 		}
@@ -220,7 +220,7 @@ public abstract class EntitySystem implements EntityObserver
 	@Override
 	public final void disabled ( final Entity e )
 	{
-		if ( e.getSystemBits().get( systemIndex ) )
+		if ( e.systemBits.get( systemIndex ) )
 		{
 			removeFromSystem( e );
 		}

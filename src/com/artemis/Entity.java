@@ -14,9 +14,16 @@ import com.artemis.utils.Bag;
  */
 public final class Entity
 {
-	
+	/**
+	 * Provides thread safe counter for entity unique IDs.
+	 */
 	private static final AtomicInteger entityUniqueIDs = new AtomicInteger();
 	
+	/**
+	 * Unique ID per entity. It is reassigned if the entity is reset.
+	 * There can't be two entities with the same uniqueID. Unused IDs
+	 * won't be reused.
+	 */
 	private int uniqueID;
 
 	/**
@@ -26,8 +33,15 @@ public final class Entity
 	 */
 	public final int id;
 	
-	private final BitSet componentBits;
-	private final BitSet systemBits;
+	/**
+	 * BitSet instance containing bits of the components the entity possesses.
+	 */
+	protected final BitSet componentBits;
+	
+	/**
+	 * BitSet instance containing bits of the components the entity possesses.
+	 */
+	protected final BitSet systemBits;
 
 	private final World world;
 	private final EntityManager entityManager;
@@ -46,29 +60,7 @@ public final class Entity
 	}
 
 	/**
-	 * Returns a BitSet instance containing bits of the components the entity
-	 * possesses.
-	 * 
-	 * @return
-	 */
-	protected BitSet getComponentBits ()
-	{
-		return componentBits;
-	}
-
-	/**
-	 * Returns a BitSet instance containing bits of the components the entity
-	 * possesses.
-	 * 
-	 * @return
-	 */
-	protected BitSet getSystemBits ()
-	{
-		return systemBits;
-	}
-
-	/**
-	 * Make entity ready for re-use. Will generate a new uuid for the entity.
+	 * Make entity ready for re-use. Will generate a new unique id for the entity.
 	 */
 	protected void reset ()
 	{
@@ -107,8 +99,7 @@ public final class Entity
 	 */
 	public Entity removeComponent ( final Component component )
 	{
-		removeComponent( component.getClass() );
-		return this;
+		return removeComponent( component.getClass() );
 	}
 
 	/**
@@ -226,7 +217,7 @@ public final class Entity
 	 * Get the unique ID for this entity. This unique ID is unique per entity (re-used
 	 * entities get a new unique ID).
 	 * 
-	 * @return uuid instance for this entity.
+	 * @return unique ID for this entity.
 	 */
 	public int getUniqueID ()
 	{

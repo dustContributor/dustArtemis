@@ -104,7 +104,9 @@ public class World
 	{
 		managers.put( manager.getClass(), manager );
 		managersBag.add( manager );
-		manager.setWorld( this );
+		
+		manager.world = this;
+		
 		return manager;
 	}
 
@@ -386,7 +388,7 @@ public class World
 	 */
 	public <T extends Component> ComponentMapper<T> getMapper ( final Class<T> type )
 	{
-		return ComponentMapper.getFor( type, this );
+		return new ComponentMapper<>( type, this );
 	}
 
 	/*
