@@ -32,29 +32,13 @@ import com.artemis.utils.ClassIndexer;
  */
 public class Aspect
 {
+	protected final BitSet allSet,  exclusionSet, oneSet;
 
-	private final BitSet allSet = new BitSet();
-	private final BitSet exclusionSet = new BitSet();
-	private final BitSet oneSet = new BitSet();
-
-	private Aspect ()
+	public Aspect ()
 	{
-	
-	}
-
-	protected BitSet getAllSet ()
-	{
-		return allSet;
-	}
-
-	protected BitSet getExclusionSet ()
-	{
-		return exclusionSet;
-	}
-
-	protected BitSet getOneSet ()
-	{
-		return oneSet;
+		allSet = new BitSet();
+		exclusionSet = new BitSet();
+		oneSet = new BitSet();
 	}
 	
 	/**
@@ -114,54 +98,6 @@ public class Aspect
 		}
 		
 		return this;
-	}
-	
-	/**
-	 * Creates an aspect where an entity must possess all of the specified component types.
-	 * 
-	 * @param type a required component type
-	 * @param types a required component type
-	 * @return an aspect that can be matched against entities
-	 */
-	@SafeVarargs
-	public static final Aspect getAspectForAll ( final Class<? extends Component> type, final Class<? extends Component>... types )
-	{
-		final Aspect aspect = new Aspect();
-		aspect.all( type, types );
-		
-		return aspect;
-	}
-	
-	/**
-	 * Creates an aspect where an entity must possess one of the specified component types.
-	 * 
-	 * @param type one of the types the entity must possess
-	 * @param types one of the types the entity must possess
-	 * @return an aspect that can be matched against entities
-	 */
-	@SafeVarargs
-	public static final Aspect getAspectForOne ( final Class<? extends Component> type, final Class<? extends Component>... types )
-	{
-		final Aspect aspect = new Aspect();
-		aspect.one( type, types );
-		
-		return aspect;
-	}
-	
-	/**
-	 * Creates and returns an empty aspect. This can be used if you want a system that processes no entities, but
-	 * still gets invoked. Typical usages is when you need to create special purpose systems for debug rendering,
-	 * like rendering FPS, how many entities are active in the world, etc.
-	 * 
-	 * You can also use the all, one and exclude methods on this aspect, so if you wanted to create a system that
-	 * processes only entities possessing just one of the components A or B or C, then you can do:
-	 * Aspect.getEmpty().one(A,B,C);
-	 * 
-	 * @return an empty Aspect that will reject all entities.
-	 */
-	public static final Aspect getEmpty ()
-	{
-		return new Aspect();
 	}
 
 }
