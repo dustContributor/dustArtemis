@@ -1,7 +1,6 @@
 package com.artemis.managers;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import com.artemis.Manager;
 import com.artemis.utils.Bag;
@@ -20,8 +19,8 @@ import com.artemis.utils.ImmutableBag;
  */
 public class TeamManager extends Manager
 {
-	private Map<String, Bag<String>> playersByTeam;
-	private Map<String, String> teamByPlayer;
+	private final HashMap<String, Bag<String>> playersByTeam;
+	private final HashMap<String, String> teamByPlayer;
 
 	public TeamManager ()
 	{
@@ -35,41 +34,41 @@ public class TeamManager extends Manager
 		// Empty method.
 	}
 
-	public String getTeam ( String player )
+	public String getTeam ( final String player )
 	{
 		return teamByPlayer.get( player );
 	}
 
-	public void setTeam ( String player, String team )
+	public void setTeam ( final String player, final String team )
 	{
 		removeFromTeam( player );
 
 		teamByPlayer.put( player, team );
 
 		Bag<String> players = playersByTeam.get( team );
-		
+
 		if ( players == null )
 		{
 			players = new Bag<>( String.class );
 			playersByTeam.put( team, players );
 		}
-		
+
 		players.add( player );
 	}
 
-	public ImmutableBag<String> getPlayers ( String team )
+	public ImmutableBag<String> getPlayers ( final String team )
 	{
 		return playersByTeam.get( team );
 	}
 
-	public void removeFromTeam ( String player )
+	public void removeFromTeam ( final String player )
 	{
 		final String team = teamByPlayer.remove( player );
-		
+
 		if ( team != null )
 		{
 			final Bag<String> players = playersByTeam.get( team );
-			
+
 			if ( players != null )
 			{
 				players.remove( player );

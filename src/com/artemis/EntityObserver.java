@@ -1,5 +1,8 @@
 package com.artemis;
 
+/**
+ * @author Arni Arent
+ */
 public interface EntityObserver
 {
 	void added ( Entity e );

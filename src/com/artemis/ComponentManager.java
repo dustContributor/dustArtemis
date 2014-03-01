@@ -5,6 +5,9 @@ import java.util.BitSet;
 import com.artemis.utils.Bag;
 import com.artemis.utils.ClassIndexer;
 
+/**
+ * @author Arni Arent
+ */
 public class ComponentManager extends Manager
 {
 	private final Bag<Bag<Component>> componentsByType;

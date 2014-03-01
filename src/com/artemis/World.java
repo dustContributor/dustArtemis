@@ -64,13 +64,29 @@ public class World
 	public void initialize ()
 	{
 		// Initializing entity managers.
-		managersBag.stream().forEach( m -> m.initialize() );
+		{
+			final Manager[] data = managersBag.data();
+			final int size = managersBag.size();
+			
+			for ( int i = 0; i < size; ++i )
+			{
+				data[i].initialize();
+			}
+		}
 		
 		// Injecting all ComponentMappers into the systems.
 		MapperImplementor.initFor( systemsBag, this );
 		
 		// Now initializing the systems.
-		systemsBag.stream().forEach( s -> s.initialize() );
+		{
+			final EntitySystem[] data = systemsBag.data();
+			final int size = systemsBag.size();
+			
+			for ( int i = 0; i < size; ++i )
+			{
+				data[i].initialize();
+			}
+		}
 	}
 
 	/**
@@ -346,16 +362,23 @@ public class World
 		entities.clear();
 	}
 
+	private final BiConsumer<EntityObserver, Entity> 
+				bcAdded = ( o, e ) -> o.added( e ),
+				bcChanged = ( o, e ) -> o.changed( e ),
+				bcDisabled = ( o, e ) -> o.disabled( e ),
+				bcEnabled = ( o, e ) -> o.enabled( e ),
+				bcDeleted = ( o, e ) -> o.deleted( e );
+	
 	/**
 	 * Process all non-passive systems.
 	 */
 	public void process ()
 	{
-		check( added, ( o, e ) -> o.added( e ) );
-		check( changed, ( o, e ) -> o.changed( e ) );
-		check( disable, ( o, e ) -> o.disabled( e ) );
-		check( enable, ( o, e ) -> o.enabled( e ) );
-		check( deleted, ( o, e ) -> o.deleted( e ) );
+		check( added, bcAdded );
+		check( changed, bcChanged );
+		check( disable, bcDisabled );
+		check( enable, bcEnabled );
+		check( deleted, bcDeleted );
 
 		cm.clean();
 

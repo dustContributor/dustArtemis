@@ -7,7 +7,7 @@ import com.artemis.utils.ImmutableBag;
 /**
  * Parallel version of IntervalEntityProcessingSystem.
  * 
- * @author The Chubu
+ * @author dustContributor
  * 
  */
 public abstract class ParallelIntervalEntityProcessingSystem extends IntervalEntitySystem

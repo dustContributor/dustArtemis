@@ -5,6 +5,9 @@ import java.util.BitSet;
 import com.artemis.utils.Bag;
 import com.artemis.utils.IntStack;
 
+/**
+ * @author Arni Arent
+ */
 public class EntityManager extends Manager
 {
 	private final Bag<Entity> entities;

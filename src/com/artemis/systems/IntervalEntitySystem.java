@@ -13,9 +13,9 @@ import com.artemis.EntitySystem;
 public abstract class IntervalEntitySystem extends EntitySystem
 {
 	private final float interval;
-	
+
 	private float acc;
-	
+
 	public IntervalEntitySystem ( Aspect aspect, float interval )
 	{
 		super( aspect );
