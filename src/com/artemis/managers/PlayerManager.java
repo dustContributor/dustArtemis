@@ -1,13 +1,11 @@
 package com.artemis.managers;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import com.artemis.Entity;
 import com.artemis.Manager;
 import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
-
 
 /**
  * You may sometimes want to specify to which player an entity belongs to.
@@ -17,45 +15,55 @@ import com.artemis.utils.ImmutableBag;
  * @author Arni Arent
  *
  */
-public class PlayerManager extends Manager {
-	private Map<Entity, String> playerByEntity;
-	private Map<String, Bag<Entity>> entitiesByPlayer;
+public class PlayerManager extends Manager
+{
+	private final HashMap<Entity, String> playerByEntity;
+	private final HashMap<String, Bag<Entity>> entitiesByPlayer;
 
-	public PlayerManager() {
+	public PlayerManager ()
+	{
 		playerByEntity = new HashMap<>();
 		entitiesByPlayer = new HashMap<>();
 	}
-	
-	public void setPlayer(Entity e, String player) {
-		playerByEntity.put(e, player);
-		Bag<Entity> entities = entitiesByPlayer.get(player);
-		if(entities == null) {
+
+	public void setPlayer ( final Entity e, final String player )
+	{
+		playerByEntity.put( e, player );
+		Bag<Entity> entities = entitiesByPlayer.get( player );
+		if ( entities == null )
+		{
 			entities = new Bag<>( Entity.class );
-			entitiesByPlayer.put(player, entities);
+			entitiesByPlayer.put( player, entities );
 		}
-		entities.add(e);
+		entities.add( e );
 	}
-	
-	public ImmutableBag<Entity> getEntitiesOfPlayer(String player) {
-		Bag<Entity> entities = entitiesByPlayer.get(player);
-		if(entities == null) {
+
+	public ImmutableBag<Entity> getEntitiesOfPlayer ( final String player )
+	{
+		Bag<Entity> entities = entitiesByPlayer.get( player );
+		if ( entities == null )
+		{
 			entities = new Bag<>( Entity.class );
 		}
 		return entities;
 	}
-	
-	public void removeFromPlayer(Entity e) {
-		String player = playerByEntity.get(e);
-		if(player != null) {
-			Bag<Entity> entities = entitiesByPlayer.get(player);
-			if(entities != null) {
-				entities.remove(e);
+
+	public void removeFromPlayer ( final Entity e )
+	{
+		final String player = playerByEntity.get( e );
+		if ( player != null )
+		{
+			final Bag<Entity> entities = entitiesByPlayer.get( player );
+			if ( entities != null )
+			{
+				entities.remove( e );
 			}
 		}
 	}
-	
-	public String getPlayer(Entity e) {
-		return playerByEntity.get(e);
+
+	public String getPlayer ( final Entity e )
+	{
+		return playerByEntity.get( e );
 	}
 
 	@Override
@@ -65,8 +73,9 @@ public class PlayerManager extends Manager {
 	}
 
 	@Override
-	public void deleted(Entity e) {
-		removeFromPlayer(e);
+	public void deleted ( final Entity e )
+	{
+		removeFromPlayer( e );
 	}
 
 }

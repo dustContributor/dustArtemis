@@ -8,7 +8,7 @@ import com.artemis.utils.ImmutableBag;
 /**
  * A parallel EntitySystem implemented with Java 8 parallelStream().
  * 
- * @author The Chubu
+ * @author dustContributor
  *
  */
 public abstract class ParallelEntityProcessingSystem extends EntitySystem
@@ -26,7 +26,7 @@ public abstract class ParallelEntityProcessingSystem extends EntitySystem
 	 *            the entity to process.
 	 */
 	protected abstract void process ( final Entity e );
-	
+
 	@Override
 	protected void processEntities ( final ImmutableBag<Entity> entities )
 	{

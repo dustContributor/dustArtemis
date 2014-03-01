@@ -19,8 +19,8 @@ import com.artemis.utils.ImmutableBag;
  */
 public class GroupManager extends Manager
 {
-	final private HashMap<String, Bag<Entity>> entitiesByGroup;
-	final private HashMap<Entity, Bag<String>> groupsByEntity;
+	private final HashMap<String, Bag<Entity>> entitiesByGroup;
+	private final HashMap<Entity, Bag<String>> groupsByEntity;
 
 	public GroupManager ()
 	{
@@ -87,22 +87,22 @@ public class GroupManager extends Manager
 	public void removeFromAllGroups ( final Entity e )
 	{
 		final Bag<String> groups = groupsByEntity.get( e );
-		
+
 		if ( groups != null )
 		{
 			final String[] grpArray = groups.data();
 			final int size = groups.size();
-			
+
 			for ( int i = 0; i < size; ++i )
 			{
 				final Bag<Entity> entities = entitiesByGroup.get( grpArray[i] );
-				
+
 				if ( entities != null )
 				{
 					entities.remove( e );
 				}
 			}
-			
+
 			groupsByEntity.remove( e );
 		}
 	}
@@ -159,12 +159,12 @@ public class GroupManager extends Manager
 	public boolean isInGroup ( final Entity e, final String group )
 	{
 		final Bag<String> groups = groupsByEntity.get( e );
-		
+
 		if ( groups != null )
 		{
 			final String[] grpArray = groups.data();
 			final int size = groups.size();
-			
+
 			for ( int i = 0; i < size; ++i )
 			{
 				if ( group.equals( grpArray[i] ) )

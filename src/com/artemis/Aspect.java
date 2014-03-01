@@ -32,7 +32,7 @@ import com.artemis.utils.ClassIndexer;
  */
 public class Aspect
 {
-	protected final BitSet allSet,  exclusionSet, oneSet;
+	protected final BitSet allSet, exclusionSet, oneSet;
 
 	public Aspect ()
 	{
@@ -40,11 +40,15 @@ public class Aspect
 		exclusionSet = new BitSet();
 		oneSet = new BitSet();
 	}
-	
+
 	/**
-	 * Returns an aspect where an entity must possess all of the specified component types.
-	 * @param type a required component type
-	 * @param types a required component type
+	 * Returns an aspect where an entity must possess all of the specified
+	 * component types.
+	 * 
+	 * @param type
+	 *            a required component type
+	 * @param types
+	 *            a required component type
 	 * @return an aspect that can be matched against entities
 	 */
 	@SafeVarargs
@@ -59,13 +63,16 @@ public class Aspect
 
 		return this;
 	}
-	
+
 	/**
-	 * Excludes all of the specified component types from the aspect. A system will not be
-	 * interested in an entity that possesses one of the specified exclusion component types.
+	 * Excludes all of the specified component types from the aspect. A system
+	 * will not be interested in an entity that possesses one of the specified
+	 * exclusion component types.
 	 * 
-	 * @param type component type to exclude
-	 * @param types component type to exclude
+	 * @param type
+	 *            component type to exclude
+	 * @param types
+	 *            component type to exclude
 	 * @return an aspect that can be matched against entities
 	 */
 	@SafeVarargs
@@ -77,14 +84,18 @@ public class Aspect
 		{
 			exclusionSet.set( ClassIndexer.getIndexFor( types[i], Component.class ) );
 		}
-		
+
 		return this;
 	}
-	
+
 	/**
-	 * Returns an aspect where an entity must possess one of the specified component types.
-	 * @param type one of the types the entity must possess
-	 * @param types one of the types the entity must possess
+	 * Returns an aspect where an entity must possess one of the specified
+	 * component types.
+	 * 
+	 * @param type
+	 *            one of the types the entity must possess
+	 * @param types
+	 *            one of the types the entity must possess
 	 * @return an aspect that can be matched against entities
 	 */
 	@SafeVarargs
@@ -96,7 +107,7 @@ public class Aspect
 		{
 			oneSet.set( ClassIndexer.getIndexFor( types[i], Component.class ) );
 		}
-		
+
 		return this;
 	}
 

@@ -3,7 +3,7 @@ package com.artemis.utils;
 /**
  * Stack of integers.
  * 
- * @author TheChubu
+ * @author dustContributor
  */
 public final class IntStack
 {
@@ -159,7 +159,15 @@ public final class IntStack
 	private final void grow ( final int newCapacity )
 	{
 		final int[] newArray = new int[newCapacity];
-		System.arraycopy( data, 0, newArray, 0, size );
+		/*
+		 * Iterating over the array turns out to be faster for primitive types
+		 * than System.arraycopy(). Specially after a few runs.
+		 */
+		for ( int i = 0; i < data.length; ++i )
+		{
+			newArray[i] = data[i];
+		}
+
 		data = newArray;
 	}
 
