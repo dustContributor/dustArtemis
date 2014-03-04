@@ -36,7 +36,6 @@ final class MapperImplementor
 	 * @param systems that you need initialized.
 	 * @param world where the components come from.
 	 */
-	@SuppressWarnings("unchecked")
 	static final void initFor ( final Bag<? extends EntitySystem> systems, final World world )
 	{
 		final EntitySystem[] arSystems = systems.data();
@@ -48,54 +47,76 @@ final class MapperImplementor
 		// For each of the EntitySystems in systems Bag:
 		for ( int s = 0; s < sysLen; ++s )
 		{
-			final EntitySystem trg = arSystems[s];
-			{
-				final Field[] fields = trg.getClass().getDeclaredFields();
-				final int fieldsLen = fields.length;
-
-				// Collect all the fields that are of ComponentMapper class.
-				for ( int i = 0; i < fieldsLen; ++i )
-				{
-					final Field field = fields[i];
-
-					if ( field.getType() == ComponentMapper.class )
-					{
-						fieldBag.add( field );
-					}
-				}
-			}
+			final EntitySystem system = arSystems[s];
 			
-			final Field[] fields = fieldBag.data();
-			final int fieldsLen = fieldBag.size();
+			// Collect all the fields that are of ComponentMapper class in this system.
+			collectMapperFields( system.getClass().getDeclaredFields(), fieldBag );
+			// Initialize all the collected mappers in this system for the supplied World.
+			initMapperFields( fieldBag, system, world );
 			
-			// Now for each of those ComponentMapper fields in the system:
-			for ( int f = 0; f < fieldsLen; ++f )
-			{
-				final Field field = fields[f];
-				
-				final ParameterizedType genericType = (ParameterizedType) field.getGenericType();
-				final Class<? extends Component> componentType = (Class<? extends Component>) genericType.getActualTypeArguments()[0];
-				final ComponentMapper<? extends Component> mapper = new ComponentMapper<>( componentType, world );
-
-				// Set accessible through Reflection.
-				field.setAccessible( true );
-				try
-				{
-					// Assign proper ComponentMapper instance.
-					field.set( trg, mapper );
-				}
-				catch ( IllegalArgumentException | IllegalAccessException e )
-				{
-					throw new RuntimeException( "Error while setting component mappers", e );
-				}
-				finally
-				{
-					// Return the field to its initial state regardless of successful assignment or not.
-					field.setAccessible( false );
-				}
-			}
 			// Clear the field bag for the next system.
 			fieldBag.clear();
+		}
+	}
+	
+	/**
+	 * Collects all the fields that are of ComponentMapper class into the supplied bag.
+	 * 
+	 * @param fields to be checked.
+	 * @param fieldBag where the mappers will be collected.
+	 */
+	private static final void collectMapperFields ( final Field[] fields, final Bag<Field> fieldBag )
+	{
+		// Collect all the fields that are of ComponentMapper class.
+		for ( int i = 0; i < fields.length; ++i )
+		{
+			final Field field = fields[i];
+
+			if ( field.getType() == ComponentMapper.class )
+			{
+				fieldBag.add( field );
+			}
+		}
+	}
+	
+	/**
+	 * Initializes all ComponentMapper fields in the bag.
+	 * 
+	 * @param fieldBag filled with ComponentMappers.
+	 * @param system owner of these fields.
+	 * @param world where to pull the ComponentMappers from.
+	 */
+	@SuppressWarnings ( "unchecked" )
+	private static final void initMapperFields ( final Bag<Field> fieldBag, final EntitySystem system, final World world )
+	{
+		final Field[] fields = fieldBag.data();
+		final int fieldsLen = fieldBag.size();
+		
+		// Now for each of those ComponentMapper fields in the system:
+		for ( int f = 0; f < fieldsLen; ++f )
+		{
+			final Field field = fields[f];
+			
+			final ParameterizedType genericType = (ParameterizedType) field.getGenericType();
+			final Class<? extends Component> componentType = (Class<? extends Component>) genericType.getActualTypeArguments()[0];
+			final ComponentMapper<? extends Component> mapper = new ComponentMapper<>( componentType, world );
+
+			// Set accessible through Reflection.
+			field.setAccessible( true );
+			try
+			{
+				// Assign proper ComponentMapper instance.
+				field.set( system, mapper );
+			}
+			catch ( IllegalArgumentException | IllegalAccessException e )
+			{
+				throw new RuntimeException( "Error while setting component mappers", e );
+			}
+			finally
+			{
+				// Return the field to its initial state regardless of successful assignment or not.
+				field.setAccessible( false );
+			}
 		}
 	}
 }
