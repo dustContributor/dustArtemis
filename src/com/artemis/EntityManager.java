@@ -3,7 +3,7 @@ package com.artemis;
 import java.util.BitSet;
 
 import com.artemis.utils.Bag;
-import com.artemis.utils.IntStack;
+import com.artemis.utils.IdPool;
 
 /**
  * @author Arni Arent
@@ -18,14 +18,13 @@ public class EntityManager extends Manager
 	private long created;
 	private long deleted;
 
-	private final IntStack idStack;
-	private int nextAvailableId;
+	private final IdPool idPool;
 
 	public EntityManager ()
 	{
 		entities = new Bag<>( Entity.class );
 		disabled = new BitSet();
-		idStack = new IntStack( 512 );
+		idPool = new IdPool();
 	}
 
 	@Override
@@ -36,7 +35,7 @@ public class EntityManager extends Manager
 
 	protected Entity createEntityInstance ()
 	{
-		final Entity e = new Entity( world, checkOutId() );
+		final Entity e = new Entity( world, idPool.getId() );
 		created++;
 		return e;
 	}
@@ -64,11 +63,11 @@ public class EntityManager extends Manager
 	@Override
 	public void deleted ( final Entity e )
 	{
-		entities.set( e.id, null );
+		final int id = e.id;
 
-		disabled.clear( e.id );
-
-		checkInId( e.id );
+		entities.set( id, null );
+		disabled.clear( id );
+		idPool.putId( id );
 
 		active--;
 		deleted++;
@@ -148,21 +147,6 @@ public class EntityManager extends Manager
 	public long getTotalDeleted ()
 	{
 		return deleted;
-	}
-	
-	private final int checkOutId ()
-	{
-		if ( idStack.size() > 0 )
-		{
-			return idStack.unsafePop();
-		}
-		
-		return nextAvailableId++;
-	}
-
-	private final void checkInId ( final int id )
-	{
-		idStack.push( id );
 	}
 
 }
