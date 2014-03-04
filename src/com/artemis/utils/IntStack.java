@@ -10,7 +10,7 @@ public final class IntStack
 	private int[] data;
 	private int size = 0;
 
-	private static final int MINIMUM_CAPACITY = 8;
+	private static final int MINIMUM_CAPACITY = 16;
 	public static final int EMPTY_STACK = Integer.MIN_VALUE;
 
 	/**
@@ -62,7 +62,9 @@ public final class IntStack
 	/**
 	 * Removes the value in the top of the stack.
 	 * 
-	 * Doesn't checks bounds.
+	 * <p>
+	 * <b>UNSAFE: Avoids doing any bounds check.</b>
+	 * </p>
 	 * 
 	 * @return the top of the stack, or {@value #EMPTY_STACK} if it has no
 	 *         values.
@@ -74,45 +76,35 @@ public final class IntStack
 		// Return last value.
 		return data[size];
 	}
-
+	
 	/**
 	 * Returns the top value of the stack without removing it.
+	 * 
 	 * 
 	 * @return top of the stack.
 	 */
 	public final int peek ()
 	{
+		if ( size > 0 )
+		{
+			 return data[size - 1];
+		}
+		// Stack is empty.
+		return EMPTY_STACK;
+	}
+
+	/**
+	 * Returns the top value of the stack without removing it.
+	 * 
+	 * <p>
+	 * <b>UNSAFE: Avoids doing any bounds check.</b>
+	 * </p>
+	 * 
+	 * @return top of the stack.
+	 */
+	public final int unsafePeek ()
+	{
 		return data[size - 1];
-	}
-
-	/**
-	 * Returns the number of values in this bag.
-	 * 
-	 * @return number of values in this bag.
-	 */
-	public final int size ()
-	{
-		return size;
-	}
-
-	/**
-	 * Returns the number of values the bag can hold without growing.
-	 * 
-	 * @return number of values the bag can hold without growing.
-	 */
-	public final int getCapacity ()
-	{
-		return data.length;
-	}
-
-	/**
-	 * Returns true if this list contains no values.
-	 * 
-	 * @return true if this list contains no values
-	 */
-	public final boolean isEmpty ()
-	{
-		return size < 1;
 	}
 
 	/**
@@ -138,7 +130,9 @@ public final class IntStack
 	/**
 	 * Pushes the value into the top of the stack.
 	 * 
-	 * Doesn't checks bounds.
+	 * <p>
+	 * <b>UNSAFE: Avoids doing any bounds check.</b>
+	 * </p>
 	 * 
 	 * @param value
 	 *            to be added to this stack.
@@ -175,16 +169,53 @@ public final class IntStack
 	{
 		if ( count >= data.length )
 		{
-			grow( count + data.length );
+			int newSize = data.length << 1;
+			
+			while ( newSize <= count )
+			{
+				newSize <<= 1;
+			}
+			
+			grow( newSize );
 		}
 	}
 
 	/**
-	 * Set stack size to 0.
+	 * Marks the stack as empty.
 	 */
 	public final void clear ()
 	{
 		size = 0;
+	}
+	
+	/**
+	 * Returns the number of values in this bag.
+	 * 
+	 * @return number of values in this bag.
+	 */
+	public final int size ()
+	{
+		return size;
+	}
+
+	/**
+	 * Returns the number of values the bag can hold without growing.
+	 * 
+	 * @return number of values the bag can hold without growing.
+	 */
+	public final int getCapacity ()
+	{
+		return data.length;
+	}
+
+	/**
+	 * Returns true if this list contains no values.
+	 * 
+	 * @return true if this list contains no values
+	 */
+	public final boolean isEmpty ()
+	{
+		return size < 1;
 	}
 
 	@Override
