@@ -83,6 +83,10 @@ public interface ImmutableBag<T>
 	/**
 	 * Returns the item at the specified position in Bag.
 	 * 
+	 * <p>
+	 * <b>UNSAFE: Avoids doing any bounds check.</b>
+	 * </p>
+	 * 
 	 * @param index
 	 *            of the item to return
 	 * @return item at the specified position in bag
