@@ -170,6 +170,33 @@ public class Bag<T> implements ImmutableBag<T>
 	}
 	
 	/**
+	 * Add items into this bag.
+	 * 
+	 * @param items
+	 *            to add.
+	 * @param itemsLength
+	 *            of the item array that will be added.
+	 */
+	public void add ( final T[] items, final int itemsLength )
+	{
+		ensureCapacity( itemsLength + size );
+		System.arraycopy( items, 0, data, size, itemsLength );
+
+		size += itemsLength;
+	}
+	
+	/**
+	 * Add all items into this bag.
+	 * 
+	 * @param items
+	 *            to add.
+	 */
+	public void addAll ( final T[] items )
+	{
+		add( items, items.length );
+	}
+	
+	/**
 	 * Add all items into this bag.
 	 * 
 	 * @param items
@@ -177,12 +204,7 @@ public class Bag<T> implements ImmutableBag<T>
 	 */
 	public void addAll ( final Bag<T> items )
 	{
-		final int itemsSize = items.size();
-
-		ensureCapacity( itemsSize + size );
-		System.arraycopy( items.data, 0, data, size, itemsSize );
-
-		size += itemsSize;
+		add( items.data, items.size );
 	}
 
 	/**
