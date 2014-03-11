@@ -22,13 +22,11 @@ public abstract class EntitySystem implements EntityObserver
 
 	private final Bag<Entity> actives;
 
-	private final BitSet allSet;
-	private final BitSet exclusionSet;
-	private final BitSet oneSet;
+	private final BitSet allSet, exclusionSet, oneSet;
 
 	private boolean passive;
 
-	private final boolean dummy;
+	private final boolean hasNone, hasAll, hasExclusion, hasOne;
 
 	/**
 	 * Creates an entity system that uses the specified aspect as a matcher
@@ -40,15 +38,21 @@ public abstract class EntitySystem implements EntityObserver
 	public EntitySystem ( final Aspect aspect )
 	{
 		actives = new Bag<>( Entity.class );
-		// this.aspect = aspect;
+		
 		allSet = aspect.allSet;
 		exclusionSet = aspect.exclusionSet;
 		oneSet = aspect.oneSet;
+		
 		systemIndex = ClassIndexer.getIndexFor ( this.getClass(), EntitySystem.class );
 		
-		// This system can't possibly be interested in any entity, so it must be
-		// "dummy"
-		dummy = allSet.isEmpty() && oneSet.isEmpty();
+		hasAll = !allSet.isEmpty();
+		hasExclusion = !exclusionSet.isEmpty();
+		hasOne = !oneSet.isEmpty();
+		/*
+		 * This system can't possibly be interested in any entity, so it must be
+		 * "dummy"
+		 */
+		hasNone = !(hasAll || hasExclusion || hasOne);
 	}
 
 	/**
@@ -126,62 +130,104 @@ public abstract class EntitySystem implements EntityObserver
 	}
 
 	/**
-	 * Will check if the entity is of interest to this system.
+	 * will check if the entity is of interest to this system.
 	 * 
 	 * @param e
 	 *            entity to check
 	 */
 	protected final void check ( final Entity e )
 	{
-		if ( dummy )
+		// If has none, doesn't processes any entity.
+		if ( hasNone )
 		{
 			return;
 		}
 
 		final BitSet componentBits = e.componentBits;
 
-		boolean interested = true; // possibly interested, let's try to prove it wrong.
-
-		// Check if the entity possesses ALL of the components defined in the
-		// aspect.
-		if ( !allSet.isEmpty() )
+		final boolean contains = e.systemBits.get( systemIndex );
+		/*
+		 * Early rejection if the entity has an 'exclusion' component or doesn't
+		 * has any 'one' component.
+		 */
+		if ( 
+				/*
+				 * Check if the entity possesses ANY of the exclusion components, if it
+				 * does then the system is not interested.
+				 */
+				( hasExclusion && exclusionSet.intersects( componentBits ) ) 
+				/*
+				 * Check if the entity possesses ANY of the components in the oneSet. If
+				 * so, the system is interested.
+				 */
+				|| ( hasOne && !oneSet.intersects( componentBits ) ) 
+			)
+		{
+			/*
+			 * Entity system is not interested. If the entity is contained,
+			 * remove it.
+			 */
+			notInterested( e, contains );
+			return;
+		}
+		/*
+		 * Check if the entity possesses ALL of the components defined in the
+		 * aspect.
+		 */
+		if ( hasAll )
 		{
 			for ( int i = allSet.nextSetBit( 0 ); i >= 0; i = allSet.nextSetBit( i + 1 ) )
 			{
-				if ( !componentBits.get( i ) )
+				if ( componentBits.get( i ) )
 				{
-					interested = false;
-					break;
+					// Entity system is still interested, continue checking.
+					continue;
 				}
+				
+				//Entity system is not interested.
+				notInterested( e, contains );
+				return;
 			}
 		}
 
-		// Check if the entity possesses ANY of the exclusion components, if it
-		// does then the system is not interested.
-		if ( !exclusionSet.isEmpty() && interested )
-		{
-			interested = !exclusionSet.intersects( componentBits );
-		}
-
-		// Check if the entity possesses ANY of the components in the oneSet. If
-		// so, the system is interested.
-		if ( !oneSet.isEmpty() )
-		{
-			interested = oneSet.intersects( componentBits );
-		}
-
-		final boolean contains = e.systemBits.get( systemIndex );
-
-		if ( interested && !contains )
-		{
-			insertToSystem( e );
-		}
-		else if ( !interested && contains )
-		{
-			removeFromSystem( e );
-		}
+		// The entity system is interested.
+		interested( e, contains );
 	}
 
+	/**
+	 * If the entity system is not interested and it contains the entity, it
+	 * removes it from the system.
+	 * 
+	 * @param entity
+	 *            to remove if the ES contains it.
+	 * @param contains
+	 *            boolean to indicate if the ES does or not.
+	 */
+	private void notInterested ( final Entity entity, final boolean contains )
+	{
+		if ( contains )
+		{
+			removeFromSystem( entity );
+		}
+	}
+	
+	/**
+	 * If the entity system is interested and doesn't contains the entity, it
+	 * adds it to the system.
+	 * 
+	 * @param entity
+	 *            to add if the ES doesn't contains it.
+	 * @param contains
+	 *            boolean to indicate if the ES does or not.
+	 */
+	private void interested ( final Entity entity, final boolean contains )
+	{
+		if ( !contains )
+		{
+			insertToSystem( entity );
+		}
+	}
+	
 	private void removeFromSystem ( final Entity e )
 	{
 		actives.remove( e );
