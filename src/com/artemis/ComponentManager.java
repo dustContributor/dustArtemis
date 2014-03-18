@@ -90,7 +90,7 @@ public class ComponentManager extends Manager
 		
 		if ( components != null )
 		{
-			return components.getUnsafe( e.id );
+			return components.get( e.id );
 		}
 		
 		return null;
