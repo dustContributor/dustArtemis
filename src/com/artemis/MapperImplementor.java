@@ -48,9 +48,21 @@ final class MapperImplementor
 		for ( int s = 0; s < sysLen; ++s )
 		{
 			final EntitySystem system = arSystems[s];
+			/*
+			 * Iterating over superclasses until reaching EntitySystem (or as a
+			 * safety check, unti reaching Object). This allows using
+			 * EntitySystem class hierarchies inheriting mapper fields.
+			 * Otherwise mappers would only get assigned to the mappers declared
+			 * in the downmost EntitySystem subclass in the hierarchy.
+			 */
+			for ( 	Class<?> clazz = system.getClass(); 
+					clazz != EntitySystem.class && clazz != Object.class; 
+					clazz = clazz.getSuperclass() )
+			{
+				// Collect all the fields that are of ComponentMapper class in this system class.
+				collectMapperFields( clazz.getDeclaredFields(), fieldBag );
+			}
 			
-			// Collect all the fields that are of ComponentMapper class in this system.
-			collectMapperFields( system.getClass().getDeclaredFields(), fieldBag );
 			// Initialize all the collected mappers in this system for the supplied World.
 			initMapperFields( fieldBag, system, world );
 			
