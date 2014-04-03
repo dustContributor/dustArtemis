@@ -32,8 +32,15 @@ import com.artemis.utils.ClassIndexer;
  */
 public class Aspect
 {
+	// Empty aspect.
+	private static final Aspect EMPTY_ASPECT = new Aspect();
+	
+	// Bit sets marking the components this aspect is interested in.
 	protected final BitSet allSet, exclusionSet, oneSet;
 
+	/**
+	 * Creates a new empty aspect.
+	 */
 	public Aspect ()
 	{
 		allSet = new BitSet();
@@ -109,6 +116,25 @@ public class Aspect
 		}
 
 		return this;
+	}
+	
+	/**
+	 * Creates and returns an empty aspect. This can be used if you want a
+	 * system that processes no entities, but still gets invoked. Typical usages
+	 * is when you need to create special purpose systems for debug rendering,
+	 * like rendering FPS, how many entities are active in the world, etc.
+	 * 
+	 * <p>
+	 * <b>NOTE: Do not modify this aspect</b>, its a single static reference in
+	 * Aspect class, if you modify it, you modify all the aspects returned by
+	 * this method. Or you can ignore this and break everything, your call.
+	 * </p>
+	 * 
+	 * @return an empty Aspect that will reject all entities.
+	 */
+	public static final Aspect getEmpty ()
+	{
+		return EMPTY_ASPECT;
 	}
 
 }
