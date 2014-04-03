@@ -18,7 +18,7 @@ public abstract class VoidEntitySystem extends EntitySystem
 
 	public VoidEntitySystem ()
 	{
-		super( new Aspect() );
+		super( Aspect.getEmpty() );
 	}
 
 	@Override
