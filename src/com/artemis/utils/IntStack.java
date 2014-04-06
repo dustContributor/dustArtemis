@@ -10,8 +10,8 @@ public final class IntStack
 	private int[] data;
 	private int size = 0;
 
-	private static final int MINIMUM_CAPACITY = 16;
-	public static final int EMPTY_STACK = Integer.MIN_VALUE;
+	public static final int MINIMUM_CAPACITY = 16,
+							EMPTY_STACK = Integer.MIN_VALUE;
 
 	/**
 	 * Constructs an empty IntStack with an initial capacity of

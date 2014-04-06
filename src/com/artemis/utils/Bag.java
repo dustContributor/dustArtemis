@@ -45,7 +45,7 @@ public class Bag<T> implements ImmutableBag<T>
 
 	public final Class<?> type;
 
-	private static final int 	DEFAULT_CAPACITY = 16, 
+	public static final int 	DEFAULT_CAPACITY = 16, 
 								MINIMUM_WORKING_CAPACITY = 8, 
 								GROW_RATE_THRESHOLD = 2048;
 	
@@ -89,8 +89,8 @@ public class Bag<T> implements ImmutableBag<T>
 	 * {@value #DEFAULT_CAPACITY}. Uses Array.newInstance() to instantiate a
 	 * backing array of the proper type.
 	 * 
-	 * @param capacity
-	 *            of the Bag
+	 * @param type
+	 *            of the backing array.
 	 */
 	public Bag ( final Class<T> type )
 	{
@@ -107,8 +107,11 @@ public class Bag<T> implements ImmutableBag<T>
 	 * proper type.
 	 * </p>
 	 * 
+	 * @param type
+	 *            of the backing array.
+	 * 
 	 * @param capacity
-	 *            of the Bag
+	 *            of the Bag.
 	 */
 	@SuppressWarnings ( "unchecked" )
 	public Bag ( final Class<T> type, final int capacity )
