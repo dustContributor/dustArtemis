@@ -23,7 +23,7 @@ public class World
 	private final ComponentManager cm;
 
 	public float delta;
-	
+
 	private final Bag<Entity> added;
 	private final Bag<Entity> changed;
 	private final Bag<Entity> deleted;
@@ -67,21 +67,21 @@ public class World
 		{
 			final Manager[] data = managersBag.data();
 			final int size = managersBag.size();
-			
+
 			for ( int i = 0; i < size; ++i )
 			{
 				data[i].initialize();
 			}
 		}
-		
+
 		// Injecting all ComponentMappers into the systems.
 		MapperImplementor.initFor( systemsBag, this );
-		
+
 		// Now initializing the systems.
 		{
 			final EntitySystem[] data = systemsBag.data();
 			final int size = systemsBag.size();
-			
+
 			for ( int i = 0; i < size; ++i )
 			{
 				data[i].initialize();
@@ -116,14 +116,16 @@ public class World
 	 * 
 	 * @param manager
 	 *            to be added
+	 * 
+	 * @return manager passed to this method.
 	 */
 	public <T extends Manager> T setManager ( final T manager )
 	{
 		managers.put( manager.getClass(), manager );
 		managersBag.add( manager );
-		
+
 		manager.world = this;
-		
+
 		return manager;
 	}
 
@@ -135,7 +137,7 @@ public class World
 	 *            class type of the manager
 	 * @return the manager
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings ( "unchecked" )
 	public <T extends Manager> T getManager ( final Class<T> managerType )
 	{
 		return (T) managers.get( managerType );
@@ -215,6 +217,9 @@ public class World
 	/**
 	 * (Re)enable the entity in the world, after it having being disabled. Won't
 	 * do anything unless it was already disabled.
+	 * 
+	 * @param e
+	 *            entity to be enabled.
 	 */
 	public void enable ( final Entity e )
 	{
@@ -224,6 +229,9 @@ public class World
 	/**
 	 * Disable the entity from being processed. Won't delete it, it will
 	 * continue to exist but won't get processed.
+	 * 
+	 * @param e
+	 *            entity to be disabled.
 	 */
 	public void disable ( final Entity e )
 	{
@@ -335,7 +343,7 @@ public class World
 	 *            type of system.
 	 * @return instance of the system in this world.
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings ( "unchecked" )
 	public <T extends EntitySystem> T getSystem ( final Class<T> type )
 	{
 		return (T) systems.get( type );
@@ -347,7 +355,9 @@ public class World
 	 * @param entities
 	 * @param performer
 	 */
-	private void check ( final Bag<Entity> entities, final BiConsumer<EntityObserver, Entity> performer )
+	private void check (
+		final Bag<Entity> entities,
+		final BiConsumer<EntityObserver, Entity> performer )
 	{
 		final Entity[] eArray = entities.data();
 		final int size = entities.size();
@@ -362,13 +372,10 @@ public class World
 		entities.clear();
 	}
 
-	private final BiConsumer<EntityObserver, Entity> 
-				bcAdded = ( o, e ) -> o.added( e ),
-				bcChanged = ( o, e ) -> o.changed( e ),
-				bcDisabled = ( o, e ) -> o.disabled( e ),
-				bcEnabled = ( o, e ) -> o.enabled( e ),
-				bcDeleted = ( o, e ) -> o.deleted( e );
-	
+	private final BiConsumer<EntityObserver, Entity> bcAdded = ( o, e ) -> o.added( e ),
+			bcChanged = ( o, e ) -> o.changed( e ), bcDisabled = ( o, e ) -> o.disabled( e ),
+			bcEnabled = ( o, e ) -> o.enabled( e ), bcDeleted = ( o, e ) -> o.deleted( e );
+
 	/**
 	 * Process all non-passive systems.
 	 */
@@ -384,7 +391,7 @@ public class World
 
 		final EntitySystem[] sArray = systemsBag.data();
 		final int size = systemsBag.size();
-		
+
 		for ( int i = 0; i < size; ++i )
 		{
 			final EntitySystem system = sArray[i];
