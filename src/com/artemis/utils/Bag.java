@@ -222,7 +222,7 @@ public class Bag<T> implements ImmutableBag<T>
 
 		ensureCapacity( itemsSize + size );
 
-		for ( int i = 0; i < itemsSize; ++i )
+		for ( int i = itemsSize; i-- != 0; )
 		{
 			add( items.getUnsafe( i ) );
 		}
@@ -356,16 +356,7 @@ public class Bag<T> implements ImmutableBag<T>
 	 */
 	public T removeFirstUnsafe ()
 	{
-		// Decrement size.
-		--size;
-		// Save first value.
-		final T value = data[0];
-		// Replace first value with the last.
-		data[0] = data[size];
-		// Null last value.
-		data[size] = null;
-		// Return saved value.
-		return value;
+		return removeUnsafe( 0 );
 	}
 
 	/**
@@ -416,7 +407,7 @@ public class Bag<T> implements ImmutableBag<T>
 	 */
 	public boolean remove ( final T item )
 	{
-		for ( int i = 0; i < size; ++i )
+		for ( int i = size; i-- != 0; )
 		{
 			if ( item == data[i] )
 			{
@@ -440,32 +431,15 @@ public class Bag<T> implements ImmutableBag<T>
 	 * 
 	 * @param bag
 	 *            containing items to be removed from this Bag
-	 * @return {@code true} if this Bag changed as a result of the call
 	 */
-	public boolean removeAll ( final Bag<T> bag )
+	public void removeAll ( final Bag<T> bag )
 	{
-		boolean modified = false;
-
 		final T[] bagData = bag.data;
-		final int bagSize = bag.size;
 
-		for ( int i = 0; i < bagSize; ++i )
+		for ( int i = bag.size; i-- != 0; )
 		{
-			final T item1 = bagData[i];
-
-			for ( int j = 0; j < size; ++j )
-			{
-				if ( item1 == data[j] )
-				{
-					removeUnsafe( j );
-					--j;
-					modified = true;
-					break;
-				}
-			}
+			remove( bagData[i] );
 		}
-
-		return modified;
 	}
 
 	/**
@@ -474,37 +448,19 @@ public class Bag<T> implements ImmutableBag<T>
 	 * 
 	 * @param bag
 	 *            containing items to be removed from this Bag
-	 * @return {@code true} if this Bag changed as a result of the call
 	 */
-	public boolean removeAll ( final ImmutableBag<T> bag )
+	public void removeAll ( final ImmutableBag<T> bag )
 	{
-		boolean modified = false;
-
-		final int bagSize = bag.size();
-
-		for ( int i = 0; i < bagSize; ++i )
+		for ( int i = bag.size(); i-- != 0; )
 		{
-			final T item1 = bag.getUnsafe( i );
-
-			for ( int j = 0; j < size; ++j )
-			{
-				if ( item1 == data[j] )
-				{
-					removeUnsafe( j );
-					--j;
-					modified = true;
-					break;
-				}
-			}
+			remove( bag.getUnsafe( i ) );
 		}
-
-		return modified;
 	}
 	
 	@Override
 	public int find ( final Predicate<T> criteria )
 	{
-		for ( int i = 0; i < size; ++i )
+		for ( int i = size; i-- != 0; )
 		{
 			if ( criteria.test( data[i] ) )
 			{
@@ -520,7 +476,7 @@ public class Bag<T> implements ImmutableBag<T>
 	@Override
 	public T findAndGet ( final Predicate<T> criteria )
 	{
-		for ( int i = 0; i < size; ++i )
+		for ( int i = size; i-- != 0; )
 		{
 			if ( criteria.test( data[i] ) )
 			{
@@ -542,7 +498,7 @@ public class Bag<T> implements ImmutableBag<T>
 	@Override
 	public void forEach ( final Consumer<T> operation )
 	{
-		for ( int i = 0; i < size; ++i )
+		for ( int i = size; i-- != 0; )
 		{
 			operation.accept( data[i] );
 		}
