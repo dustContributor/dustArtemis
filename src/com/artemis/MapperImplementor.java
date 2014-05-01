@@ -39,13 +39,12 @@ final class MapperImplementor
 	static final void initFor ( final Bag<? extends EntitySystem> systems, final World world )
 	{
 		final EntitySystem[] arSystems = systems.data();
-		final int sysLen = systems.size();
 		
 		// Bag big enough so it shouldn't grow when adding fields to it.
 		final Bag<Field> fieldBag = new Bag<>( Field.class, 32 );
 		
 		// For each of the EntitySystems in systems Bag:
-		for ( int s = 0; s < sysLen; ++s )
+		for ( int s = systems.size(); s-- != 0; )
 		{
 			final EntitySystem system = arSystems[s];
 			/*
@@ -80,7 +79,7 @@ final class MapperImplementor
 	private static final void collectMapperFields ( final Field[] fields, final Bag<Field> fieldBag )
 	{
 		// Collect all the fields that are of ComponentMapper class.
-		for ( int i = 0; i < fields.length; ++i )
+		for ( int i = fields.length; i-- != 0; )
 		{
 			final Field field = fields[i];
 
@@ -102,10 +101,9 @@ final class MapperImplementor
 	private static final void initMapperFields ( final Bag<Field> fieldBag, final EntitySystem system, final World world )
 	{
 		final Field[] fields = fieldBag.data();
-		final int fieldsLen = fieldBag.size();
 		
 		// Now for each of those ComponentMapper fields in the system:
-		for ( int f = 0; f < fieldsLen; ++f )
+		for ( int f = fieldBag.size(); f-- != 0; )
 		{
 			final Field field = fields[f];
 			

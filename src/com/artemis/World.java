@@ -27,8 +27,8 @@ public class World
 	private final Bag<Entity> added;
 	private final Bag<Entity> changed;
 	private final Bag<Entity> deleted;
-	private final Bag<Entity> enable;
-	private final Bag<Entity> disable;
+	private final Bag<Entity> enabled;
+	private final Bag<Entity> disabled;
 
 	private final HashMap<Class<? extends Manager>, Manager> managers;
 	private final Bag<Manager> managersBag;
@@ -36,6 +36,10 @@ public class World
 	private final HashMap<Class<? extends EntitySystem>, EntitySystem> systems;
 	private final Bag<EntitySystem> systemsBag;
 
+	private final Bag<Entity>[] entBagsArray;
+	private final BiConsumer<EntityObserver, Entity>[] opsArray;
+	
+	@SuppressWarnings ( "unchecked" )
 	public World ()
 	{
 		managers = new HashMap<>();
@@ -47,14 +51,47 @@ public class World
 		added = new Bag<>( Entity.class );
 		changed = new Bag<>( Entity.class );
 		deleted = new Bag<>( Entity.class );
-		enable = new Bag<>( Entity.class );
-		disable = new Bag<>( Entity.class );
+		enabled = new Bag<>( Entity.class );
+		disabled = new Bag<>( Entity.class );
 
 		cm = new ComponentManager();
 		setManager( cm );
 
 		em = new EntityManager();
 		setManager( em );
+		
+		// Arrays for helping iteration.
+		entBagsArray = new Bag[5];
+		opsArray = new BiConsumer[5];
+		
+		initArrays();
+	}
+
+	/**
+	 * Initializes each array with their matching operator-operand.
+	 * 
+	 * <p>
+	 * For 'added' entities, operator is observer.added(entity). For 'deleted'
+	 * entities, operator is observer.deleted(entity).
+	 * </p>
+	 * And so on.
+	 */
+	private final void initArrays ()
+	{
+		opsArray[0] = ( o, e ) -> o.added( e );
+		entBagsArray[0] = added;
+		
+		opsArray[1] = ( o, e ) -> o.changed( e );
+		entBagsArray[1] = changed;
+		
+		opsArray[2] = ( o, e ) -> o.disabled( e );
+		entBagsArray[2] = disabled;
+		
+		opsArray[3] = ( o, e ) -> o.enabled( e );
+		entBagsArray[3] = enabled;
+		
+		opsArray[4] = ( o, e ) -> o.deleted( e );
+		entBagsArray[4] = deleted;
 	}
 
 	/**
@@ -223,7 +260,7 @@ public class World
 	 */
 	public void enable ( final Entity e )
 	{
-		enable.add( e );
+		enabled.add( e );
 	}
 
 	/**
@@ -235,7 +272,7 @@ public class World
 	 */
 	public void disable ( final Entity e )
 	{
-		disable.add( e );
+		disabled.add( e );
 	}
 
 	/**
@@ -314,28 +351,6 @@ public class World
 		systemsBag.remove( system );
 	}
 
-	private void notifySystems ( final BiConsumer<EntityObserver, Entity> performer, final Entity e )
-	{
-		final EntitySystem[] sArray = systemsBag.data();
-		final int size = systemsBag.size();
-
-		for ( int i = 0; i < size; ++i )
-		{
-			performer.accept( sArray[i], e );
-		}
-	}
-
-	private void notifyManagers ( final BiConsumer<EntityObserver, Entity> performer, final Entity e )
-	{
-		final Manager[] mArray = managersBag.data();
-		final int size = managersBag.size();
-
-		for ( int i = 0; i < size; ++i )
-		{
-			performer.accept( mArray[i], e );
-		}
-	}
-
 	/**
 	 * Retrieve a system for specified system type.
 	 * 
@@ -348,51 +363,67 @@ public class World
 	{
 		return (T) systems.get( type );
 	}
-
+	
 	/**
-	 * Performs an action on each entity.
-	 * 
-	 * @param entities
-	 * @param performer
+	 * Iterates over all entity bags, and which each corresponding action
+	 * (added, deleted, etc), it calls it for each entity in that bag, for each
+	 * manager and system present in this World instance.
 	 */
-	private void check (
-		final Bag<Entity> entities,
-		final BiConsumer<EntityObserver, Entity> performer )
+	private void checkAll ()
 	{
-		final Entity[] eArray = entities.data();
-		final int size = entities.size();
-
-		for ( int i = 0; i < size; ++i )
+		final int lim = entBagsArray.length;
+		// Checking all affected entities in all EntityObservers.
+		for ( int i = 0; i < lim; ++i )
 		{
-			final Entity e = eArray[i];
-			notifyManagers( performer, e );
-			notifySystems( performer, e );
+			check( opsArray[i], entBagsArray[i], managersBag );
+			check( opsArray[i], entBagsArray[i], systemsBag );
 		}
-
-		entities.clear();
+		// Clearing all the affected entities before next world update.
+		for ( int i = 0; i < lim; ++i )
+		{
+			entBagsArray[i].clear();
+		}
 	}
 
-	private final BiConsumer<EntityObserver, Entity> bcAdded = ( o, e ) -> o.added( e ),
-			bcChanged = ( o, e ) -> o.changed( e ), bcDisabled = ( o, e ) -> o.disabled( e ),
-			bcEnabled = ( o, e ) -> o.enabled( e ), bcDeleted = ( o, e ) -> o.deleted( e );
+	private static final <T extends EntityObserver> void check (
+		final BiConsumer<EntityObserver, Entity> op,
+		final Bag<Entity> entityBag,
+		final Bag<T> observerBag )
+	{
+		// Entity observers.
+		final T[] observers = observerBag.data();
+		// Entities that were affected.
+		final Entity[] entities = entityBag.data();
+		
+		final int limObs = observerBag.size();
+		final int limEnt = entityBag.size();
+
+		// For each observer in the bag.
+		for ( int o = 0; o < limObs; ++o )
+		{
+			final T observer = observers[o];
+			// For each entity affected.
+			for ( int e = 0; e < limEnt; ++e )
+			{
+				// Apply the operation.
+				op.accept( observer, entities[e] );
+			}
+		}
+	}
 
 	/**
 	 * Process all non-passive systems.
 	 */
 	public void process ()
 	{
-		check( added, bcAdded );
-		check( changed, bcChanged );
-		check( disable, bcDisabled );
-		check( enable, bcEnabled );
-		check( deleted, bcDeleted );
+		checkAll();
 
 		cm.clean();
 
 		final EntitySystem[] sArray = systemsBag.data();
-		final int size = systemsBag.size();
-
-		for ( int i = 0; i < size; ++i )
+		final int sSize = systemsBag.size();
+		
+		for ( int i = 0; i < sSize; ++i )
 		{
 			final EntitySystem system = sArray[i];
 
