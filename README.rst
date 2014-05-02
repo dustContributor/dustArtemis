@@ -31,8 +31,10 @@ Bag and ImmutableBag
 In the original Artemis codebase there wasn't a clear distinction between operations that were 'unsafe' (ie, didn't do any bounds check) and operations that were 'safe' to use. There is a distinction now between 'safe' methods and 'unsafe' methods now so you get to choose between using operations on Bags that do checks or not.
 
 You also get quite a few methods in Java 8 style like:
+    ::java
     bag.forEach( (element) -> doSomething(element) );
 Or use shiny new parallel iteration like:
+    ::java
     bag.parallelStream( (element) -> doSomethingInParallel(element) );
 
 (you can check ParallelEntityProcessingSystem for a dead simple implementation of a parallel EntitySystem)
@@ -40,18 +42,19 @@ Or use shiny new parallel iteration like:
 Bag exposes internals too, with data() method you can retrieve its backing array for fast iteration. Bag's constructor has changed and now you need to pass a Class object so it can initialize its backing array with the proper type, this allows doing iterations over the backing array without ugly casts:
 
 You initialize Bags like this:
+    ::java
     Bag<ActualType> bag = new Bag<>(ActualType.class);
 
 And instead of having to do this:
+    ::java
     Object[] array = bag.data();
-    for ( int i = 0; i < bag.size(); ++i )
-    {
+    for ( int i = 0; i < bag.size(); ++i ){
         doSomething( (ActualType)array[i] );
     }
 You can do this directly:
+    ::java
     ActualType[] array = bag.data();
-    for ( int i = 0; i < bag.size(); ++i )
-    {
+    for ( int i = 0; i < bag.size(); ++i ){
         doSomething( array[i] );
     }
 
