@@ -25,6 +25,11 @@ Bug Fixes
 - ComponentMapper field access restrictions weren't being restored after initialization, it was being kept "open" for reflection forever.
 - Probably a few more that I forgot about.
 
+Component
+--------------------
+
+Component is an interface instead of an abstract class, this allows you to use normal inheritance in your Components. That being said, using too much inheritance in with the Components defeats the idea of an ECS, so be aware of that.
+
 Bag and ImmutableBag
 --------------------
 
@@ -42,23 +47,21 @@ Bag exposes internals too, with data() method you can retrieve its backing array
 You initialize Bags like this:
     Bag<ActualType> bag = new Bag<>(ActualType.class);
 
-And instead of having to do this:
+And instead of having to do this
 
-Object[] array = bag.data();
-for ( int i = 0; i < bag.size(); ++i )
-{
-    doSomething( (ActualType)array[i] );
-}
+    Object[] array = bag.data();
+    
+    for ( int i = 0; i < bag.size(); ++i )
+        doSomething( (ActualType)array[i] );
     
 You can do this directly:
 
-ActualType[] array = bag.data();
-for ( int i = 0; i < bag.size(); ++i )
-{
-    doSomething( array[i] );
-}
+    ActualType[] array = bag.data();
+    
+    for ( int i = 0; i < bag.size(); ++i )
+        doSomething( array[i] );
 
-So its a tradeoff between uglier initialization for cleaner iteration (you'll be doing more iteration than initialization).
+It is a tradeoff between uglier initialization for cleaner iteration (you'll be doing more iteration than initialization).
 
 Bag also follows predictable growth implementing a simple grow strategy. If the number of elements is below Bag.GROW_RATE_THRESHOLD, the growth will be the double of the capacity. After that theresold, it will be (capacity + halfCapacity), its implemented that way so the backing arrays are more "tame" after a few thousand entities are added.
 
@@ -67,15 +70,22 @@ There are quite a few tweaks ( bag.clear() now uses the fastest way I know of fo
 New classes
 -----------
 
-For assigning Entity IDs, EntityManager was using its own internal identity pool, now its implemented in a more generalized way with **IdPool** class, which uses the new **IntStack** for managing integer IDs.
+- IntStack
+- IdPool
 
-**IntStack** follows the same principles of predictable growth and 'safe'/'unsafe' methods like Bag.
+For assigning Entity IDs, EntityManager was using its own internal identity pool, now its implemented in a more generalized way with IdPool class, which uses the new IntStack for managing integer IDs.
 
-There is a new **ClassIndexer** which is a (as far as I could make it) thread safe implementation of the sort of type-subtype indexing Artemis did with EntitySystems and Components.
+IntStack follows the same principles of predictable growth and 'safe'/'unsafe' methods like Bag.
+
+- ClassIndexer
+
+There is a new ClassIndexer which is a (as far as I could make it) thread safe implementation of the sort of type-subtype indexing Artemis did with EntitySystems and Components.
 
 Now instead of having their own ways to set up EntitySystem and Component indices (used in various BitSets around the framework), there is a single (more or less) generic way to request an index given a type and a super type to index from.
 
-**MapperImplementor** is a new class with a static method for initializing **ComponentMappers**. I found that looking for annotations was noticeably slower than for fields, so now MapperImplementor initializes ComponentMappers by their type, it also has a few optimizations given the new way to access Bag's backing array.
+- MapperImplementor
+
+MapperImplementor is a new class with a static method for initializing **ComponentMappers**. I found that looking for annotations was noticeably slower than for fields, so now MapperImplementor initializes ComponentMappers by their type, it also has a few optimizations given the new way to access Bag's backing array.
 
 Trimmed stuff
 -------------
