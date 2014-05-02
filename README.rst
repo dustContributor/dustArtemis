@@ -46,7 +46,7 @@ And instead of having to do this::
     Object[] array = bag.data();
     for ( int i = 0; i < bag.size(); ++i )
     {
-       doSomething( (ActualType)array[i] );
+        doSomething( (ActualType)array[i] );
     }
 You can do this directly::
     ActualType[] array = bag.data();
