@@ -11,6 +11,12 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class ClassIndexer
 {
+	/** Non-instantiable class */
+	private ClassIndexer ()
+	{
+		// Empty.
+	}
+
 	private static final ConcurrentHashMap<Class<?>, Integer> resolvedMap;
 	private static final ConcurrentHashMap<Class<?>, int[]> counterMap;
 	
