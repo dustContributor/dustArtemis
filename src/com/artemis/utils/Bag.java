@@ -53,9 +53,11 @@ public class Bag<T> implements ImmutableBag<T>
 	private IntBinaryOperator growStrategy;
 	
 	// Exponential 1.5 growth.
-	private static final IntBinaryOperator expOneHalfGrow = 
-			( dataSize, dataLength ) -> dataLength + (dataLength >> 1);
-
+	private static final int growOneHalf ( final int dataSize, final int dataLength )
+	{
+		return dataLength + (dataLength >> 1);
+	}
+	
 	/**
 	 * Constructs an empty Bag with an initial capacity of
 	 * {@value #DEFAULT_CAPACITY}. The backing array type will be Object.
@@ -128,10 +130,10 @@ public class Bag<T> implements ImmutableBag<T>
 			}
 
 			// Switch strategy.
-			growStrategy = expOneHalfGrow;
+			growStrategy = Bag::growOneHalf;
 			
 			// Next call will use the new strategy.
-			return growStrategy.applyAsInt( dataSize, dataLength );
+			return Bag.growOneHalf( dataSize, dataLength );
 		};
 	}
 
@@ -173,21 +175,22 @@ public class Bag<T> implements ImmutableBag<T>
 	}
 	
 	/**
-	 * Add items into this bag.
+	 * Add items into this bag. Does nothing if itemsLength is less than 1.
 	 * 
 	 * @param items
 	 *            to add.
 	 * @param itemsLength
 	 *            of the item array that will be added.
 	 */
-	public void add ( final T[] items, final int itemsLength )
+	public void addAll ( final T[] items, final int itemsLength )
 	{
-		ensureCapacity( itemsLength + size );
-		System.arraycopy( items, 0, data, size, itemsLength );
-
-		size += itemsLength;
+		if ( itemsLength > 0 )
+		{
+			ensureCapacity( itemsLength + size );
+			addAllUnsafe( items, itemsLength );
+		}
 	}
-	
+
 	/**
 	 * Add all items into this bag.
 	 * 
@@ -196,9 +199,28 @@ public class Bag<T> implements ImmutableBag<T>
 	 */
 	public void addAll ( final T[] items )
 	{
-		add( items, items.length );
+		ensureCapacity( items.length + size );
+		addAllUnsafe( items, items.length );
 	}
-	
+
+	/**
+	 * Add items into this bag.
+	 * 
+	 * <p>
+	 * <b>UNSAFE: Avoids doing any bounds check.</b>
+	 * </p>
+	 * 
+	 * @param items
+	 *            to add.
+	 * @param itemsLength
+	 *            of the item array that will be added.
+	 */
+	public void addAllUnsafe ( final T[] items, final int itemsLength )
+	{
+		System.arraycopy( items, 0, data, size, itemsLength );
+		size += itemsLength;
+	}
+
 	/**
 	 * Add all items into this bag.
 	 * 
@@ -207,7 +229,7 @@ public class Bag<T> implements ImmutableBag<T>
 	 */
 	public void addAll ( final Bag<T> items )
 	{
-		add( items.data, items.size );
+		addAll( items.data, items.size );
 	}
 
 	/**
@@ -222,7 +244,7 @@ public class Bag<T> implements ImmutableBag<T>
 
 		ensureCapacity( itemsSize + size );
 
-		for ( int i = itemsSize; i-- != 0; )
+		for ( int i = 0; i < itemsSize; ++i )
 		{
 			add( items.getUnsafe( i ) );
 		}
@@ -407,7 +429,9 @@ public class Bag<T> implements ImmutableBag<T>
 	 */
 	public boolean remove ( final T item )
 	{
-		for ( int i = size; i-- != 0; )
+		final int iSize = size;
+		
+		for ( int i = 0; i < iSize; ++i )
 		{
 			if ( item == data[i] )
 			{
@@ -435,8 +459,9 @@ public class Bag<T> implements ImmutableBag<T>
 	public void removeAll ( final Bag<T> bag )
 	{
 		final T[] bagData = bag.data;
-
-		for ( int i = bag.size; i-- != 0; )
+		final int bagSize = bag.size;
+		
+		for ( int i = 0; i < bagSize; ++i )
 		{
 			remove( bagData[i] );
 		}
@@ -451,7 +476,9 @@ public class Bag<T> implements ImmutableBag<T>
 	 */
 	public void removeAll ( final ImmutableBag<T> bag )
 	{
-		for ( int i = bag.size(); i-- != 0; )
+		final int bagSize = bag.size();
+		
+		for ( int i = 0; i < bagSize; ++i )
 		{
 			remove( bag.getUnsafe( i ) );
 		}
@@ -460,7 +487,9 @@ public class Bag<T> implements ImmutableBag<T>
 	@Override
 	public int find ( final Predicate<T> criteria )
 	{
-		for ( int i = size; i-- != 0; )
+		final int iSize = size;
+		
+		for ( int i = 0; i < iSize; ++i )
 		{
 			if ( criteria.test( data[i] ) )
 			{
@@ -476,29 +505,33 @@ public class Bag<T> implements ImmutableBag<T>
 	@Override
 	public T findAndGet ( final Predicate<T> criteria )
 	{
-		for ( int i = size; i-- != 0; )
-		{
-			if ( criteria.test( data[i] ) )
-			{
-				// Item found. Return it.
-				return getUnsafe( i );
-			}
-		}
-
-		// Item not found.
-		return null;
+		return get( find( criteria ) );
 	}
 
 	@Override
 	public int contains ( final T item )
 	{
-		return find( ( i ) -> i == item );
+		final int iSize = size;
+		
+		for ( int i = 0; i < iSize; ++i )
+		{
+			if ( data[i] == item )
+			{
+				// Item found. Return its index.
+				return i;
+			}
+		}
+
+		// Item not found.
+		return -1;
 	}
 	
 	@Override
 	public void forEach ( final Consumer<T> operation )
 	{
-		for ( int i = size; i-- != 0; )
+		final int iSize = size;
+		
+		for ( int i = 0; i < iSize; ++i )
 		{
 			operation.accept( data[i] );
 		}
@@ -521,19 +554,19 @@ public class Bag<T> implements ImmutableBag<T>
 	{
 		if ( index >= data.length )
 		{
-			grow( getAppropiateSizeFor( index ) );
+			grow( getCapacityFor( index ) );
 		}
 	}
 	
 	/**
-	 * It finds the next size according to the grow strategy that could contain
-	 * the supplied index.
+	 * It finds the next capacity according to the grow strategy that could
+	 * contain the supplied index.
 	 * 
 	 * @param index
 	 *            that needs to be contained.
-	 * @return appropiate size given by the grow strategy.
+	 * @return proper capacity given by the grow strategy.
 	 */
-	private int getAppropiateSizeFor ( final int index )
+	private int getCapacityFor ( final int index )
 	{
 		int newSize = growStrategy.applyAsInt( size, data.length );
 		
