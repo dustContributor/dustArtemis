@@ -56,10 +56,10 @@ And instead of having to do this
     
 You can do this directly:
 
-    ActualType[] array = bag.data();
-    
-    for ( int i = 0; i < bag.size(); ++i )
-        doSomething( array[i] );
+     ActualType[] array = bag.data();
+     
+     for ( int i = 0; i < bag.size(); ++i )
+         doSomething( array[i] );
 
 It is a tradeoff between uglier initialization for cleaner iteration (you'll be doing more iteration than initialization).
 
@@ -90,20 +90,34 @@ MapperImplementor is a new class with a static method for initializing **Compone
 Trimmed stuff
 -------------
 
+- ComponentMapper annotation
+
 Since MapperImplementor uses field types instead of annotations to initialize ComponentMappers, the @ComponentMapper annotation is gone.
+
+- Redundant inner classes
 
 Given the new ClassIndexer, now EntityManagers don't have a specialized way to deal with Entity IDs, they just do it through an IdPool instance.
 
+- ComponentType
+
 ComponentType is gone too, its main purpose was to have an index for each Component subclass, that function is now made through ClassIndexer.
+
+- Unused utility classes
 
 Classes that didn't had much to do with the ECS framework like TrigLUT, FastMath or Utils were removed. You're better off looking somewhere else for a specialized math library (like LibGDX's) or doing your own.
 
+- DelayedEntitySystem
+
 DelayedEntitySystem was removed since it was broken, Timer was removed too since its only use was inside DelayedEntitySystem.
+
+- Aspect factory methods
 
 Static factory-like methods in Aspect were removed since they didn't provided any additional advantage over initializing an Aspect directly. There is a getEmpty() method that always returns the same empty aspect so you can use in your VoidEntitySystems.
 
 Tweaks
 ------
+
+- Entity IDs
 
 Entity was using UUID instances for assigning unique IDs to entities. Those aren't the most cheap objects to initialize precisely, and were overkill for any sort of reasonable (and some unreasonable) usage. 
 
@@ -111,8 +125,14 @@ Now Entities get assigned an unique int ID sequentially from an AtomicInteger (w
 
 Direct array iteration over Bag contents are used whenever possible. 
 
+- Fields
+
 Also direct field access is made whenever possible, there were plenty of fields that had getter/setters with the same visibility, and that did no additional work at all, so those were removed in favor of direct field access with proper visibility (mostly 'protected' was used).
 
+- Component check optimizations
+
 Reworked EntitySystem check() method so it returns as soon as possible, that method is run for every Entity changed in every EntitySystem.
+
+- World checks optimizations
 
 Reworked the 'notify' methods in World so they iterate in a different manner, hopefully making many, many less method calls.
