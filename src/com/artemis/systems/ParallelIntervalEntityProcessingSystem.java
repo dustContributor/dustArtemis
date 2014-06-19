@@ -27,9 +27,12 @@ public abstract class ParallelIntervalEntityProcessingSystem extends IntervalEnt
 	protected abstract void process ( Entity e );
 
 	@Override
-	protected void processEntities ( final ImmutableBag<Entity> entities )
+	protected final void processEntities ( final ImmutableBag<Entity> entities )
 	{
-		entities.parallelStream().forEach( e -> process( e ) );
+		if ( hasIntervalPassed() )
+		{
+			entities.parallelStream().forEach( e -> process( e ) );
+		}
 	}
 
 }

@@ -316,7 +316,7 @@ public class World
 	 */
 	public <T extends EntitySystem> T setSystem ( final T system )
 	{
-		return setSystem( system, false );
+		return setSystem( system, true );
 	}
 
 	/**
@@ -324,14 +324,14 @@ public class World
 	 * 
 	 * @param system
 	 *            the system to add.
-	 * @param passive
-	 *            wether or not this system will be processed by World.process()
+	 * @param active
+	 *            whether or not this system will be processed by World.process()
 	 * @return the added system.
 	 */
-	public <T extends EntitySystem> T setSystem ( final T system, final boolean passive )
+	public <T extends EntitySystem> T setSystem ( final T system, final boolean active )
 	{
 		system.setWorld( this );
-		system.setPassive( passive );
+		system.setActive( active );
 
 		systems.put( system.getClass(), system );
 		systemsBag.add( system );
@@ -412,7 +412,7 @@ public class World
 	}
 
 	/**
-	 * Process all non-passive systems.
+	 * Process all active systems.
 	 */
 	public void process ()
 	{
@@ -427,7 +427,7 @@ public class World
 		{
 			final EntitySystem system = sArray[i];
 
-			if ( !system.isPassive() )
+			if ( system.isActive() )
 			{
 				system.process();
 			}

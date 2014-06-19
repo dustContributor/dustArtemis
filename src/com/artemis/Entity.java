@@ -46,7 +46,7 @@ public final class Entity
 	protected final BitSet componentBits;
 	
 	/**
-	 * BitSet instance containing bits of the components the entity possesses.
+	 * BitSet instance containing bits signaling which systems this entity is active in.
 	 */
 	protected final BitSet systemBits;
 

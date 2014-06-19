@@ -28,15 +28,9 @@ public abstract class ParallelEntityProcessingSystem extends EntitySystem
 	protected abstract void process ( final Entity e );
 
 	@Override
-	protected void processEntities ( final ImmutableBag<Entity> entities )
+	protected final void processEntities ( final ImmutableBag<Entity> entities )
 	{
 		entities.parallelStream().forEach( e -> process( e ) );
-	}
-
-	@Override
-	protected boolean checkProcessing ()
-	{
-		return true;
 	}
 
 }

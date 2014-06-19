@@ -33,18 +33,11 @@ public abstract class EntityProcessingSystem extends EntitySystem
 	protected final void processEntities ( final ImmutableBag<Entity> entities )
 	{
 		final Entity[] entityArray = ( (Bag<Entity>) entities ).data();
-		final int size = entities.size();
 		
-		for ( int i = 0; i < size; ++i )
+		for ( int i = entities.size(); i-- != 0; )
 		{
 			process( entityArray[i] );
 		}
-	}
-
-	@Override
-	protected boolean checkProcessing ()
-	{
-		return true;
 	}
 
 }
