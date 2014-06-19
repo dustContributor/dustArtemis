@@ -29,10 +29,4 @@ public abstract class VoidEntitySystem extends EntitySystem
 
 	protected abstract void processSystem ();
 
-	@Override
-	protected boolean checkProcessing ()
-	{
-		return true;
-	}
-
 }

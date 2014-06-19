@@ -24,7 +24,7 @@ public abstract class EntitySystem implements EntityObserver
 
 	private final BitSet allSet, exclusionSet, oneSet;
 
-	private boolean passive;
+	private boolean active;
 
 	private final boolean hasNone, hasAll, hasExclusion, hasOne;
 
@@ -38,6 +38,8 @@ public abstract class EntitySystem implements EntityObserver
 	public EntitySystem ( final Aspect aspect )
 	{
 		actives = new Bag<>( Entity.class );
+		
+		active = false;
 		
 		allSet = aspect.allSet;
 		exclusionSet = aspect.exclusionSet;
@@ -65,12 +67,9 @@ public abstract class EntitySystem implements EntityObserver
 
 	public final void process ()
 	{
-		if ( checkProcessing() )
-		{
-			begin();
-			processEntities( actives );
-			end();
-		}
+		begin();
+		processEntities( actives );
+		end();
 	}
 
 	/**
@@ -89,12 +88,6 @@ public abstract class EntitySystem implements EntityObserver
 	 *            the entities this system contains.
 	 */
 	protected abstract void processEntities ( ImmutableBag<Entity> entities );
-
-	/**
-	 * 
-	 * @return true if the system should be processed, false if not.
-	 */
-	protected abstract boolean checkProcessing ();
 
 	/**
 	 * Override to implement code that gets executed when systems are
@@ -203,7 +196,7 @@ public abstract class EntitySystem implements EntityObserver
 	 * @param contains
 	 *            boolean to indicate if the ES does or not.
 	 */
-	private void notInterested ( final Entity entity, final boolean contains )
+	private final void notInterested ( final Entity entity, final boolean contains )
 	{
 		if ( contains )
 		{
@@ -220,7 +213,7 @@ public abstract class EntitySystem implements EntityObserver
 	 * @param contains
 	 *            boolean to indicate if the ES does or not.
 	 */
-	private void interested ( final Entity entity, final boolean contains )
+	private final void interested ( final Entity entity, final boolean contains )
 	{
 		if ( !contains )
 		{
@@ -228,14 +221,14 @@ public abstract class EntitySystem implements EntityObserver
 		}
 	}
 	
-	private void removeFromSystem ( final Entity e )
+	private final void removeFromSystem ( final Entity e )
 	{
 		actives.remove( e );
 		e.systemBits.clear( systemIndex );
 		removed( e );
 	}
 
-	private void insertToSystem ( final Entity e )
+	private final void insertToSystem ( final Entity e )
 	{
 		actives.add( e );
 		e.systemBits.set( systemIndex );
@@ -282,15 +275,19 @@ public abstract class EntitySystem implements EntityObserver
 	{
 		this.world = world;
 	}
-
-	protected boolean isPassive ()
+	
+	/**
+	 * 
+	 * @return true if the system should be processed, false if not.
+	 */
+	public boolean isActive ()
 	{
-		return passive;
+		return active;
 	}
 
-	protected void setPassive ( final boolean passive )
+	public void setActive ( final boolean active )
 	{
-		this.passive = passive;
+		this.active = active;
 	}
 
 	public ImmutableBag<Entity> getActives ()

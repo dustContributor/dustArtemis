@@ -32,12 +32,14 @@ public abstract class IntervalEntityProcessingSystem extends IntervalEntitySyste
 	@Override
 	protected void processEntities ( final ImmutableBag<Entity> entities )
 	{
-		final Entity[] entityArray = ( (Bag<Entity>) entities ).data();
-		final int size = entities.size();
-
-		for ( int i = 0; i < size; ++i )
+		if ( hasIntervalPassed() )
 		{
-			process( entityArray[i] );
+			final Entity[] entityArray = ( (Bag<Entity>) entities ).data();
+
+			for ( int i = entities.size(); i-- != 0; )
+			{
+				process( entityArray[i] );
+			}
 		}
 	}
 
