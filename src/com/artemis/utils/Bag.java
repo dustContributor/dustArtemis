@@ -11,7 +11,7 @@ import java.util.stream.StreamSupport;
 
 /**
  * Collection type a bit like ArrayList but does not preserve the order of its
- * entities, speedwise it is very good, especially suited for games.
+ * entities, speed-wise it is very good, especially suited for games.
  *
  * <p>
  * dustArtemis: It has been spiced up considerably. It supports Java 8 stream()
@@ -36,7 +36,7 @@ import java.util.stream.StreamSupport;
  *
  * @author Arni Arent
  *
- * @param <T>
+ * @param <T> type of the items that will be stored in this Bag.
  */
 public class Bag<T> implements ImmutableBag<T>
 {
@@ -53,6 +53,7 @@ public class Bag<T> implements ImmutableBag<T>
 	private IntBinaryOperator growStrategy;
 	
 	// Exponential 1.5 growth.
+	@SuppressWarnings ( "unused" )
 	private static final int growOneHalf ( final int dataSize, final int dataLength )
 	{
 		return dataLength + (dataLength >> 1);
@@ -257,7 +258,7 @@ public class Bag<T> implements ImmutableBag<T>
 	 * 
 	 * @param index
 	 *            of item
-	 * @param item
+	 * @param item to be set.
 	 */
 	public void set ( final int index, final T item )
 	{
@@ -279,7 +280,7 @@ public class Bag<T> implements ImmutableBag<T>
 	 * 
 	 * @param index
 	 *            of item
-	 * @param item
+	 * @param item to be set.
 	 */
 	public void setUnsafe ( final int index, final T item )
 	{
@@ -303,13 +304,13 @@ public class Bag<T> implements ImmutableBag<T>
 	{
 		return data[index];
 	}
-	
+
 	/**
 	 * Removes the item at the specified position in this Bag. Does this by
 	 * overwriting it was last item then removing last item.
 	 * 
-	 * It returns null if the index its outside bounds or if the item at the
-	 * index was null.
+	 * It returns <code>null</code> if the index its outside bounds or if the
+	 * item at the index was <code>null</code>.
 	 * 
 	 * @param index
 	 *            the index of item to be removed
@@ -354,7 +355,8 @@ public class Bag<T> implements ImmutableBag<T>
 	/**
 	 * Removes the first value in the bag.
 	 * 
-	 * @return the first value in the bag, or null if it has no values.
+	 * @return the first value in the bag, or <code>null</code> if it has no
+	 *         values.
 	 */
 	public T removeFirst ()
 	{
@@ -384,7 +386,8 @@ public class Bag<T> implements ImmutableBag<T>
 	/**
 	 * Removes the last object in the bag.
 	 * 
-	 * @return the last item in the bag, or null if it has no items.
+	 * @return the last item in the bag, or <code>null</code> if it has no
+	 *         items.
 	 */
 	public T removeLast ()
 	{
@@ -425,7 +428,7 @@ public class Bag<T> implements ImmutableBag<T>
 	 * 
 	 * @param item
 	 *            to be removed from this bag.
-	 * @return true if this bag contained the specified item.
+	 * @return <code>true</code> if this bag contained the specified item.
 	 */
 	public boolean remove ( final T item )
 	{
@@ -435,18 +438,42 @@ public class Bag<T> implements ImmutableBag<T>
 		{
 			if ( item == data[i] )
 			{
-				// Decrement size.
-				--size;
-				// Overwrite item with last item.
-				data[i] = data[size];
-				// Null last item.
-				data[size] = null;
+				// Item found, remove it.
+				removeUnsafe( i );
 				// Item has been removed.
 				return true;
 			}
 		}
+		
 		// Item not found.
 		return false;
+	}
+	
+	/**
+	 * Removes the first occurrence of the item that matches the provided
+	 * criteria. Works by overwriting it was last item then removing last item.
+	 * 
+	 * @param criteria
+	 *            to match the items against.
+	 * 
+	 * @return the first item that matched the criteria, <code>null</code> if no
+	 *         items matched the criteria.
+	 */
+	public T remove ( final Predicate<T> criteria )
+	{
+		final int iSize = size;
+		
+		for ( int i = 0; i < iSize; ++i )
+		{
+			if ( criteria.test( data[i] ) )
+			{
+				// Item found. Remove and return it.
+				return removeUnsafe( i );
+			}
+		}
+
+		// Item not found.
+		return null;
 	}
 	
 	/**
@@ -605,8 +632,8 @@ public class Bag<T> implements ImmutableBag<T>
 	 * than the length of the backing array).
 	 * 
 	 * @param index that needs to be checked.
-	 * @return true if the index is within the bounds of the Bag,
-	 * false otherwise.
+	 * @return <code>true</code> if the index is within the bounds of the Bag,
+	 * <code>false</code> otherwise.
 	 */
 	private boolean isInBounds ( final int index )
 	{
