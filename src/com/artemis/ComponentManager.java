@@ -13,10 +13,16 @@ public class ComponentManager extends Manager
 	private final Bag<Bag<Component>> componentsByType;
 	private final Bag<Entity> deleted;
 
+	@SuppressWarnings ( { "unchecked", "rawtypes" } )
 	public ComponentManager ()
 	{
-		componentsByType = new Bag<>();
-		deleted = new Bag<>( Entity.class );
+		componentsByType = new Bag( Bag.class, 8 );
+		deleted = new Bag<>( Entity.class, 8 );
+		// Init all type bags.
+		for ( int i = componentsByType.capacity(); i-- != 0; )
+		{
+			componentsByType.setUnsafe( i, new Bag<>( Component.class, 4 ) );
+		}
 	}
 
 	@Override
@@ -31,7 +37,7 @@ public class ComponentManager extends Manager
 		
 		for ( int i = componentBits.nextSetBit( 0 ); i >= 0; i = componentBits.nextSetBit( i + 1 ) )
 		{
-			componentsByType.getUnsafe( i ).set( e.id, null );
+			componentsByType.getUnsafe( i ).setUnsafe( e.id, null );
 		}
 		
 		componentBits.clear();
@@ -41,17 +47,7 @@ public class ComponentManager extends Manager
 	{
 		final int cmpIndex = ClassIndexer.getIndexFor( component.getClass(), Component.class );
 		
-		componentsByType.ensureCapacity( cmpIndex );
-
-		Bag<Component> components = componentsByType.getUnsafe( cmpIndex );
-		
-		if ( components == null )
-		{
-			components = new Bag<>( Component.class );
-			componentsByType.set( cmpIndex, components );
-		}
-
-		components.set( e.id, component );
+		initIfAbsent( cmpIndex ).set( e.id, component );
 
 		e.componentBits.set( cmpIndex );
 	}
@@ -59,11 +55,12 @@ public class ComponentManager extends Manager
 	protected void removeComponent ( final Entity e, final Class<? extends Component> type )
 	{
 		final int cmpIndex = ClassIndexer.getIndexFor( type, Component.class );
+		final BitSet componentBits = e.componentBits;
 		
-		if ( e.componentBits.get( cmpIndex ) )
+		if ( componentBits.get( cmpIndex ) )
 		{
-			componentsByType.getUnsafe( cmpIndex ).set( e.id, null );
-			e.componentBits.clear( cmpIndex );
+			componentsByType.getUnsafe( cmpIndex ).setUnsafe( e.id, null );
+			componentBits.clear( cmpIndex );
 		}
 	}
 
@@ -71,29 +68,12 @@ public class ComponentManager extends Manager
 	{
 		final int cmpIndex = ClassIndexer.getIndexFor( type, Component.class );
 		
-		Bag<Component> components = componentsByType.getUnsafe( cmpIndex );
-		
-		if ( components == null )
-		{
-			components = new Bag<>( Component.class );
-			componentsByType.set( cmpIndex, components );
-		}
-		
-		return components;
+		return initIfAbsent( cmpIndex );
 	}
 
 	protected Component getComponent ( final Entity e, final Class<? extends Component> type )
 	{
-		final int cmpIndex = ClassIndexer.getIndexFor( type, Component.class );
-		
-		final Bag<Component> components = componentsByType.getUnsafe( cmpIndex );
-		
-		if ( components != null )
-		{
-			return components.get( e.id );
-		}
-		
-		return null;
+		return getComponentsByType( type ).get( e.id );
 	}
 
 	public Bag<Component> getComponentsFor ( final Entity e, final Bag<Component> fillBag )
@@ -129,6 +109,35 @@ public class ComponentManager extends Manager
 
 			deleted.clear();
 		}
+	}
+
+	/**
+	 * If the component index passed is too high for the
+	 * {@link #componentsByType} to hold, it resizes it and initializes all the
+	 * component bags between the old {@link #componentsByType} capacity and new
+	 * one. This way, {@link #componentsByType} will never have a
+	 * <code>null</code> value.
+	 * 
+	 * @param cmpIndex
+	 *            component index to check if it has a component bag
+	 *            initialized.
+	 * @return Component bag for the given component index.
+	 */
+	private final Bag<Component> initIfAbsent ( final int cmpIndex )
+	{
+		final int prevCap = componentsByType.capacity();
+		// If type bag can't hold this component type.
+		if ( cmpIndex >= prevCap )
+		{
+			componentsByType.ensureCapacity( cmpIndex );
+			// Init all the missing bags.
+			for ( int i = componentsByType.capacity(); i-- != prevCap; )
+			{
+				componentsByType.setUnsafe( i, new Bag<>( Component.class, 4 ) );
+			}
+		}
+		
+		return componentsByType.getUnsafe( cmpIndex );
 	}
 
 }

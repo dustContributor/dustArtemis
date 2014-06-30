@@ -46,7 +46,7 @@ public class Bag<T> implements ImmutableBag<T>
 	public final Class<?> type;
 
 	public static final int 	DEFAULT_CAPACITY = 16, 
-								MINIMUM_WORKING_CAPACITY = 8, 
+								MINIMUM_WORKING_CAPACITY = 4, 
 								GROW_RATE_THRESHOLD = 2048;
 	
 	// Current grow strategy.
