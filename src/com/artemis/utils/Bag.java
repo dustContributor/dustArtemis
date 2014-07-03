@@ -41,7 +41,7 @@ import java.util.stream.StreamSupport;
 public class Bag<T> implements ImmutableBag<T>
 {
 	private T[] data;
-	private int size;
+	public int size;
 
 	public final Class<?> type;
 
