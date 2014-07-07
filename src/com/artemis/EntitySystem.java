@@ -16,7 +16,7 @@ import com.artemis.utils.ImmutableBag;
  */
 public abstract class EntitySystem implements EntityObserver
 {
-	private final int systemIndex;
+	private final int index;
 
 	protected World world;
 
@@ -45,7 +45,7 @@ public abstract class EntitySystem implements EntityObserver
 		exclusionSet = aspect.exclusionSet;
 		oneSet = aspect.oneSet;
 		
-		systemIndex = ClassIndexer.getIndexFor ( this.getClass(), EntitySystem.class );
+		index = ClassIndexer.getIndexFor ( this.getClass(), EntitySystem.class );
 		
 		hasAll = !allSet.isEmpty();
 		hasExclusion = !exclusionSet.isEmpty();
@@ -138,7 +138,7 @@ public abstract class EntitySystem implements EntityObserver
 
 		final BitSet componentBits = e.componentBits;
 
-		final boolean contains = e.systemBits.get( systemIndex );
+		final boolean contains = e.systemBits.get( index );
 		/*
 		 * Early rejection if the entity has an 'exclusion' component or doesn't
 		 * has any 'one' component.
@@ -223,15 +223,23 @@ public abstract class EntitySystem implements EntityObserver
 	
 	private final void removeFromSystem ( final Entity e )
 	{
-		actives.remove( e );
-		e.systemBits.clear( systemIndex );
+		final int ei = e.removedInSystem( this );
+		actives.removeUnsafe( ei );
+		
+		if ( (actives.size - ei) > 0 )
+		{
+			final Entity tmp = actives.getUnsafe( ei );
+			tmp.updateInSystem( this, ei );
+		}
+		
 		removed( e );
 	}
 
 	private final void insertToSystem ( final Entity e )
 	{
+		e.addedInSystem( this, actives.size );
 		actives.add( e );
-		e.systemBits.set( systemIndex );
+		
 		inserted( e );
 	}
 
@@ -250,7 +258,7 @@ public abstract class EntitySystem implements EntityObserver
 	@Override
 	public final void deleted ( final Entity e )
 	{
-		if ( e.systemBits.get( systemIndex ) )
+		if ( e.systemBits.get( index ) )
 		{
 			removeFromSystem( e );
 		}
@@ -259,7 +267,7 @@ public abstract class EntitySystem implements EntityObserver
 	@Override
 	public final void disabled ( final Entity e )
 	{
-		if ( e.systemBits.get( systemIndex ) )
+		if ( e.systemBits.get( index ) )
 		{
 			removeFromSystem( e );
 		}
@@ -288,6 +296,11 @@ public abstract class EntitySystem implements EntityObserver
 	public void setActive ( final boolean active )
 	{
 		this.active = active;
+	}
+	
+	public int getIndex ()
+	{
+		return index;
 	}
 
 	public ImmutableBag<Entity> getActives ()

@@ -8,7 +8,7 @@ import java.util.stream.Stream;
  * 
  * @author Arni Arent
  *
- * @param <T>
+ * @param <T> type of the elements this ImmutableBag holds.
  */
 public interface ImmutableBag<T>
 {
