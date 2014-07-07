@@ -9,12 +9,13 @@ import com.artemis.utils.Bag;
  * The entity class. Cannot be instantiated outside the framework, you must
  * create new entities using World.
  * 
- * <p>dustArtemis: Instead of an UUID instance, now the unique ID is given by 
- * an AtomicInteger that gets incremented each time an entity
- * needs a new unique id. This avoids the not-so-cheap UUID
- * object initialization and its "unique enough" for most cases. ie,
- * you'll need to cover all the entire 32 bit range of an integer
- * for it to start overlapping ids.</p>
+ * <p>
+ * dustArtemis: Instead of an UUID instance, now the unique ID is given by an
+ * AtomicInteger that gets incremented each time an entity needs a new unique
+ * id. This avoids the not-so-cheap UUID object initialization and its
+ * "unique enough" for most cases. ie, you'll need to cover all the entire 32
+ * bit range of an integer for it to start overlapping ids.
+ * </p>
  * 
  * @author Arni Arent
  * 
@@ -25,11 +26,10 @@ public final class Entity
 	 * Provides thread safe counter for entity unique IDs.
 	 */
 	private static final AtomicInteger entityUniqueIDs = new AtomicInteger();
-	
+
 	/**
-	 * Unique ID per entity. It is reassigned if the entity is reset.
-	 * There can't be two entities with the same uniqueID. Unused IDs
-	 * won't be reused.
+	 * Unique ID per entity. It is reassigned if the entity is reset. There
+	 * can't be two entities with the same uniqueID. Unused IDs won't be reused.
 	 */
 	private int uniqueID;
 
@@ -39,20 +39,24 @@ public final class Entity
 	 * acquire this ID if the previous entity was deleted.
 	 */
 	public final int id;
-	
+
 	/**
 	 * BitSet instance containing bits of the components the entity possesses.
 	 */
 	protected final BitSet componentBits;
-	
+
 	/**
-	 * BitSet instance containing bits signaling which systems this entity is active in.
+	 * BitSet instance containing bits signaling which systems this entity is
+	 * active in.
 	 */
 	protected final BitSet systemBits;
 
 	private final World world;
 	private final EntityManager entityManager;
 	private final ComponentManager componentManager;
+
+	/** Bag to hold the indices this Entity takes in the systems. */
+	private final Bag<SystemEntityPair> indexInSystems;
 
 	protected Entity ( final World world, final int id )
 	{
@@ -64,10 +68,13 @@ public final class Entity
 		this.componentBits = new BitSet();
 
 		this.uniqueID = entityUniqueIDs.getAndIncrement();
+
+		this.indexInSystems = new Bag<>( SystemEntityPair.class, 4 );
 	}
 
 	/**
-	 * Make entity ready for re-use. Will generate a new unique id for the entity.
+	 * Make entity ready for re-use. Will generate a new unique id for the
+	 * entity.
 	 */
 	protected void reset ()
 	{
@@ -113,6 +120,7 @@ public final class Entity
 	 * Remove component by its type.
 	 * 
 	 * @param type
+	 *            of the component to be removed.
 	 * 
 	 * @return this entity for chaining.
 	 */
@@ -147,8 +155,8 @@ public final class Entity
 
 	/**
 	 * Slower retrieval of components from this entity. The recommended way to
-	 * retrieve components from an entity is using the ComponentMapper. Is fine to use 
-	 * e.g. when creating new entities and setting data in components.
+	 * retrieve components from an entity is using the ComponentMapper. Is fine
+	 * to use e.g. when creating new entities and setting data in components.
 	 * 
 	 * @param <T>
 	 *            the expected return component type.
@@ -156,7 +164,7 @@ public final class Entity
 	 *            the expected return component type.
 	 * @return component that matches, or null if none is found.
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings ( "unchecked" )
 	public <T extends Component> T getComponent ( final Class<T> type )
 	{
 		return (T) componentManager.getComponent( this, type );
@@ -173,6 +181,67 @@ public final class Entity
 	public Bag<Component> getComponents ( final Bag<Component> fillBag )
 	{
 		return componentManager.getComponentsFor( this, fillBag );
+	}
+
+	/**
+	 * Marks this entity as added in the passed system, stores the index
+	 * of the entity in said system.
+	 * 
+	 * @param system where the entity was added.
+	 * @param indexInSystem index of the entity in the system.
+	 */
+	void addedInSystem ( final EntitySystem system, final int indexInSystem )
+	{
+		int si = system.getIndex();
+		indexInSystems.add( new SystemEntityPair( si, indexInSystem ) );
+		systemBits.set( si );
+	}
+
+	/**
+	 * Updates the entity index in the system.
+	 * 
+	 * @param system where the entity was moved.
+	 * @param indexInSystem index of the entity in the system.
+	 */
+	void updateInSystem ( final EntitySystem system, final int indexInSystem )
+	{
+		final int si = system.getIndex();
+		final SystemEntityPair[] array = indexInSystems.data();
+		
+		for ( int i = indexInSystems.size; i-- != 0; )
+		{
+			final SystemEntityPair sep = array[i];
+			if ( sep.systemID == si )
+			{
+				sep.indexInSystem = indexInSystem;
+				return;
+			}
+		}
+	}
+
+	/**
+	 * Marks this entity as no longer present in the provided system. Returns
+	 * its index in said system.
+	 * 
+	 * @param system where the entity was removed.
+	 * @return the index of this entity in the provided system.
+	 */
+	int removedInSystem ( final EntitySystem system )
+	{
+		final int si = system.getIndex();
+		final SystemEntityPair[] array = indexInSystems.data();
+		
+		for ( int i = indexInSystems.size; i-- != 0; )
+		{
+			final SystemEntityPair sep = array[i];
+			if ( sep.systemID == si )
+			{
+				indexInSystems.removeUnsafe( i );
+				return sep.indexInSystem;
+			}
+		}
+		
+		return -1;
 	}
 
 	/**
@@ -221,8 +290,8 @@ public final class Entity
 	}
 
 	/**
-	 * Get the unique ID for this entity. This unique ID is unique per entity (re-used
-	 * entities get a new unique ID).
+	 * Get the unique ID for this entity. This unique ID is unique per entity
+	 * (re-used entities get a new unique ID).
 	 * 
 	 * @return unique ID for this entity.
 	 */
@@ -239,6 +308,18 @@ public final class Entity
 	public World getWorld ()
 	{
 		return world;
+	}
+
+	private static final class SystemEntityPair
+	{
+		public final int systemID;
+		public int indexInSystem;
+
+		public SystemEntityPair ( int systemID, int indexInSystem )
+		{
+			this.systemID = systemID;
+			this.indexInSystem = indexInSystem;
+		}
 	}
 
 }

@@ -29,8 +29,8 @@ import java.util.stream.StreamSupport;
  * </p>
  * 
  * <p>These are the grow strategies:</p>
- * <p>capacity^2 when the size is less than {@value #GROW_RATE_THRESHOLD}</p>
- * <p>capacity^1.5 when the size is more or equal than {@value #GROW_RATE_THRESHOLD}</p>
+ * <p>capacity*2 when the size is less than {@value #GROW_RATE_THRESHOLD}</p>
+ * <p>capacity*1.5 when the size is more or equal than {@value #GROW_RATE_THRESHOLD}</p>
  * 
  * </p>
  *
