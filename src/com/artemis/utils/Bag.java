@@ -43,7 +43,7 @@ public class Bag<T> implements ImmutableBag<T>
 	private T[] data;
 	public int size;
 
-	public final Class<?> type;
+	public final Class<T> type;
 
 	public static final int 	DEFAULT_CAPACITY = 16, 
 								MINIMUM_WORKING_CAPACITY = 4, 
@@ -116,10 +116,9 @@ public class Bag<T> implements ImmutableBag<T>
 	 * @param capacity
 	 *            of the Bag.
 	 */
-	@SuppressWarnings ( "unchecked" )
 	public Bag ( final Class<T> type, final int capacity )
 	{
-		this.data = (T[]) Array.newInstance( type, (capacity > MINIMUM_WORKING_CAPACITY) ? capacity : MINIMUM_WORKING_CAPACITY );
+		this.data = newArray( type, (capacity > MINIMUM_WORKING_CAPACITY) ? capacity : MINIMUM_WORKING_CAPACITY );
 		this.type = type;
 		
 		this.growStrategy = ( dataSize, dataLength ) ->
@@ -564,10 +563,9 @@ public class Bag<T> implements ImmutableBag<T>
 		}
 	}
 
-	@SuppressWarnings ( "unchecked" )
 	private void grow ( final int newCapacity )
 	{
-		final T[] newArray = (T[]) Array.newInstance( type, newCapacity );
+		final T[] newArray = newArray( type, newCapacity );
 		System.arraycopy( data, 0, newArray, 0, size );
 		data = newArray;
 	}
@@ -696,6 +694,12 @@ public class Bag<T> implements ImmutableBag<T>
 		}
 
 		return str.toString();
+	}
+	
+	@SuppressWarnings ( "unchecked" )
+	private static final <T> T[] newArray ( final Class<T> type, final int capacity )
+	{
+		return (T[]) Array.newInstance( type, capacity );
 	}
 
 }

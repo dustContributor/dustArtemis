@@ -169,9 +169,8 @@ public class World
 	/**
 	 * Returns a manager of the specified type.
 	 * 
-	 * @param <T>
-	 * @param managerType
-	 *            class type of the manager
+	 * @param <T> type of the manager that will be returned.
+	 * @param managerType class type of the manager
 	 * @return the manager
 	 */
 	@SuppressWarnings ( "unchecked" )
@@ -289,7 +288,7 @@ public class World
 	/**
 	 * Get a entity having the specified id.
 	 * 
-	 * @param entityId
+	 * @param entityId of the entity that will be retrieved.
 	 * @return entity
 	 */
 	public Entity getEntity ( final int entityId )

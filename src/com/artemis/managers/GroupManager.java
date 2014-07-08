@@ -64,8 +64,8 @@ public class GroupManager extends Manager
 	/**
 	 * Remove the entity from the specified group.
 	 * 
-	 * @param e
-	 * @param group
+	 * @param e entity to be removed.
+	 * @param group where the entity will be removed from.
 	 */
 	public void remove ( final Entity e, final String group )
 	{
