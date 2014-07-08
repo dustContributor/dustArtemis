@@ -1,6 +1,6 @@
 package com.artemis;
 
-import com.artemis.utils.Bag;
+import com.artemis.utils.ImmutableBag;
 
 /**
  * High performance component retrieval from entities. Use this wherever you
@@ -13,7 +13,7 @@ import com.artemis.utils.Bag;
  */
 public class ComponentMapper<T extends Component>
 {
-	private final Bag<T> components;
+	private final ImmutableBag<T> components;
 
 	/**
 	 * Creates a component mapper for this type of components.
@@ -26,7 +26,7 @@ public class ComponentMapper<T extends Component>
 	@SuppressWarnings("unchecked")
 	public ComponentMapper ( final Class<T> type, final World world )
 	{
-		components = (Bag<T>) world.getComponentManager().getComponentsByType( type );
+		components = (ImmutableBag<T>) world.getComponentManager().getComponentsByType( type );
 	}
 
 	/**
