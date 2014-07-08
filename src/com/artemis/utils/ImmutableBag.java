@@ -37,20 +37,19 @@ public interface ImmutableBag<T>
 	 * Check if the bag contains this item. Uses '==' to compare items.
 	 * 
 	 * @param item
-	 * @return -1 if the item isn't contained in the bag. Otherwise it returns
-	 *         its index.
+	 * @return the index of the item, -1 if none of such item was found.
 	 */
 	int contains ( final T item );
 
 	/**
-	 * Iterates over the items of this Bag applying the criteria supplied.
+	 * Check if the bag contains this item applying the criteria supplied..
 	 * 
 	 * @param criteria
 	 *            to be used to find an item.
 	 * @return the index of the item that met the criteria, -1 if none of such
 	 *         items were found.
 	 */
-	int find ( final Predicate<T> criteria );
+	int contains ( final Predicate<T> criteria );
 	
 	/**
 	 * Iterates over the items of this Bag applying the criteria supplied.
@@ -60,7 +59,7 @@ public interface ImmutableBag<T>
 	 * @return the item that met the criteria or null if none of such
 	 *         items were found.
 	 */
-	T findAndGet ( final Predicate<T> criteria );
+	T find ( final Predicate<T> criteria );
 	
 	/**
 	 * Iterates over each element of this bag and applying the supplied

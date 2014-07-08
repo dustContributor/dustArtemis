@@ -511,7 +511,7 @@ public class Bag<T> implements ImmutableBag<T>
 	}
 	
 	@Override
-	public int find ( final Predicate<T> criteria )
+	public int contains ( final Predicate<T> criteria )
 	{
 		final int iSize = size;
 		
@@ -529,9 +529,16 @@ public class Bag<T> implements ImmutableBag<T>
 	}
 	
 	@Override
-	public T findAndGet ( final Predicate<T> criteria )
+	public T find ( final Predicate<T> criteria )
 	{
-		return get( find( criteria ) );
+		final int index = contains( criteria );
+		
+		if ( index > - 1 )
+		{
+			return getUnsafe( index );
+		}
+		
+		return null;
 	}
 
 	@Override
