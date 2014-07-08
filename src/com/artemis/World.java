@@ -222,6 +222,11 @@ public class World
 	{
 		added.add( e );
 	}
+	
+	public boolean isAdded ( final Entity e )
+	{
+		return added.contains( e ) > -1 ;
+	}
 
 	/**
 	 * Ensure all systems are notified of changes to this entity. If you're
@@ -235,6 +240,11 @@ public class World
 	{
 		changed.add( e );
 	}
+	
+	public boolean isChanged ( final Entity e )
+	{
+		return changed.contains( e ) > -1 ;
+	}
 
 	/**
 	 * Delete the entity from the world.
@@ -244,10 +254,12 @@ public class World
 	 */
 	public void deleteEntity ( final Entity e )
 	{
-		if ( deleted.contains( e ) < 0 )
-		{
-			deleted.add( e );
-		}
+		deleted.add( e );
+	}
+	
+	public boolean isDeleted ( final Entity e )
+	{
+		return deleted.contains( e ) > -1 ;
 	}
 
 	/**
