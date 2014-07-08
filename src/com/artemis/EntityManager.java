@@ -77,7 +77,7 @@ public class EntityManager extends Manager
 	 * Check if this entity is active. Active means the entity is being actively
 	 * processed.
 	 * 
-	 * @param entityId
+	 * @param entityId of the entity that will be checked.
 	 * @return true if active, false if not.
 	 */
 	public boolean isActive ( final int entityId )
@@ -88,7 +88,7 @@ public class EntityManager extends Manager
 	/**
 	 * Check if the specified entityId is enabled.
 	 * 
-	 * @param entityId
+	 * @param entityId of the entity that will be checked.
 	 * @return true if the entity is enabled, false if it is disabled.
 	 */
 	public boolean isEnabled ( final int entityId )
