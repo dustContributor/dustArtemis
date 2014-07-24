@@ -34,7 +34,7 @@ public abstract class EntityProcessingSystem extends EntitySystem
 	{
 		final Entity[] entityArray = ( (Bag<Entity>) entities ).data();
 		
-		for ( int i = entities.size(); i-- != 0; )
+		for ( int i = entities.size(); i-- > 0; )
 		{
 			process( entityArray[i] );
 		}

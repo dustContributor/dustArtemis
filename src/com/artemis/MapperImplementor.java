@@ -44,7 +44,7 @@ final class MapperImplementor
 		final Bag<Field> fieldBag = new Bag<>( Field.class, 32 );
 		
 		// For each of the EntitySystems in systems Bag:
-		for ( int s = systems.size(); s-- != 0; )
+		for ( int s = systems.size(); s-- > 0; )
 		{
 			final EntitySystem system = arSystems[s];
 			/*
@@ -79,7 +79,7 @@ final class MapperImplementor
 	private static final void collectMapperFields ( final Field[] fields, final Bag<Field> fieldBag )
 	{
 		// Collect all the fields that are of ComponentMapper class.
-		for ( int i = fields.length; i-- != 0; )
+		for ( int i = fields.length; i-- > 0; )
 		{
 			final Field field = fields[i];
 
@@ -103,7 +103,7 @@ final class MapperImplementor
 		final Field[] fields = fieldBag.data();
 		
 		// Now for each of those ComponentMapper fields in the system:
-		for ( int f = fieldBag.size(); f-- != 0; )
+		for ( int f = fieldBag.size(); f-- > 0; )
 		{
 			final Field field = fields[f];
 			

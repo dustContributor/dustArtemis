@@ -19,7 +19,7 @@ public class ComponentManager extends Manager
 		componentsByType = new Bag( Bag.class, 8 );
 		deleted = new Bag<>( Entity.class, 8 );
 		// Init all type bags.
-		for ( int i = componentsByType.capacity(); i-- != 0; )
+		for ( int i = componentsByType.capacity(); i-- > 0; )
 		{
 			componentsByType.setUnsafe( i, new Bag<>( Component.class, 4 ) );
 		}
@@ -131,7 +131,7 @@ public class ComponentManager extends Manager
 		{
 			componentsByType.ensureCapacity( cmpIndex );
 			// Init all the missing bags.
-			for ( int i = componentsByType.capacity(); i-- != prevCap; )
+			for ( int i = componentsByType.capacity(); i-- > prevCap; )
 			{
 				componentsByType.setUnsafe( i, new Bag<>( Component.class, 4 ) );
 			}
