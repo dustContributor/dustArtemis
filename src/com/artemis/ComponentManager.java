@@ -12,20 +12,17 @@ import com.artemis.utils.ImmutableBag;
  */
 public class ComponentManager extends Manager
 {
-//	private final Bag<Bag<Component>> componentsByType;
 	private final Bag<BoundedBag<Component>> componentsByType;
 	private final Bag<Entity> deleted;
 
 	@SuppressWarnings ( { "unchecked", "rawtypes" } )
 	public ComponentManager ()
 	{
-//		componentsByType = new Bag( Bag.class, 8 );
 		componentsByType = new Bag( BoundedBag.class, 8 );
 		deleted = new Bag<>( Entity.class, 8 );
 		// Init all type bags.
 		for ( int i = componentsByType.capacity(); i-- > 0; )
 		{
-//			componentsByType.setUnsafe( i, new Bag<>( Component.class, 4 ) );
 			componentsByType.setUnsafe( i, new BoundedBag<>( Component.class, 4 ) );
 		}
 	}
@@ -42,7 +39,6 @@ public class ComponentManager extends Manager
 		
 		for ( int i = componentBits.nextSetBit( 0 ); i >= 0; i = componentBits.nextSetBit( i + 1 ) )
 		{
-//			componentsByType.getUnsafe( i ).setUnsafe( e.id, null );
 			componentsByType.getUnsafe( i ).remove( e.id );
 		}
 		
@@ -53,7 +49,6 @@ public class ComponentManager extends Manager
 	{
 		final int cmpIndex = ClassIndexer.getIndexFor( component.getClass(), Component.class );
 		
-//		initIfAbsent( cmpIndex ).set( e.id, component );
 		initIfAbsent( cmpIndex ).add( e.id, component );
 
 		e.componentBits.set( cmpIndex );
@@ -66,7 +61,6 @@ public class ComponentManager extends Manager
 		
 		if ( componentBits.get( cmpIndex ) )
 		{
-//			componentsByType.getUnsafe( cmpIndex ).setUnsafe( e.id, null );
 			componentsByType.getUnsafe( cmpIndex ).remove( e.id );
 			componentBits.clear( cmpIndex );
 		}
@@ -131,7 +125,6 @@ public class ComponentManager extends Manager
 	 *            initialized.
 	 * @return Component bag for the given component index.
 	 */
-//	private final Bag<Component> initIfAbsent ( final int cmpIndex )
 	private final BoundedBag<Component> initIfAbsent ( final int cmpIndex )
 	{
 		final int prevCap = componentsByType.capacity();
@@ -142,7 +135,6 @@ public class ComponentManager extends Manager
 			// Init all the missing bags.
 			for ( int i = componentsByType.capacity(); i-- > prevCap; )
 			{
-//				componentsByType.setUnsafe( i, new Bag<>( Component.class, 4 ) );
 				componentsByType.setUnsafe( i, new BoundedBag<>( Component.class, 4 ) );
 			}
 		}
