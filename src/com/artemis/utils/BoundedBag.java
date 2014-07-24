@@ -8,6 +8,17 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+/**
+ * BoundedBag retains elements by their indices. It tries to save up space by
+ * offset the indices by the element with the lowest index in the bag. That
+ * way if you only have elements, say, from index 500 to 700, you save up those
+ * first 500 slots that wouldn't being used.
+ * 
+ * @author dustContributor
+ *
+ * @param <T>
+ *            type of elements this BoundedBag will hold.
+ */
 public class BoundedBag<T> implements ImmutableBag<T>
 {
 	private T[] data;
@@ -79,8 +90,8 @@ public class BoundedBag<T> implements ImmutableBag<T>
 	 */
 	public BoundedBag ( final Class<T> type, final int capacity )
 	{
-		this.data = newArray( type, (capacity > MINIMUM_WORKING_CAPACITY) ? capacity
-				: MINIMUM_WORKING_CAPACITY );
+		this.data = newArray( type, 
+				(capacity > MINIMUM_WORKING_CAPACITY) ? capacity : MINIMUM_WORKING_CAPACITY );
 		this.type = type;
 	}
 
@@ -94,10 +105,8 @@ public class BoundedBag<T> implements ImmutableBag<T>
 	 * @param item
 	 *            to be set.
 	 */
-	public void add ( int index, final T item )
+	public void add ( final int index, final T item )
 	{
-		// Just use the index, don't check for negative.
-		index = Math.abs( index );
 		// If its the first element to be added.
 		if ( isEmpty() )
 		{
@@ -313,7 +322,7 @@ public class BoundedBag<T> implements ImmutableBag<T>
 	 * @param index
 	 *            that is expected the Bag can contain.
 	 */
-	private void ensureCapacityDirect ( int index )
+	private void ensureCapacityDirect ( final int index )
 	{
 		if ( index >= data.length )
 		{
@@ -388,7 +397,7 @@ public class BoundedBag<T> implements ImmutableBag<T>
 		return (index > -1 && index < data.length);
 	}
 
-	private void shiftLeft ( int shOffset )
+	private void shiftLeft ( final int shOffset )
 	{
 		T[] array = data;
 		int cSize = size;
@@ -402,7 +411,7 @@ public class BoundedBag<T> implements ImmutableBag<T>
 		}
 	}
 
-	private void shiftRight ( int shOffset )
+	private void shiftRight ( final int shOffset )
 	{
 		T[] array = data;
 
@@ -414,7 +423,7 @@ public class BoundedBag<T> implements ImmutableBag<T>
 		}
 	}
 
-	private int nextNonNull ( int start )
+	private int nextNonNull ( final int start )
 	{
 		T[] array = data;
 		int cSize = size;
@@ -430,7 +439,7 @@ public class BoundedBag<T> implements ImmutableBag<T>
 		return -1;
 	}
 
-	private int prevNonNull ( int start )
+	private int prevNonNull ( final int start )
 	{
 		T[] array = data;
 
