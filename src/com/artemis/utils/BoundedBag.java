@@ -405,11 +405,10 @@ public class BoundedBag<T> implements ImmutableBag<T>
 	private void shiftRight ( int shOffset )
 	{
 		T[] array = data;
-		int cSize = size;
 
-		System.arraycopy( array, 0, array, shOffset, cSize );
+		System.arraycopy( array, 0, array, shOffset, size );
 
-		for ( int i = cSize; i-- > 0; )
+		for ( int i = shOffset; i-- > 0; )
 		{
 			array[i] = null;
 		}
