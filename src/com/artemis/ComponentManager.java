@@ -39,7 +39,7 @@ public class ComponentManager extends Manager
 		
 		for ( int i = componentBits.nextSetBit( 0 ); i >= 0; i = componentBits.nextSetBit( i + 1 ) )
 		{
-			componentsByType.getUnsafe( i ).remove( e.id );
+			componentsByType.getUnsafe( i ).removeUnsafe( e.id );
 		}
 		
 		componentBits.clear();
@@ -61,7 +61,7 @@ public class ComponentManager extends Manager
 		
 		if ( componentBits.get( cmpIndex ) )
 		{
-			componentsByType.getUnsafe( cmpIndex ).remove( e.id );
+			componentsByType.getUnsafe( cmpIndex ).removeUnsafe( e.id );
 			componentBits.clear( cmpIndex );
 		}
 	}
