@@ -208,7 +208,7 @@ public final class Entity
 		final int si = system.getIndex();
 		final SystemEntityPair[] array = indexInSystems.data();
 		
-		for ( int i = indexInSystems.size; i-- != 0; )
+		for ( int i = indexInSystems.size; i-- > 0; )
 		{
 			final SystemEntityPair sep = array[i];
 			if ( sep.systemID == si )
@@ -231,7 +231,7 @@ public final class Entity
 		final int si = system.getIndex();
 		final SystemEntityPair[] array = indexInSystems.data();
 		
-		for ( int i = indexInSystems.size; i-- != 0; )
+		for ( int i = indexInSystems.size; i-- > 0; )
 		{
 			final SystemEntityPair sep = array[i];
 			if ( sep.systemID == si )

@@ -152,14 +152,15 @@ public final class IntStack
 
 	private final void grow ( final int newCapacity )
 	{
+		final int[] oldArray = data;
 		final int[] newArray = new int[newCapacity];
 		/*
 		 * Iterating over the array turns out to be faster for primitive types
 		 * than System.arraycopy(). Specially after a few runs.
 		 */
-		for ( int i = 0; i < data.length; ++i )
+		for ( int i = size; i-- > 0; )
 		{
-			newArray[i] = data[i];
+			newArray[i] = oldArray[i];
 		}
 
 		data = newArray;
