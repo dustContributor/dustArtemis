@@ -23,7 +23,7 @@ public class ComponentMapper<T extends Component>
 	 * @param world
 	 *            the world that this component mapper should use.
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings ( "unchecked" )
 	public ComponentMapper ( final Class<T> type, final World world )
 	{
 		components = (ImmutableBag<T>) world.getComponentManager().getComponentsByType( type );
@@ -65,7 +65,7 @@ public class ComponentMapper<T extends Component>
 	 */
 	public boolean has ( final Entity e )
 	{
-		return getSafe( e ) != null;
+		return components.get( e.id ) != null;
 	}
 
 }
