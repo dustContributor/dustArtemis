@@ -3,25 +3,30 @@ package com.artemis;
 import java.util.BitSet;
 
 import com.artemis.utils.Bag;
+import com.artemis.utils.BoundedBag;
 import com.artemis.utils.ClassIndexer;
+import com.artemis.utils.ImmutableBag;
 
 /**
  * @author Arni Arent
  */
 public class ComponentManager extends Manager
 {
-	private final Bag<Bag<Component>> componentsByType;
+//	private final Bag<Bag<Component>> componentsByType;
+	private final Bag<BoundedBag<Component>> componentsByType;
 	private final Bag<Entity> deleted;
 
 	@SuppressWarnings ( { "unchecked", "rawtypes" } )
 	public ComponentManager ()
 	{
-		componentsByType = new Bag( Bag.class, 8 );
+//		componentsByType = new Bag( Bag.class, 8 );
+		componentsByType = new Bag( BoundedBag.class, 8 );
 		deleted = new Bag<>( Entity.class, 8 );
 		// Init all type bags.
 		for ( int i = componentsByType.capacity(); i-- > 0; )
 		{
-			componentsByType.setUnsafe( i, new Bag<>( Component.class, 4 ) );
+//			componentsByType.setUnsafe( i, new Bag<>( Component.class, 4 ) );
+			componentsByType.setUnsafe( i, new BoundedBag<>( Component.class, 4 ) );
 		}
 	}
 
@@ -37,7 +42,8 @@ public class ComponentManager extends Manager
 		
 		for ( int i = componentBits.nextSetBit( 0 ); i >= 0; i = componentBits.nextSetBit( i + 1 ) )
 		{
-			componentsByType.getUnsafe( i ).setUnsafe( e.id, null );
+//			componentsByType.getUnsafe( i ).setUnsafe( e.id, null );
+			componentsByType.getUnsafe( i ).remove( e.id );
 		}
 		
 		componentBits.clear();
@@ -47,7 +53,8 @@ public class ComponentManager extends Manager
 	{
 		final int cmpIndex = ClassIndexer.getIndexFor( component.getClass(), Component.class );
 		
-		initIfAbsent( cmpIndex ).set( e.id, component );
+//		initIfAbsent( cmpIndex ).set( e.id, component );
+		initIfAbsent( cmpIndex ).add( e.id, component );
 
 		e.componentBits.set( cmpIndex );
 	}
@@ -59,12 +66,13 @@ public class ComponentManager extends Manager
 		
 		if ( componentBits.get( cmpIndex ) )
 		{
-			componentsByType.getUnsafe( cmpIndex ).setUnsafe( e.id, null );
+//			componentsByType.getUnsafe( cmpIndex ).setUnsafe( e.id, null );
+			componentsByType.getUnsafe( cmpIndex ).remove( e.id );
 			componentBits.clear( cmpIndex );
 		}
 	}
 
-	protected Bag<Component> getComponentsByType ( final Class<? extends Component> type )
+	protected ImmutableBag<Component> getComponentsByType ( final Class<? extends Component> type )
 	{
 		final int cmpIndex = ClassIndexer.getIndexFor( type, Component.class );
 		
@@ -123,7 +131,8 @@ public class ComponentManager extends Manager
 	 *            initialized.
 	 * @return Component bag for the given component index.
 	 */
-	private final Bag<Component> initIfAbsent ( final int cmpIndex )
+//	private final Bag<Component> initIfAbsent ( final int cmpIndex )
+	private final BoundedBag<Component> initIfAbsent ( final int cmpIndex )
 	{
 		final int prevCap = componentsByType.capacity();
 		// If type bag can't hold this component type.
@@ -133,7 +142,8 @@ public class ComponentManager extends Manager
 			// Init all the missing bags.
 			for ( int i = componentsByType.capacity(); i-- > prevCap; )
 			{
-				componentsByType.setUnsafe( i, new Bag<>( Component.class, 4 ) );
+//				componentsByType.setUnsafe( i, new Bag<>( Component.class, 4 ) );
+				componentsByType.setUnsafe( i, new BoundedBag<>( Component.class, 4 ) );
 			}
 		}
 		
