@@ -224,6 +224,7 @@ public abstract class EntitySystem implements EntityObserver
 	private final void removeFromSystem ( final Entity e )
 	{
 		final int ei = e.removedInSystem( this );
+		e.systemBits.clear( index );
 		actives.removeUnsafe( ei );
 		
 		if ( (actives.size - ei) > 0 )
@@ -238,6 +239,7 @@ public abstract class EntitySystem implements EntityObserver
 	private final void insertToSystem ( final Entity e )
 	{
 		e.addedInSystem( this, actives.size );
+		e.systemBits.set( index );
 		actives.add( e );
 		
 		inserted( e );
