@@ -78,19 +78,19 @@ public class World
 	 */
 	private final void initArrays ()
 	{
-		opsArray[0] = ( o, e ) -> o.added( e );
+		opsArray[0] = EntityObserver::added;
 		entBagsArray[0] = added;
 		
-		opsArray[1] = ( o, e ) -> o.changed( e );
+		opsArray[1] = EntityObserver::changed;
 		entBagsArray[1] = changed;
 		
-		opsArray[2] = ( o, e ) -> o.disabled( e );
+		opsArray[2] = EntityObserver::disabled;
 		entBagsArray[2] = disabled;
 		
-		opsArray[3] = ( o, e ) -> o.enabled( e );
+		opsArray[3] = EntityObserver::enabled;
 		entBagsArray[3] = enabled;
 		
-		opsArray[4] = ( o, e ) -> o.deleted( e );
+		opsArray[4] = EntityObserver::deleted;
 		entBagsArray[4] = deleted;
 	}
 
