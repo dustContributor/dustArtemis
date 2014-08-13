@@ -8,35 +8,31 @@ import com.artemis.utils.ClassIndexer;
  * <p>An Aspects is used by systems as a matcher against entities, to check if a system is
  * interested in an entity. Aspects define what sort of component types an entity must
  * possess, or not possess.</p>
- * 
+ * <p></p>
  * <p>This creates an aspect where an entity must possess A and B and C:
  * 
- * <p>Aspect.getAspectForAll(A.class, B.class, C.class)</p>
- * 
+ * <p>new Aspect().all(A.class, B.class, C.class)</p>
+ * <p></p>
  * <p>This creates an aspect where an entity must possess A and B and C, but must not possess U or V.</p>
  * 
- * <p>Aspect.getAspectForAll(A.class, B.class, C.class).exclude(U.class, V.class)</p>
- * 
+ * <p>new Aspect().all(A.class, B.class, C.class).exclude(U.class, V.class)</p>
+ * <p></p>
  * <p>This creates an aspect where an entity must possess A and B and C, but must not possess U or V, but must possess one of X or Y or Z.</p>
  * 
- * <p>Aspect.getAspectForAll(A.class, B.class, C.class).exclude(U.class, V.class).one(X.class, Y.class, Z.class)</p>
- *
- * <p>You can create and compose aspects in many ways:</p>
+ * <p>new Aspect().all(A.class, B.class, C.class).exclude(U.class, V.class).one(X.class, Y.class, Z.class)</p>
  * 
- * <p>Aspect.getEmpty().one(X.class, Y.class, Z.class).all(A.class, B.class, C.class).exclude(U.class, V.class) is the same as:</p>
- * 
- * <p>Aspect.getAspectForAll(A.class, B.class, C.class).exclude(U.class, V.class).one(X.class, Y.class, Z.class)</p>
- *
  * @author Arni Arent
  *
  */
-public class Aspect
+public final class Aspect
 {
 	// Empty aspect.
 	private static final Aspect EMPTY_ASPECT = new Aspect();
-	
+
 	// Bit sets marking the components this aspect is interested in.
-	protected final BitSet allSet, exclusionSet, oneSet;
+	protected final BitSet allSet;
+	protected final BitSet exclusionSet;
+	protected final BitSet oneSet;
 
 	/**
 	 * Creates a new empty aspect.
@@ -52,18 +48,14 @@ public class Aspect
 	 * Returns an aspect where an entity must possess all of the specified
 	 * component types.
 	 * 
-	 * @param type
-	 *            a required component type
 	 * @param types
-	 *            a required component type
+	 *            a required component types
 	 * @return an aspect that can be matched against entities
 	 */
 	@SafeVarargs
-	public final Aspect all ( final Class<? extends Component> type, final Class<? extends Component>... types )
+	public final Aspect all ( final Class<? extends Component>... types )
 	{
-		allSet.set( ClassIndexer.getIndexFor( type, Component.class ) );
-
-		for ( int i = 0; i < types.length; ++i )
+		for ( int i = types.length; i-- > 0; )
 		{
 			allSet.set( ClassIndexer.getIndexFor( types[i], Component.class ) );
 		}
@@ -76,18 +68,14 @@ public class Aspect
 	 * will not be interested in an entity that possesses one of the specified
 	 * exclusion component types.
 	 * 
-	 * @param type
-	 *            component type to exclude
 	 * @param types
-	 *            component type to exclude
+	 *            component types to exclude
 	 * @return an aspect that can be matched against entities
 	 */
 	@SafeVarargs
-	public final Aspect exclude ( final Class<? extends Component> type, final Class<? extends Component>... types )
+	public final Aspect exclude ( final Class<? extends Component>... types )
 	{
-		exclusionSet.set( ClassIndexer.getIndexFor( type, Component.class ) );
-
-		for ( int i = 0; i < types.length; ++i )
+		for ( int i = types.length; i-- > 0; )
 		{
 			exclusionSet.set( ClassIndexer.getIndexFor( types[i], Component.class ) );
 		}
@@ -99,18 +87,14 @@ public class Aspect
 	 * Returns an aspect where an entity must possess one of the specified
 	 * component types.
 	 * 
-	 * @param type
-	 *            one of the types the entity must possess
 	 * @param types
-	 *            one of the types the entity must possess
+	 *            many of the types the entity must possess
 	 * @return an aspect that can be matched against entities
 	 */
 	@SafeVarargs
-	public final Aspect one ( final Class<? extends Component> type, final Class<? extends Component>... types )
+	public final Aspect one ( final Class<? extends Component>... types )
 	{
-		oneSet.set( ClassIndexer.getIndexFor( type, Component.class ) );
-
-		for ( int i = 0; i < types.length; ++i )
+		for ( int i = types.length; i-- > 0; )
 		{
 			oneSet.set( ClassIndexer.getIndexFor( types[i], Component.class ) );
 		}
@@ -123,7 +107,7 @@ public class Aspect
 	 * processes no entities, but still gets invoked. Typical usages is when you
 	 * need to create special purpose systems for debug rendering, like
 	 * rendering FPS, how many entities are active in the world, etc.
-	 * 
+	 * <p></p>
 	 * <p>
 	 * <b>NOTE: Do not modify this aspect</b>, its a single static reference in
 	 * Aspect class, it returns the same object always, if you modify it, you
