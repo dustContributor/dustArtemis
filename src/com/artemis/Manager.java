@@ -6,39 +6,12 @@ package com.artemis;
  * @author Arni Arent
  * 
  */
-public abstract class Manager implements EntityObserver
+public abstract class Manager extends EntityObserver
 {
 	protected World world;
 
-	protected abstract void initialize ();
-
-	@Override
-	public void added ( Entity e )
+	protected void initialize ()
 	{
-		// Empty method.
-	}
-
-	@Override
-	public void changed ( Entity e )
-	{
-		// Empty method.
-	}
-
-	@Override
-	public void deleted ( Entity e )
-	{
-		// Empty method.
-	}
-
-	@Override
-	public void disabled ( Entity e )
-	{
-		// Empty method.
-	}
-
-	@Override
-	public void enabled ( Entity e )
-	{
-		// Empty method.
+		// Empty by default.
 	}
 }
