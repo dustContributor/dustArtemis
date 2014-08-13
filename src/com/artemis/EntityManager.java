@@ -4,6 +4,7 @@ import java.util.BitSet;
 
 import com.artemis.utils.Bag;
 import com.artemis.utils.IdPool;
+import com.artemis.utils.ImmutableBag;
 
 /**
  * @author Arni Arent
@@ -27,12 +28,6 @@ public class EntityManager extends Manager
 		idPool = new IdPool();
 	}
 
-	@Override
-	protected void initialize ()
-	{
-		// Empty method.
-	}
-
 	protected Entity createEntityInstance ()
 	{
 		final Entity e = new Entity( world, idPool.getId() );
@@ -41,37 +36,106 @@ public class EntityManager extends Manager
 	}
 
 	@Override
-	public void added ( final Entity e )
+	public void added ( ImmutableBag<Entity> entities )
 	{
-		active++;
-		added++;
-		entities.set( e.id, e );
+		final int size = entities.size();
+		int maxID = 0;
+		
+		for ( int i = 0; i < size; ++i )
+		{
+			int eid = entities.getUnsafe( i ).id;
+			maxID = ( maxID > eid ) ? maxID : eid;
+		}
+		
+		this.entities.ensureCapacity( maxID + 1 );
+		
+		active += size;
+		added += size;
+		
+		for ( int i = 0; i < size; ++i )
+		{
+			Entity e = entities.getUnsafe( i );
+			this.entities.setUnsafe( e.id, e );
+		}
 	}
-
+	
+//	@Override
+//	public void added ( final Entity e )
+//	{
+//		active++;
+//		added++;
+//		entities.set( e.id, e );
+//	}
+	
 	@Override
-	public void enabled ( final Entity e )
+	public void enabled ( ImmutableBag<Entity> entities )
 	{
-		disabled.clear( e.id );
+		for ( int i = entities.size(); i-- > 0; )
+		{
+			disabled.clear( entities.getUnsafe( i ).id );
+		}
 	}
 
+//	@Override
+//	public void enabled ( final Entity e )
+//	{
+//		disabled.clear( e.id );
+//	}
+	
 	@Override
-	public void disabled ( final Entity e )
+	public void disabled ( ImmutableBag<Entity> entities )
 	{
-		disabled.set( e.id );
+		for ( int i = entities.size(); i-- > 0; )
+		{
+			disabled.set( entities.getUnsafe( i ).id );
+		}
 	}
 
+//	@Override
+//	public void disabled ( final Entity e )
+//	{
+//		disabled.set( e.id );
+//	}
+	
 	@Override
-	public void deleted ( final Entity e )
+	public void deleted ( ImmutableBag<Entity> entities )
 	{
-		final int id = e.id;
-
-		entities.set( id, null );
-		disabled.clear( id );
-		idPool.putId( id );
-
-		active--;
-		deleted++;
+		final int size = entities.size();
+		int maxID = 0;
+		
+		for ( int i = 0; i < size; ++i )
+		{
+			int eid = entities.getUnsafe( i ).id;
+			maxID = ( maxID > eid ) ? maxID : eid;
+		}
+		
+		this.entities.ensureCapacity( maxID + 1 );
+		
+		active -= size;
+		deleted -= size;
+		
+		for ( int i = 0; i < size; ++i )
+		{
+			Entity e = entities.getUnsafe( i );
+			int eid = e.id;
+			this.entities.setUnsafe( eid, null );
+			disabled.clear( eid );
+			idPool.putId( eid );
+		}
 	}
+
+//	@Override
+//	public void deleted ( final Entity e )
+//	{
+//		final int id = e.id;
+//
+//		entities.set( id, null );
+//		disabled.clear( id );
+//		idPool.putId( id );
+//
+//		active--;
+//		deleted++;
+//	}
 
 	/**
 	 * Check if this entity is active. Active means the entity is being actively
