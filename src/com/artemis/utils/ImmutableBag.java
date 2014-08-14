@@ -207,7 +207,15 @@ public abstract class ImmutableBag<T>
 	 *            of the item to return
 	 * @return item at the specified position in bag
 	 */
-	public abstract T get ( int index );
+	public T get ( final int index )
+	{
+		if ( isInBounds( index ) )
+		{
+			return getUnsafe( index );
+		}
+
+		return null;
+	}
 
 	/**
 	 * Returns the item at the specified position in Bag.
@@ -220,7 +228,10 @@ public abstract class ImmutableBag<T>
 	 *            of the item to return
 	 * @return item at the specified position in bag
 	 */
-	public abstract T getUnsafe ( final int index );
+	public T getUnsafe ( final int index )
+	{
+		return data[index];
+	}
 
 
 	/**
