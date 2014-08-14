@@ -11,7 +11,7 @@ import com.artemis.utils.ImmutableBag;
  * @param <T>
  *            the class type of the component
  */
-public class ComponentMapper<T extends Component>
+public final class ComponentMapper<T extends Component>
 {
 	private final ImmutableBag<T> components;
 
@@ -38,7 +38,7 @@ public class ComponentMapper<T extends Component>
 	 *            the entity that should possess the component
 	 * @return the instance of the component
 	 */
-	public T get ( final Entity e )
+	public final T get ( final Entity e )
 	{
 		return components.getUnsafe( e.id );
 	}
@@ -51,7 +51,7 @@ public class ComponentMapper<T extends Component>
 	 *            the entity that should possess the component
 	 * @return the instance of the component
 	 */
-	public T getSafe ( final Entity e )
+	public final T getSafe ( final Entity e )
 	{
 		return components.get( e.id );
 	}
@@ -63,7 +63,7 @@ public class ComponentMapper<T extends Component>
 	 *            the entity to check
 	 * @return true if the entity has this component type, false if it doesn't.
 	 */
-	public boolean has ( final Entity e )
+	public final boolean has ( final Entity e )
 	{
 		return components.get( e.id ) != null;
 	}
