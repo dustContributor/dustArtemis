@@ -109,7 +109,7 @@ final class MapperImplementor
 			
 			final ParameterizedType genericType = (ParameterizedType) field.getGenericType();
 			final Class<? extends Component> componentType = (Class<? extends Component>) genericType.getActualTypeArguments()[0];
-			final ComponentMapper<? extends Component> mapper = new ComponentMapper<>( componentType, world );
+			final ComponentMapper<? extends Component> mapper = world.getMapper( componentType );
 
 			// Set accessible through Reflection.
 			field.setAccessible( true );
