@@ -24,7 +24,7 @@ public final class ComponentMapper<T extends Component>
 	 *            the world that this component mapper should use.
 	 */
 	@SuppressWarnings ( "unchecked" )
-	public ComponentMapper ( final Class<T> type, final World world )
+	ComponentMapper ( final Class<T> type, final World world )
 	{
 		components = (ImmutableBag<T>) world.getComponentManager().getComponentsByType( type );
 	}

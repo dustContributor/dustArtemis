@@ -303,7 +303,7 @@ public class World
 	 */
 	public <T extends EntitySystem> T setSystem ( final T system, final boolean active )
 	{
-		system.setWorld( this );
+		system.world = this;
 		system.setActive( active );
 
 		systems.put( system.getClass(), system );

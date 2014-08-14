@@ -10,7 +10,7 @@ import com.artemis.utils.ImmutableBag;
  * @author Arni Arent
  */
 @SuppressWarnings ( "hiding" )
-public class EntityManager extends Manager
+public final class EntityManager extends Manager
 {
 	private final Bag<Entity> entities;
 	private final BitSet disabled;
@@ -22,14 +22,14 @@ public class EntityManager extends Manager
 
 	private final IdPool idPool;
 
-	public EntityManager ()
+	EntityManager ()
 	{
 		entities = new Bag<>( Entity.class );
 		disabled = new BitSet();
 		idPool = new IdPool();
 	}
 
-	protected Entity createEntityInstance ()
+	public Entity createEntityInstance ()
 	{
 		++created;
 		return new Entity( world, idPool.getId() );
@@ -134,10 +134,10 @@ public class EntityManager extends Manager
 	/**
 	 * Get a entity with this id.
 	 * 
-	 * @param entityId
-	 * @return the entity
+	 * @param entityId of the entity to retrieve.
+	 * @return the retrieved entity.
 	 */
-	protected Entity getEntity ( final int entityId )
+	public Entity getEntity ( final int entityId )
 	{
 		return entities.getUnsafe( entityId );
 	}

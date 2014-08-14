@@ -43,27 +43,23 @@ public final class Entity
 	/**
 	 * BitSet instance containing bits of the components the entity possesses.
 	 */
-	protected final BitSet componentBits;
+	final BitSet componentBits;
 
 	/**
 	 * BitSet instance containing bits signaling which systems this entity is
 	 * active in.
 	 */
-	protected final BitSet systemBits;
+	final BitSet systemBits;
 
 	private final World world;
-	private final EntityManager entityManager;
-	private final ComponentManager componentManager;
 
 	/** Bag to hold the indices this Entity takes in the systems. */
 	private final Bag<SystemEntityPair> indexInSystems;
 
-	protected Entity ( final World world, final int id )
+	Entity ( final World world, final int id )
 	{
 		this.world = world;
 		this.id = id;
-		this.entityManager = world.getEntityManager();
-		this.componentManager = world.getComponentManager();
 		this.systemBits = new BitSet();
 		this.componentBits = new BitSet();
 
@@ -76,7 +72,7 @@ public final class Entity
 	 * Make entity ready for re-use. Will generate a new unique id for the
 	 * entity.
 	 */
-	protected void reset ()
+	void reset ()
 	{
 		systemBits.clear();
 		componentBits.clear();
@@ -99,7 +95,7 @@ public final class Entity
 	 */
 	public Entity addComponent ( final Component component )
 	{
-		componentManager.addComponent( this, component );
+		world.getComponentManager().addComponent( this, component );
 		return this;
 	}
 
@@ -126,7 +122,7 @@ public final class Entity
 	 */
 	public Entity removeComponent ( final Class<? extends Component> type )
 	{
-		componentManager.removeComponent( this, type );
+		world.getComponentManager().removeComponent( this, type );
 		return this;
 	}
 
@@ -138,7 +134,7 @@ public final class Entity
 	 */
 	public boolean isActive ()
 	{
-		return entityManager.isActive( id );
+		return world.getEntityManager().isActive( id );
 	}
 
 	/**
@@ -150,7 +146,7 @@ public final class Entity
 	 */
 	public boolean isEnabled ()
 	{
-		return entityManager.isEnabled( id );
+		return world.getEntityManager().isEnabled( id );
 	}
 
 	/**
@@ -167,7 +163,7 @@ public final class Entity
 	@SuppressWarnings ( "unchecked" )
 	public <T extends Component> T getComponent ( final Class<T> type )
 	{
-		return (T) componentManager.getComponent( this, type );
+		return (T) world.getComponentManager().getComponent( this, type );
 	}
 
 	/**
@@ -180,7 +176,7 @@ public final class Entity
 	 */
 	public Bag<Component> getComponents ( final Bag<Component> fillBag )
 	{
-		return componentManager.getComponentsFor( this, fillBag );
+		return world.getComponentManager().getComponentsFor( this, fillBag );
 	}
 
 	/**
@@ -192,7 +188,7 @@ public final class Entity
 	 */
 	void addedInSystem ( final EntitySystem system, final int indexInSystem )
 	{
-		int si = system.getIndex();
+		final int si = system.getIndex();
 		indexInSystems.add( new SystemEntityPair( si, indexInSystem ) );
 		systemBits.set( si );
 	}
@@ -208,7 +204,7 @@ public final class Entity
 		final int si = system.getIndex();
 		final SystemEntityPair[] array = indexInSystems.data();
 		
-		for ( int i = indexInSystems.size; i-- > 0; )
+		for ( int i = indexInSystems.size(); i-- > 0; )
 		{
 			final SystemEntityPair sep = array[i];
 			if ( sep.systemID == si )
@@ -231,7 +227,7 @@ public final class Entity
 		final int si = system.getIndex();
 		final SystemEntityPair[] array = indexInSystems.data();
 		
-		for ( int i = indexInSystems.size; i-- > 0; )
+		for ( int i = indexInSystems.size(); i-- > 0; )
 		{
 			final SystemEntityPair sep = array[i];
 			if ( sep.systemID == si )

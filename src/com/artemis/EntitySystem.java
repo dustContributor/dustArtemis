@@ -227,7 +227,7 @@ public abstract class EntitySystem extends EntityObserver
 		e.systemBits.clear( index );
 		actives.removeUnsafe( ei );
 		
-		if ( (actives.size - ei) > 0 )
+		if ( (actives.size() - ei) > 0 )
 		{
 			final Entity tmp = actives.getUnsafe( ei );
 			tmp.updateInSystem( this, ei );
@@ -238,7 +238,7 @@ public abstract class EntitySystem extends EntityObserver
 
 	private final void insertToSystem ( final Entity e )
 	{
-		e.addedInSystem( this, actives.size );
+		e.addedInSystem( this, actives.size() );
 		e.systemBits.set( index );
 		actives.add( e );
 		
@@ -298,11 +298,6 @@ public abstract class EntitySystem extends EntityObserver
 		{
 			check( entities.getUnsafe( i ) );
 		}
-	}
-	
-	protected final void setWorld ( final World world )
-	{
-		this.world = world;
 	}
 	
 	/**
