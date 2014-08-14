@@ -244,24 +244,7 @@ public final class Bag<T> extends ImmutableBag<T>
 		size = Math.max( size, index + 1 );
 		data[index] = item;
 	}
-
-	@Override
-	public T get ( final int index )
-	{
-		if ( isInBounds( index ) )
-		{
-			return getUnsafe( index );
-		}
-
-		return null;
-	}
-
-	@Override
-	public T getUnsafe ( final int index )
-	{
-		return data[index];
-	}
-
+	
 	/**
 	 * Removes the item at the specified position in this Bag. Does this by
 	 * overwriting it was last item then removing last item.
