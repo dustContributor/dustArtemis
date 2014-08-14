@@ -1,7 +1,6 @@
 package com.artemis;
 
 import java.util.HashMap;
-import java.util.function.BiConsumer;
 
 import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
@@ -35,11 +34,7 @@ public class World
 
 	private final HashMap<Class<? extends EntitySystem>, EntitySystem> systems;
 	private final Bag<EntitySystem> systemsBag;
-
-	private final Bag<Entity>[] entBagsArray;
-	private final BiConsumer<EntityObserver, Bag<Entity>>[] opsArray;
 	
-	@SuppressWarnings ( "unchecked" )
 	public World ()
 	{
 		managers = new HashMap<>();
@@ -59,39 +54,6 @@ public class World
 
 		em = new EntityManager();
 		setManager( em );
-		
-		// Arrays for helping iteration.
-		entBagsArray = new Bag[5];
-		opsArray = new BiConsumer[5];
-		
-		initArrays();
-	}
-
-	/**
-	 * Initializes each array with their matching operator-operand.
-	 * 
-	 * <p>
-	 * For 'added' entities, operator is observer.added(entity). For 'deleted'
-	 * entities, operator is observer.deleted(entity).
-	 * </p>
-	 * And so on.
-	 */
-	private final void initArrays ()
-	{
-		opsArray[0] = EntityObserver::added;
-		entBagsArray[0] = added;
-		
-		opsArray[1] = EntityObserver::changed;
-		entBagsArray[1] = changed;
-		
-		opsArray[2] = EntityObserver::disabled;
-		entBagsArray[2] = disabled;
-		
-		opsArray[3] = EntityObserver::enabled;
-		entBagsArray[3] = enabled;
-		
-		opsArray[4] = EntityObserver::deleted;
-		entBagsArray[4] = deleted;
 	}
 
 	/**
@@ -382,34 +344,36 @@ public class World
 	 */
 	private void checkAll ()
 	{
-		final int lim = entBagsArray.length;
 		// Checking all affected entities in all EntityObservers.
-		for ( int i = 0; i < lim; ++i )
-		{
-			check( opsArray[i], entBagsArray[i], managersBag );
-			check( opsArray[i], entBagsArray[i], systemsBag );
-		}
+		notifyObservers( managersBag );
+		notifyObservers( systemsBag );
+		
 		// Clearing all the affected entities before next world update.
-		for ( int i = 0; i < lim; ++i )
-		{
-			entBagsArray[i].clear();
-		}
+		clearAllBags();
 	}
-
-	private static final <T extends EntityObserver> void check (
-		final BiConsumer<EntityObserver, Bag<Entity>> op,
-		final Bag<Entity> entityBag,
-		final Bag<T> observerBag )
+	
+	private final void clearAllBags ()
 	{
-		// Entity observers.
-		final T[] observers = observerBag.data();
-		final int limObs = observerBag.size();
-
-		// For each observer in the bag.
-		for ( int o = 0; o < limObs; ++o )
+		added.clear();
+		changed.clear();
+		disabled.clear();
+		enabled.clear();
+		deleted.clear();
+	}
+	
+	private final <T extends EntityObserver> void notifyObservers ( final Bag<T> observers )
+	{
+		final int size = observers.size();
+		final T[] obs = observers.data();
+		
+		for ( int i = 0; i < size; ++i )
 		{
-			// Pass affected entities.
-			op.accept( observers[o], entityBag );
+			final T o = obs[i];
+			o.added( added );
+			o.changed( changed );
+			o.disabled( disabled );
+			o.enabled( enabled );
+			o.deleted( deleted );
 		}
 	}
 
