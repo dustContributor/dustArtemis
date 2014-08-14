@@ -31,9 +31,8 @@ public class EntityManager extends Manager
 
 	protected Entity createEntityInstance ()
 	{
-		final Entity e = new Entity( world, idPool.getId() );
-		created++;
-		return e;
+		++created;
+		return new Entity( world, idPool.getId() );
 	}
 
 	@Override
@@ -44,7 +43,7 @@ public class EntityManager extends Manager
 		
 		for ( int i = 0; i < size; ++i )
 		{
-			int eid = entities.getUnsafe( i ).id;
+			final int eid = entities.getUnsafe( i ).id;
 			maxID = ( maxID > eid ) ? maxID : eid;
 		}
 		
@@ -53,19 +52,33 @@ public class EntityManager extends Manager
 		active += size;
 		added += size;
 		
-		entities.forEach( (e) -> this.entities.setUnsafe( e.id, e ) );
+		for ( int i = 0; i < size; ++i )
+		{
+			final Entity e = entities.getUnsafe( i );
+			this.entities.setUnsafe( e.id, e );
+		}
 	}
 	
 	@Override
 	public void enabled ( final ImmutableBag<Entity> entities )
 	{
-		entities.forEach( (e) -> disabled.clear( e.id ) );
+		final int size = entities.size();
+		
+		for ( int i = 0; i < size; ++i )
+		{
+			disabled.clear( entities.getUnsafe( i ).id );
+		}
 	}
 	
 	@Override
 	public void disabled ( final ImmutableBag<Entity> entities )
 	{
-		entities.forEach( (e) -> disabled.set( e.id ) );
+		final int size = entities.size();
+		
+		for ( int i = 0; i < size; ++i )
+		{
+			disabled.set( entities.getUnsafe( i ).id );
+		}
 	}
 	
 	@Override
