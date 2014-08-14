@@ -260,6 +260,17 @@ public abstract class EntitySystem extends EntityObserver
 	@Override
 	public void deleted ( final ImmutableBag<Entity> entities )
 	{
+		removeAll( entities );
+	}
+	
+	@Override
+	public void disabled ( final ImmutableBag<Entity> entities )
+	{
+		removeAll( entities );
+	}
+	
+	private final void removeAll ( final ImmutableBag<Entity> entities )
+	{
 		final int size = entities.size();
 		
 		for ( int i = 0; i < size; ++i )
@@ -274,12 +285,6 @@ public abstract class EntitySystem extends EntityObserver
 	}
 	
 	@Override
-	public void disabled ( final ImmutableBag<Entity> entities )
-	{
-		deleted( entities );
-	}
-	
-	@Override
 	public void enabled ( final ImmutableBag<Entity> entities )
 	{
 		checkAll( entities );
@@ -287,7 +292,12 @@ public abstract class EntitySystem extends EntityObserver
 
 	private final void checkAll ( final ImmutableBag<Entity> entities )
 	{
-		entities.forEach( this::check );
+		final int size = entities.size();
+
+		for ( int i = 0; i < size; ++i )
+		{
+			check( entities.getUnsafe( i ) );
+		}
 	}
 	
 	protected final void setWorld ( final World world )
