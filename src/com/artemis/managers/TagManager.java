@@ -53,33 +53,19 @@ public class TagManager extends Manager
 	}
 	
 	@Override
-	public void deleted ( ImmutableBag<Entity> entities )
+	public void deleted ( final ImmutableBag<Entity> entities )
 	{
-		for ( int i = entities.size(); i-- > 0; )
+		final int size = entities.size();
+		
+		for ( int i = 0; i < size; ++i )
 		{
-			String removedTag = tagsByEntity.remove( entities.getUnsafe( i ) );
+			final String removedTag = tagsByEntity.remove( entities.getUnsafe( i ) );
 			
 			if ( removedTag != null )
 			{
 				entitiesByTag.remove( removedTag );
 			}
 		}
-	}
-
-//	@Override
-//	public void deleted ( final Entity e )
-//	{
-//		final String removedTag = tagsByEntity.remove( e );
-//		if ( removedTag != null )
-//		{
-//			entitiesByTag.remove( removedTag );
-//		}
-//	}
-
-	@Override
-	protected void initialize ()
-	{
-		// Empty method.
 	}
 
 }

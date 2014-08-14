@@ -14,7 +14,7 @@ import com.artemis.utils.ImmutableBag;
  * @author Arni Arent
  * 
  */
-public abstract class EntitySystem implements EntityObserver
+public abstract class EntitySystem extends EntityObserver
 {
 	private final int index;
 
@@ -244,43 +244,52 @@ public abstract class EntitySystem implements EntityObserver
 		
 		inserted( e );
 	}
-
+	
 	@Override
-	public final void added ( final Entity e )
+	public void added ( final ImmutableBag<Entity> entities )
 	{
-		check( e );
+		checkAll( entities );
 	}
-
+	
 	@Override
-	public final void changed ( final Entity e )
+	public void changed ( final ImmutableBag<Entity> entities )
 	{
-		check( e );
+		checkAll( entities );
 	}
-
+	
 	@Override
-	public final void deleted ( final Entity e )
+	public void deleted ( final ImmutableBag<Entity> entities )
 	{
-		if ( e.systemBits.get( index ) )
+		final int size = entities.size();
+		
+		for ( int i = 0; i < size; ++i )
 		{
-			removeFromSystem( e );
+			final Entity e = entities.getUnsafe( i );
+			
+			if ( e.systemBits.get( index ) )
+			{
+				removeFromSystem( e );
+			}
 		}
 	}
-
+	
 	@Override
-	public final void disabled ( final Entity e )
+	public void disabled ( final ImmutableBag<Entity> entities )
 	{
-		if ( e.systemBits.get( index ) )
-		{
-			removeFromSystem( e );
-		}
+		deleted( entities );
+	}
+	
+	@Override
+	public void enabled ( final ImmutableBag<Entity> entities )
+	{
+		checkAll( entities );
 	}
 
-	@Override
-	public final void enabled ( final Entity e )
+	private final void checkAll ( final ImmutableBag<Entity> entities )
 	{
-		check( e );
+		entities.forEach( this::check );
 	}
-
+	
 	protected final void setWorld ( final World world )
 	{
 		this.world = world;

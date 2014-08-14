@@ -37,7 +37,7 @@ public class World
 	private final Bag<EntitySystem> systemsBag;
 
 	private final Bag<Entity>[] entBagsArray;
-	private final BiConsumer<EntityObserver, Entity>[] opsArray;
+	private final BiConsumer<EntityObserver, Bag<Entity>>[] opsArray;
 	
 	@SuppressWarnings ( "unchecked" )
 	public World ()
@@ -397,28 +397,19 @@ public class World
 	}
 
 	private static final <T extends EntityObserver> void check (
-		final BiConsumer<EntityObserver, Entity> op,
+		final BiConsumer<EntityObserver, Bag<Entity>> op,
 		final Bag<Entity> entityBag,
 		final Bag<T> observerBag )
 	{
 		// Entity observers.
 		final T[] observers = observerBag.data();
-		// Entities that were affected.
-		final Entity[] entities = entityBag.data();
-		
 		final int limObs = observerBag.size();
-		final int limEnt = entityBag.size();
 
 		// For each observer in the bag.
 		for ( int o = 0; o < limObs; ++o )
 		{
-			final T observer = observers[o];
-			// For each entity affected.
-			for ( int e = 0; e < limEnt; ++e )
-			{
-				// Apply the operation.
-				op.accept( observer, entities[e] );
-			}
+			// Pass affected entities.
+			op.accept( observers[o], entityBag );
 		}
 	}
 

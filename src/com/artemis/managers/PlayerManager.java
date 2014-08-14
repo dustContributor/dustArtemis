@@ -65,23 +65,11 @@ public class PlayerManager extends Manager
 	{
 		return playerByEntity.get( e );
 	}
-
+	
 	@Override
-	protected void initialize ()
-	{
-		// Empty method.
-	}
-
-	@Override
-	public void deleted ( ImmutableBag<Entity> entities )
+	public void deleted ( final ImmutableBag<Entity> entities )
 	{
 		entities.forEach( this::removeFromPlayer );
 	}
-	
-//	@Override
-//	public void deleted ( final Entity e )
-//	{
-//		removeFromPlayer( e );
-//	}
 
 }
