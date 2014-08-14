@@ -9,6 +9,7 @@ import com.artemis.utils.ImmutableBag;
 /**
  * @author Arni Arent
  */
+@SuppressWarnings ( "hiding" )
 public class EntityManager extends Manager
 {
 	private final Bag<Entity> entities;
@@ -36,7 +37,7 @@ public class EntityManager extends Manager
 	}
 
 	@Override
-	public void added ( ImmutableBag<Entity> entities )
+	public void added ( final ImmutableBag<Entity> entities )
 	{
 		final int size = entities.size();
 		int maxID = 0;
@@ -52,53 +53,23 @@ public class EntityManager extends Manager
 		active += size;
 		added += size;
 		
-		for ( int i = 0; i < size; ++i )
-		{
-			Entity e = entities.getUnsafe( i );
-			this.entities.setUnsafe( e.id, e );
-		}
+		entities.forEach( (e) -> this.entities.setUnsafe( e.id, e ) );
 	}
 	
-//	@Override
-//	public void added ( final Entity e )
-//	{
-//		active++;
-//		added++;
-//		entities.set( e.id, e );
-//	}
-	
 	@Override
-	public void enabled ( ImmutableBag<Entity> entities )
+	public void enabled ( final ImmutableBag<Entity> entities )
 	{
-		for ( int i = entities.size(); i-- > 0; )
-		{
-			disabled.clear( entities.getUnsafe( i ).id );
-		}
+		entities.forEach( (e) -> disabled.clear( e.id ) );
 	}
-
-//	@Override
-//	public void enabled ( final Entity e )
-//	{
-//		disabled.clear( e.id );
-//	}
 	
 	@Override
-	public void disabled ( ImmutableBag<Entity> entities )
+	public void disabled ( final ImmutableBag<Entity> entities )
 	{
-		for ( int i = entities.size(); i-- > 0; )
-		{
-			disabled.set( entities.getUnsafe( i ).id );
-		}
+		entities.forEach( (e) -> disabled.set( e.id ) );
 	}
-
-//	@Override
-//	public void disabled ( final Entity e )
-//	{
-//		disabled.set( e.id );
-//	}
 	
 	@Override
-	public void deleted ( ImmutableBag<Entity> entities )
+	public void deleted ( final ImmutableBag<Entity> entities )
 	{
 		final int size = entities.size();
 		int maxID = 0;
@@ -116,26 +87,13 @@ public class EntityManager extends Manager
 		
 		for ( int i = 0; i < size; ++i )
 		{
-			Entity e = entities.getUnsafe( i );
-			int eid = e.id;
+			final Entity e = entities.getUnsafe( i );
+			final int eid = e.id;
 			this.entities.setUnsafe( eid, null );
 			disabled.clear( eid );
 			idPool.putId( eid );
 		}
 	}
-
-//	@Override
-//	public void deleted ( final Entity e )
-//	{
-//		final int id = e.id;
-//
-//		entities.set( id, null );
-//		disabled.clear( id );
-//		idPool.putId( id );
-//
-//		active--;
-//		deleted++;
-//	}
 
 	/**
 	 * Check if this entity is active. Active means the entity is being actively

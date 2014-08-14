@@ -28,12 +28,6 @@ public class GroupManager extends Manager
 		groupsByEntity = new HashMap<>();
 	}
 
-	@Override
-	protected void initialize ()
-	{
-		// Empty method.
-	}
-
 	/**
 	 * Set the group of the entity.
 	 * 
@@ -178,15 +172,9 @@ public class GroupManager extends Manager
 	}
 	
 	@Override
-	public void deleted ( ImmutableBag<Entity> entities )
+	public void deleted ( final ImmutableBag<Entity> entities )
 	{
 		entities.forEach( this::removeFromAllGroups );
 	}
-
-//	@Override
-//	public void deleted ( final Entity e )
-//	{
-//		removeFromAllGroups( e );
-//	}
 
 }

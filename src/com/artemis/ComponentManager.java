@@ -27,12 +27,6 @@ public class ComponentManager extends Manager
 		}
 	}
 
-	@Override
-	protected void initialize ()
-	{
-		// Empty method.
-	}
-
 	private void removeComponentsOfEntity ( final Entity e )
 	{
 		final BitSet componentBits = e.componentBits;
@@ -91,16 +85,10 @@ public class ComponentManager extends Manager
 	}
 	
 	@Override
-	public void deleted ( ImmutableBag<Entity> entities )
+	public void deleted ( final ImmutableBag<Entity> entities )
 	{
 		deleted.addAll( entities );
 	}
-
-//	@Override
-//	public void deleted ( final Entity e )
-//	{
-//		deleted.add( e );
-//	}
 
 	protected void clean ()
 	{
