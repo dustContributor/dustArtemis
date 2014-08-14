@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.artemis.Entity;
 import com.artemis.Manager;
+import com.artemis.utils.ImmutableBag;
 
 /**
  * If you need to tag any entity, use this. A typical usage would be to tag
@@ -50,16 +51,30 @@ public class TagManager extends Manager
 	{
 		return tagsByEntity.values();
 	}
-
+	
 	@Override
-	public void deleted ( final Entity e )
+	public void deleted ( ImmutableBag<Entity> entities )
 	{
-		final String removedTag = tagsByEntity.remove( e );
-		if ( removedTag != null )
+		for ( int i = entities.size(); i-- > 0; )
 		{
-			entitiesByTag.remove( removedTag );
+			String removedTag = tagsByEntity.remove( entities.getUnsafe( i ) );
+			
+			if ( removedTag != null )
+			{
+				entitiesByTag.remove( removedTag );
+			}
 		}
 	}
+
+//	@Override
+//	public void deleted ( final Entity e )
+//	{
+//		final String removedTag = tagsByEntity.remove( e );
+//		if ( removedTag != null )
+//		{
+//			entitiesByTag.remove( removedTag );
+//		}
+//	}
 
 	@Override
 	protected void initialize ()

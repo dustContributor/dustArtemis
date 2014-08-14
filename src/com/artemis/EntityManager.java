@@ -112,7 +112,7 @@ public class EntityManager extends Manager
 		this.entities.ensureCapacity( maxID + 1 );
 		
 		active -= size;
-		deleted -= size;
+		deleted += size;
 		
 		for ( int i = 0; i < size; ++i )
 		{

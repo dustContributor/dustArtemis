@@ -176,11 +176,17 @@ public class GroupManager extends Manager
 
 		return false;
 	}
-
+	
 	@Override
-	public void deleted ( final Entity e )
+	public void deleted ( ImmutableBag<Entity> entities )
 	{
-		removeFromAllGroups( e );
+		entities.forEach( this::removeFromAllGroups );
 	}
+
+//	@Override
+//	public void deleted ( final Entity e )
+//	{
+//		removeFromAllGroups( e );
+//	}
 
 }

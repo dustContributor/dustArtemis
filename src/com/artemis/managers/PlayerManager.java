@@ -73,9 +73,15 @@ public class PlayerManager extends Manager
 	}
 
 	@Override
-	public void deleted ( final Entity e )
+	public void deleted ( ImmutableBag<Entity> entities )
 	{
-		removeFromPlayer( e );
+		entities.forEach( this::removeFromPlayer );
 	}
+	
+//	@Override
+//	public void deleted ( final Entity e )
+//	{
+//		removeFromPlayer( e );
+//	}
 
 }

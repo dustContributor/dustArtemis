@@ -89,12 +89,18 @@ public class ComponentManager extends Manager
 
 		return fillBag;
 	}
-
+	
 	@Override
-	public void deleted ( final Entity e )
+	public void deleted ( ImmutableBag<Entity> entities )
 	{
-		deleted.add( e );
+		deleted.addAll( entities );
 	}
+
+//	@Override
+//	public void deleted ( final Entity e )
+//	{
+//		deleted.add( e );
+//	}
 
 	protected void clean ()
 	{
