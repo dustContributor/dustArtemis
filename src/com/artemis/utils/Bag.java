@@ -1,13 +1,6 @@
 package com.artemis.utils;
 
-import java.lang.reflect.Array;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.function.Consumer;
-import java.util.function.IntBinaryOperator;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * Collection type a bit like ArrayList but does not preserve the order of its
@@ -38,27 +31,8 @@ import java.util.stream.StreamSupport;
  *
  * @param <T> type of the items that will be stored in this Bag.
  */
-public class Bag<T> implements ImmutableBag<T>
+public final class Bag<T> extends ImmutableBag<T>
 {
-	private T[] data;
-	public int size;
-
-	public final Class<T> type;
-
-	public static final int 	DEFAULT_CAPACITY = 16, 
-								MINIMUM_WORKING_CAPACITY = 4, 
-								GROW_RATE_THRESHOLD = 2048;
-	
-	// Current grow strategy.
-	private IntBinaryOperator growStrategy;
-	
-	// Exponential 1.5 growth.
-	@SuppressWarnings ( "unused" )
-	private static final int growOneHalf ( final int dataSize, final int dataLength )
-	{
-		return dataLength + (dataLength >> 1);
-	}
-	
 	/**
 	 * Constructs an empty Bag with an initial capacity of
 	 * {@value #DEFAULT_CAPACITY}. The backing array type will be Object.
@@ -66,7 +40,7 @@ public class Bag<T> implements ImmutableBag<T>
 	 */
 	public Bag ()
 	{
-		this( DEFAULT_CAPACITY );
+		super();
 	}
 
 	/**
@@ -81,10 +55,9 @@ public class Bag<T> implements ImmutableBag<T>
 	 * @param capacity
 	 *            of the Bag
 	 */
-	@SuppressWarnings ( "unchecked" )
 	public Bag ( final int capacity )
 	{
-		this( (Class<T>) Object.class, capacity );
+		super( capacity );
 	}
 
 	/**
@@ -97,7 +70,7 @@ public class Bag<T> implements ImmutableBag<T>
 	 */
 	public Bag ( final Class<T> type )
 	{
-		this( type, DEFAULT_CAPACITY );
+		super( type );
 	}
 
 	/**
@@ -118,23 +91,7 @@ public class Bag<T> implements ImmutableBag<T>
 	 */
 	public Bag ( final Class<T> type, final int capacity )
 	{
-		this.data = newArray( type, (capacity > MINIMUM_WORKING_CAPACITY) ? capacity : MINIMUM_WORKING_CAPACITY );
-		this.type = type;
-		
-		this.growStrategy = ( dataSize, dataLength ) ->
-		{
-			if ( dataSize < GROW_RATE_THRESHOLD )
-			{
-				// Exponential 2 growth.
-				return (dataLength << 1);
-			}
-
-			// Switch strategy.
-			growStrategy = Bag::growOneHalf;
-			
-			// Next call will use the new strategy.
-			return Bag.growOneHalf( dataSize, dataLength );
-		};
+		super( type, capacity );
 	}
 
 	/**
@@ -147,10 +104,11 @@ public class Bag<T> implements ImmutableBag<T>
 	 */
 	public void add ( final T item )
 	{
+		final int len = data.length;
 		// if size greater than capacity then increase capacity.
-		if ( size >= data.length )
+		if ( size >= len )
 		{
-			grow( growStrategy.applyAsInt( size, data.length ) );
+			grow( nextCapacity( len ) );
 		}
 
 		addUnsafe( item );
@@ -509,66 +467,6 @@ public class Bag<T> implements ImmutableBag<T>
 			remove( bag.getUnsafe( i ) );
 		}
 	}
-	
-	@Override
-	public int contains ( final Predicate<T> criteria )
-	{
-		final int iSize = size;
-		
-		for ( int i = 0; i < iSize; ++i )
-		{
-			if ( criteria.test( data[i] ) )
-			{
-				// Item found. Return its index.
-				return i;
-			}
-		}
-
-		// Item not found.
-		return -1;
-	}
-	
-	@Override
-	public T find ( final Predicate<T> criteria )
-	{
-		final int index = contains( criteria );
-		
-		if ( index > - 1 )
-		{
-			return getUnsafe( index );
-		}
-		
-		return null;
-	}
-
-	@Override
-	public int contains ( final T item )
-	{
-		final int iSize = size;
-		
-		for ( int i = 0; i < iSize; ++i )
-		{
-			if ( data[i] == item )
-			{
-				// Item found. Return its index.
-				return i;
-			}
-		}
-
-		// Item not found.
-		return -1;
-	}
-	
-	@Override
-	public void forEach ( final Consumer<T> operation )
-	{
-		final int iSize = size;
-		
-		for ( int i = 0; i < iSize; ++i )
-		{
-			operation.accept( data[i] );
-		}
-	}
 
 	private void grow ( final int newCapacity )
 	{
@@ -600,13 +498,13 @@ public class Bag<T> implements ImmutableBag<T>
 	 */
 	private int getCapacityFor ( final int index )
 	{
-		int newSize = growStrategy.applyAsInt( size, data.length );
-		
+		int newSize = nextCapacity( data.length );
+
 		while ( index >= newSize )
 		{
-			newSize = growStrategy.applyAsInt( newSize, newSize );
+			newSize = nextCapacity( newSize );
 		}
-		
+
 		return newSize;
 	}
 
@@ -630,58 +528,15 @@ public class Bag<T> implements ImmutableBag<T>
 		}
 		size = 0;
 	}
-	
-	/**
-	 * Checks if the index is within the capacity of the
-	 * Bag (ie, if its bigger or equal than 0 and less
-	 * than the length of the backing array).
-	 * 
-	 * @param index that needs to be checked.
-	 * @return <code>true</code> if the index is within the bounds of the Bag,
-	 * <code>false</code> otherwise.
-	 */
-	private boolean isInBounds ( final int index )
-	{
-		return (index > -1 && index < data.length);
-	}
 
-	@Override
-	public int size ()
+	public void setSize ( final int size )
 	{
-		return size;
-	}
-
-	@Override
-	public int capacity ()
-	{
-		return data.length;
-	}
-
-	@Override
-	public boolean isEmpty ()
-	{
-		return size < 1;
+		this.size = size;
 	}
 
 	public T[] data ()
 	{
 		return this.data;
-	}
-
-	@Override
-	public Stream<T> stream ()
-	{
-		final Spliterator<T> split = Spliterators.spliterator( data, Spliterator.IMMUTABLE );
-
-		return StreamSupport.stream( split, false ).limit( size );
-	}
-
-	@Override
-	public Stream<T> parallelStream ()
-	{
-		final Spliterator<T> split = Spliterators.spliterator( data, Spliterator.IMMUTABLE );
-
-		return StreamSupport.stream( split, true ).limit( size );
 	}
 
 	@Override
@@ -701,12 +556,6 @@ public class Bag<T> implements ImmutableBag<T>
 		}
 
 		return str.toString();
-	}
-	
-	@SuppressWarnings ( "unchecked" )
-	private static final <T> T[] newArray ( final Class<T> type, final int capacity )
-	{
-		return (T[]) Array.newInstance( type, capacity );
 	}
 
 }

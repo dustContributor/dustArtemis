@@ -1,12 +1,6 @@
 package com.artemis.utils;
 
-import java.lang.reflect.Array;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * BoundedBag retains elements by their indices. It tries to save up space by
@@ -19,17 +13,9 @@ import java.util.stream.StreamSupport;
  * @param <T>
  *            type of elements this BoundedBag will hold.
  */
-public class BoundedBag<T> implements ImmutableBag<T>
+public final class BoundedBag<T> extends ImmutableBag<T>
 {
-	private T[] data;
-	private int size;
 	private int offset;
-
-	public final Class<T> type;
-
-	public static final int DEFAULT_CAPACITY = 16;
-	public static final int MINIMUM_WORKING_CAPACITY = 4;
-	public static final int GROW_RATE_THRESHOLD = 2048;
 
 	/**
 	 * Constructs an empty Bag with an initial capacity of
@@ -38,7 +24,7 @@ public class BoundedBag<T> implements ImmutableBag<T>
 	 */
 	public BoundedBag ()
 	{
-		this( DEFAULT_CAPACITY );
+		super();
 	}
 
 	/**
@@ -53,10 +39,9 @@ public class BoundedBag<T> implements ImmutableBag<T>
 	 * @param capacity
 	 *            of the Bag
 	 */
-	@SuppressWarnings ( "unchecked" )
 	public BoundedBag ( final int capacity )
 	{
-		this( (Class<T>) Object.class, capacity );
+		super( capacity );
 	}
 
 	/**
@@ -69,7 +54,7 @@ public class BoundedBag<T> implements ImmutableBag<T>
 	 */
 	public BoundedBag ( final Class<T> type )
 	{
-		this( type, DEFAULT_CAPACITY );
+		super( type );
 	}
 
 	/**
@@ -90,9 +75,7 @@ public class BoundedBag<T> implements ImmutableBag<T>
 	 */
 	public BoundedBag ( final Class<T> type, final int capacity )
 	{
-		this.data = newArray( type, 
-				(capacity > MINIMUM_WORKING_CAPACITY) ? capacity : MINIMUM_WORKING_CAPACITY );
-		this.type = type;
+		super( type, capacity );
 	}
 
 	/**
@@ -216,18 +199,6 @@ public class BoundedBag<T> implements ImmutableBag<T>
 		return data[index - offset];
 	}
 
-	@Override
-	public int size ()
-	{
-		return size;
-	}
-
-	@Override
-	public int capacity ()
-	{
-		return data.length;
-	}
-
 	public T[] data ()
 	{
 		return this.data;
@@ -239,62 +210,17 @@ public class BoundedBag<T> implements ImmutableBag<T>
 	}
 
 	@Override
-	public boolean isEmpty ()
-	{
-		return size < 1;
-	}
-
-	@Override
 	public int contains ( final T item )
 	{
-		final int iSize = size;
-
-		for ( int i = 0; i < iSize; ++i )
-		{
-			if ( data[i] == item )
-			{
-				// Item found. Return its index.
-				return i + offset;
-			}
-		}
-
-		// Item not found.
-		return -1;
+		final int i = super.contains( item );
+		return ( i < 0 ) ? i : i + offset;
 	}
 
 	@Override
 	public int contains ( final Predicate<T> criteria )
 	{
-		final int iSize = size;
-
-		for ( int i = 0; i < iSize; ++i )
-		{
-			if ( criteria.test( data[i] ) )
-			{
-				// Item found. Return its index.
-				return i + offset;
-			}
-		}
-
-		// Item not found.
-		return -1;
-	}
-
-	@Override
-	public T find ( final Predicate<T> criteria )
-	{
-		return get( contains( criteria ) );
-	}
-
-	@Override
-	public void forEach ( final Consumer<T> operation )
-	{
-		final int iSize = size;
-
-		for ( int i = 0; i < iSize; ++i )
-		{
-			operation.accept( data[i] );
-		}
+		final int i = super.contains( criteria );
+		return ( i < 0 ) ? i : i + offset;
 	}
 
 	private void grow ( final int newCapacity )
@@ -350,17 +276,6 @@ public class BoundedBag<T> implements ImmutableBag<T>
 		return newSize;
 	}
 
-	private static final int nextCapacity ( final int dataLength )
-	{
-		if ( dataLength < GROW_RATE_THRESHOLD )
-		{
-			// Exponential 2 growth.
-			return (dataLength << 1);
-		}
-
-		return dataLength + (dataLength >> 1);
-	}
-
 	/**
 	 * Removes all the items from this bag.
 	 */
@@ -381,20 +296,6 @@ public class BoundedBag<T> implements ImmutableBag<T>
 		}
 		size = 0;
 		offset = 0;
-	}
-
-	/**
-	 * Checks if the index is within the capacity of the Bag (ie, if its bigger
-	 * or equal than 0 and less than the length of the backing array).
-	 * 
-	 * @param index
-	 *            that needs to be checked.
-	 * @return <code>true</code> if the index is within the bounds of the Bag,
-	 *         <code>false</code> otherwise.
-	 */
-	private boolean isInBounds ( int index )
-	{
-		return (index > -1 && index < data.length);
 	}
 
 	private void shiftLeft ( final int shOffset )
@@ -452,28 +353,6 @@ public class BoundedBag<T> implements ImmutableBag<T>
 		}
 
 		return -1;
-	}
-
-	@SuppressWarnings ( "unchecked" )
-	private static final <T> T[] newArray ( Class<T> type, int capacity )
-	{
-		return (T[]) Array.newInstance( type, capacity );
-	}
-
-	@Override
-	public Stream<T> stream ()
-	{
-		final Spliterator<T> split = Spliterators.spliterator( data, Spliterator.IMMUTABLE );
-
-		return StreamSupport.stream( split, false ).limit( size );
-	}
-
-	@Override
-	public Stream<T> parallelStream ()
-	{
-		final Spliterator<T> split = Spliterators.spliterator( data, Spliterator.IMMUTABLE );
-
-		return StreamSupport.stream( split, true ).limit( size );
 	}
 
 	@Override
