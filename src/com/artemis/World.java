@@ -50,7 +50,6 @@ public class World
 		disabled = new Bag<>( Entity.class );
 
 		cm = new ComponentManager();
-		setManager( cm );
 
 		em = new EntityManager();
 		setManager( em );
@@ -104,7 +103,7 @@ public class World
 	 * 
 	 * @return component manager.
 	 */
-	public ComponentManager getComponentManager ()
+	protected ComponentManager getComponentManager ()
 	{
 		return cm;
 	}
@@ -347,7 +346,8 @@ public class World
 		// Checking all affected entities in all EntityObservers.
 		notifyObservers( managersBag );
 		notifyObservers( systemsBag );
-		
+		// Clean components from deleted entities.
+		cm.clean( deleted );
 		// Clearing all the affected entities before next world update.
 		clearAllBags();
 	}
@@ -383,9 +383,7 @@ public class World
 	public void process ()
 	{
 		checkAll();
-
-		cm.clean();
-
+		
 		final EntitySystem[] sArray = systemsBag.data();
 		final int sSize = systemsBag.size();
 		
