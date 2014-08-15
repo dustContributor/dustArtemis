@@ -10,16 +10,14 @@ import com.artemis.utils.ImmutableBag;
 /**
  * @author Arni Arent
  */
-public class ComponentManager extends Manager
+public final class ComponentManager
 {
 	private final Bag<BoundedBag<Component>> componentsByType;
-	private final Bag<Entity> deleted;
 
 	@SuppressWarnings ( { "unchecked", "rawtypes" } )
-	public ComponentManager ()
+	ComponentManager ()
 	{
 		componentsByType = new Bag( BoundedBag.class, 8 );
-		deleted = new Bag<>( Entity.class, 8 );
 		// Init all type bags.
 		for ( int i = componentsByType.capacity(); i-- > 0; )
 		{
@@ -72,7 +70,7 @@ public class ComponentManager extends Manager
 		return getComponentsByType( type ).get( e.id );
 	}
 
-	public Bag<Component> getComponentsFor ( final Entity e, final Bag<Component> fillBag )
+	protected Bag<Component> getComponentsFor ( final Entity e, final Bag<Component> fillBag )
 	{
 		final BitSet componentBits = e.componentBits;
 
@@ -83,27 +81,14 @@ public class ComponentManager extends Manager
 
 		return fillBag;
 	}
-	
-	@Override
-	public void deleted ( final ImmutableBag<Entity> entities )
-	{
-		deleted.addAll( entities );
-	}
 
-	protected void clean ()
+	protected void clean ( final ImmutableBag<Entity> deleted )
 	{
 		final int size = deleted.size();
 		
-		if ( size > 0 )
+		for ( int i = 0; i < size; ++i )
 		{
-			final Entity[] eArray = deleted.data();
-
-			for ( int i = 0; i < size; ++i )
-			{
-				removeComponentsOfEntity( eArray[i] );
-			}
-
-			deleted.clear();
+			removeComponentsOfEntity( deleted.getUnsafe( i ) );
 		}
 	}
 
