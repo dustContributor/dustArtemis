@@ -121,24 +121,22 @@ public abstract class EntitySystem extends EntityObserver
 	{
 		// Empty method.
 	}
-
+	
 	/**
-	 * will check if the entity is of interest to this system.
+	 * Checks if the Entity is interesting to this system.
 	 * 
-	 * @param e
-	 *            entity to check
+	 * @param e entity to check
+	 * @return 'true' if it's interesting, 'false' otherwise.
 	 */
-	protected final void check ( final Entity e )
+	private final boolean isInteresting ( final Entity e )
 	{
 		// If has none, doesn't processes any entity.
 		if ( hasNone )
 		{
-			return;
+			return false;
 		}
 
 		final BitSet componentBits = e.componentBits;
-
-		final boolean contains = e.systemBits.get( index );
 		/*
 		 * Early rejection if the entity has an 'exclusion' component or doesn't
 		 * has any 'one' component.
@@ -160,8 +158,7 @@ public abstract class EntitySystem extends EntityObserver
 			 * Entity system is not interested. If the entity is contained,
 			 * remove it.
 			 */
-			notInterested( e, contains );
-			return;
+			return false;
 		}
 		/*
 		 * Check if the entity possesses ALL of the components defined in the
@@ -171,54 +168,17 @@ public abstract class EntitySystem extends EntityObserver
 		{
 			for ( int i = allSet.nextSetBit( 0 ); i >= 0; i = allSet.nextSetBit( i + 1 ) )
 			{
-				if ( componentBits.get( i ) )
+				if ( !componentBits.get( i ) )
 				{
-					// Entity system is still interested, continue checking.
-					continue;
+					// Entity system is not interested.
+					return false;
 				}
-				
-				//Entity system is not interested.
-				notInterested( e, contains );
-				return;
+				// Entity system is still interested, continue checking.
 			}
 		}
 
 		// The entity system is interested.
-		interested( e, contains );
-	}
-
-	/**
-	 * If the entity system is not interested and it contains the entity, it
-	 * removes it from the system.
-	 * 
-	 * @param entity
-	 *            to remove if the ES contains it.
-	 * @param contains
-	 *            boolean to indicate if the ES does or not.
-	 */
-	private final void notInterested ( final Entity entity, final boolean contains )
-	{
-		if ( contains )
-		{
-			removeFromSystem( entity );
-		}
-	}
-	
-	/**
-	 * If the entity system is interested and doesn't contains the entity, it
-	 * adds it to the system.
-	 * 
-	 * @param entity
-	 *            to add if the ES doesn't contains it.
-	 * @param contains
-	 *            boolean to indicate if the ES does or not.
-	 */
-	private final void interested ( final Entity entity, final boolean contains )
-	{
-		if ( !contains )
-		{
-			insertToSystem( entity );
-		}
+		return true;
 	}
 	
 	private final void removeFromSystem ( final Entity e )
@@ -290,13 +250,40 @@ public abstract class EntitySystem extends EntityObserver
 		checkAll( entities );
 	}
 
+	/**
+	 * Adds entity if the system is interested in it
+	 * and hasn't been added before.
+	 * 
+	 * Removes entity from system if its not interesting
+	 * and it has been added before.
+	 * 
+	 * @param e entities to check.
+	 */
 	private final void checkAll ( final ImmutableBag<Entity> entities )
 	{
 		final int size = entities.size();
 
 		for ( int i = 0; i < size; ++i )
 		{
-			check( entities.getUnsafe( i ) );
+			final Entity e = entities.getUnsafe( i );
+			final int interesting = isInteresting( e ) ? 0b01 : 0b00;
+			final int contains = e.systemBits.get( index ) ? 0b10 : 0b00;
+
+			switch (interesting | contains)
+			{
+				case 1:
+				{
+					insertToSystem( e );
+					continue;
+				}
+				case 2:
+				{
+					removeFromSystem( e );
+					continue;
+				}
+				default:
+					continue;
+			}
 		}
 	}
 	
