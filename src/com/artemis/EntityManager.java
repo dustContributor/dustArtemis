@@ -48,13 +48,14 @@ public final class EntityManager extends Manager
 		}
 		
 		this.entities.ensureCapacity( maxID + 1 );
+		final Entity[] array = ((Bag<Entity>) entities).data();
 		
 		active += size;
 		added += size;
 		
 		for ( int i = 0; i < size; ++i )
 		{
-			final Entity e = entities.getUnsafe( i );
+			final Entity e = array[i];
 			this.entities.setUnsafe( e.id, e );
 		}
 	}
@@ -62,22 +63,24 @@ public final class EntityManager extends Manager
 	@Override
 	public void enabled ( final ImmutableBag<Entity> entities )
 	{
+		final Entity[] array = ((Bag<Entity>) entities).data();
 		final int size = entities.size();
 		
 		for ( int i = 0; i < size; ++i )
 		{
-			disabled.clear( entities.getUnsafe( i ).id );
+			disabled.clear( array[i].id );
 		}
 	}
 	
 	@Override
 	public void disabled ( final ImmutableBag<Entity> entities )
 	{
+		final Entity[] array = ((Bag<Entity>) entities).data();
 		final int size = entities.size();
 		
 		for ( int i = 0; i < size; ++i )
 		{
-			disabled.set( entities.getUnsafe( i ).id );
+			disabled.set( array[i].id );
 		}
 	}
 	
@@ -89,18 +92,19 @@ public final class EntityManager extends Manager
 		
 		for ( int i = 0; i < size; ++i )
 		{
-			int eid = entities.getUnsafe( i ).id;
+			final int eid = entities.getUnsafe( i ).id;
 			maxID = ( maxID > eid ) ? maxID : eid;
 		}
 		
 		this.entities.ensureCapacity( maxID + 1 );
+		final Entity[] array = ((Bag<Entity>) entities).data();
 		
 		active -= size;
 		deleted += size;
 		
 		for ( int i = 0; i < size; ++i )
 		{
-			final Entity e = entities.getUnsafe( i );
+			final Entity e = array[i];
 			final int eid = e.id;
 			this.entities.setUnsafe( eid, null );
 			disabled.clear( eid );

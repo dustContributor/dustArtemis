@@ -174,11 +174,12 @@ public class GroupManager extends Manager
 	@Override
 	public void deleted ( final ImmutableBag<Entity> entities )
 	{
+		final Entity[] array = ((Bag<Entity>) entities).data();
 		final int size = entities.size();
 		
 		for ( int i = 0; i < size; ++i )
 		{
-			removeFromAllGroups( entities.getUnsafe( i ) );
+			removeFromAllGroups( array[i] );
 		}
 	}
 

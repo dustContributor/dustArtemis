@@ -177,7 +177,7 @@ public abstract class ImmutableBag<T>
 		
 		if ( index > - 1 )
 		{
-			return getUnsafe( index );
+			return data[index];
 		}
 		
 		return null;
@@ -211,7 +211,7 @@ public abstract class ImmutableBag<T>
 	{
 		if ( isInBounds( index ) )
 		{
-			return getUnsafe( index );
+			return data[index];
 		}
 
 		return null;
