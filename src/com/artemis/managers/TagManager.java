@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.artemis.Entity;
 import com.artemis.Manager;
+import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
 
 /**
@@ -55,11 +56,12 @@ public class TagManager extends Manager
 	@Override
 	public void deleted ( final ImmutableBag<Entity> entities )
 	{
+		final Entity[] array = ((Bag<Entity>) entities).data();
 		final int size = entities.size();
 		
 		for ( int i = 0; i < size; ++i )
 		{
-			final String removedTag = tagsByEntity.remove( entities.getUnsafe( i ) );
+			final String removedTag = tagsByEntity.remove( array[i] );
 			
 			if ( removedTag != null )
 			{

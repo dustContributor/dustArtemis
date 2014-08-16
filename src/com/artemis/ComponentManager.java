@@ -27,11 +27,12 @@ public final class ComponentManager
 
 	private void removeComponentsOfEntity ( final Entity e )
 	{
+		final BoundedBag<Component>[] cmpBags = componentsByType.data();
 		final BitSet componentBits = e.componentBits;
 		
 		for ( int i = componentBits.nextSetBit( 0 ); i >= 0; i = componentBits.nextSetBit( i + 1 ) )
 		{
-			componentsByType.getUnsafe( i ).removeUnsafe( e.id );
+			cmpBags[i].removeUnsafe( e.id );
 		}
 		
 		componentBits.clear();
@@ -72,11 +73,12 @@ public final class ComponentManager
 
 	protected Bag<Component> getComponentsFor ( final Entity e, final Bag<Component> fillBag )
 	{
+		final BoundedBag<Component>[] cmpBags = componentsByType.data();
 		final BitSet componentBits = e.componentBits;
 
 		for ( int i = componentBits.nextSetBit( 0 ); i >= 0; i = componentBits.nextSetBit( i + 1 ) )
 		{
-			fillBag.add( componentsByType.getUnsafe( i ).getUnsafe( e.id ) );
+			fillBag.add( cmpBags[i].getUnsafe( e.id ) );
 		}
 
 		return fillBag;
@@ -84,11 +86,12 @@ public final class ComponentManager
 
 	protected void clean ( final ImmutableBag<Entity> deleted )
 	{
+		final Entity[] array = ((Bag<Entity>) deleted).data();
 		final int size = deleted.size();
 		
 		for ( int i = 0; i < size; ++i )
 		{
-			removeComponentsOfEntity( deleted.getUnsafe( i ) );
+			removeComponentsOfEntity( array[i] );
 		}
 	}
 

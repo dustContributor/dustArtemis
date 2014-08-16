@@ -231,11 +231,12 @@ public abstract class EntitySystem extends EntityObserver
 	
 	private final void removeAll ( final ImmutableBag<Entity> entities )
 	{
+		final Entity[] array = ((Bag<Entity>) entities).data();
 		final int size = entities.size();
 		
 		for ( int i = 0; i < size; ++i )
 		{
-			final Entity e = entities.getUnsafe( i );
+			final Entity e = array[i];
 			
 			if ( e.systemBits.get( index ) )
 			{
@@ -261,11 +262,12 @@ public abstract class EntitySystem extends EntityObserver
 	 */
 	private final void checkAll ( final ImmutableBag<Entity> entities )
 	{
+		final Entity[] array = ((Bag<Entity>) entities).data();
 		final int size = entities.size();
 
 		for ( int i = 0; i < size; ++i )
 		{
-			final Entity e = entities.getUnsafe( i );
+			final Entity e = array[i];
 			final int interesting = isInteresting( e ) ? 0b01 : 0b00;
 			final int contains = e.systemBits.get( index ) ? 0b10 : 0b00;
 
