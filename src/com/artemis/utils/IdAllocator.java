@@ -4,34 +4,85 @@ import static java.lang.Integer.MAX_VALUE;
 
 import java.util.ArrayList;
 
+/**
+ * Integer id allocator. It manages integer IDs in a given range. Retrieve IDs
+ * with {@link #alloc()} method, and free them with the {@link #free(int)}
+ * method.
+ * 
+ * @author dustContributor
+ */
 public final class IdAllocator
 {
+	/** List of ranges of free ID numbers. */
 	private final ArrayList<FreeRange> freeRanges;
-	
+
+	/**
+	 * Creates an IdAllocator that will manage IDs in the interval [0,
+	 * Integer.MAX_VALUE ).
+	 */
 	public IdAllocator ()
 	{
+		this( 0, MAX_VALUE );
+	}
+
+	/**
+	 * Creates an IdAllocator that will manage IDs in the range of the provided
+	 * parameters.
+	 * 
+	 * @param rangeStart
+	 *            start of the range of IDs this allocator will provide.
+	 *            Inclusive.
+	 * @param rangeEnd
+	 *            start of the range of IDs this allocator will provide.
+	 *            Exclusive.
+	 */
+	public IdAllocator ( int rangeStart, int rangeEnd )
+	{
 		this.freeRanges = new ArrayList<>( 16 );
-		this.freeRanges.add(  new FreeRange( 0, MAX_VALUE ) );
- 	}
-	
+		this.freeRanges.add( new FreeRange( rangeStart, rangeEnd ) );
+	}
+
+	/**
+	 * Returns an unused integer ID. Doesn't checks if you ran out of IDs given
+	 * the initial range of the allocator.
+	 * 
+	 * @return an unused integer ID.
+	 */
 	public final int alloc ()
 	{
-		FreeRange range = freeRanges.get( 0 );
-		
-		int id = range.start;
+		// Get lowest free range.
+		FreeRange fRange = freeRanges.get( 0 );
+		// Free range's start will be new ID.
+		int id = fRange.start;
+		// New start will be that ID plus one.
 		int nStart = id + 1;
-		range.start = nStart;
-		
-		if ( nStart >= range.end )
+		fRange.start = nStart;
+
+		// If free range's end was reached,
+		// remove it from the list.
+		if ( nStart >= fRange.end )
 		{
 			freeRanges.remove( 0 );
 		}
-		
+		/*
+		 * We're going to assume that you didn't ran out of IDs (ie, that
+		 * freeRanges isn't empty) for the sake of simplicity.
+		 */
 		return id;
 	}
-	
+
+	/**
+	 * Indicates that an ID isn't used anymore to this allocator.
+	 * 
+	 * @param id
+	 *            to be freed.
+	 */
 	public final void free ( int id )
 	{
+		/*
+		 * We're going to assume you're not freeing an ID thats outside of this
+		 * IdAllocator's initial range.
+		 */
 		int frSize = freeRanges.size();
 
 		for ( int i = 0; i < frSize; ++i )
@@ -84,10 +135,12 @@ public final class IdAllocator
 		}
 
 	}
-	
+
 	private static final class FreeRange
 	{
+		/** Start of the free ID range. Inclusive. */
 		int start;
+		/** End of the free ID range. Exclusive. */
 		int end;
 
 		FreeRange ( int start, int end )
@@ -95,13 +148,11 @@ public final class IdAllocator
 			this.start = start;
 			this.end = end;
 		}
-		
+
 		@Override
 		public String toString ()
 		{
-			return super.toString() +
-					System.lineSeparator() +
-					"START: " + start + " - END: " + end;
+			return super.toString() + System.lineSeparator() + "START: " + start + " - END: " + end;
 		}
 	}
 }
