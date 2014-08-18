@@ -3,7 +3,7 @@ package com.artemis;
 import java.util.BitSet;
 
 import com.artemis.utils.Bag;
-import com.artemis.utils.IdPool;
+import com.artemis.utils.IdAllocator;
 import com.artemis.utils.ImmutableBag;
 
 /**
@@ -20,19 +20,19 @@ public final class EntityManager extends Manager
 	private long created;
 	private long deleted;
 
-	private final IdPool idPool;
+	private final IdAllocator idStore;
 
 	EntityManager ()
 	{
 		entities = new Bag<>( Entity.class );
 		disabled = new BitSet();
-		idPool = new IdPool();
+		idStore = new IdAllocator();
 	}
 
 	public Entity createEntityInstance ()
 	{
 		++created;
-		return new Entity( world, idPool.getId() );
+		return new Entity( world, idStore.alloc() );
 	}
 
 	@Override
@@ -108,7 +108,7 @@ public final class EntityManager extends Manager
 			final int eid = e.id;
 			this.entities.setUnsafe( eid, null );
 			disabled.clear( eid );
-			idPool.putId( eid );
+			idStore.free( eid );
 		}
 	}
 
