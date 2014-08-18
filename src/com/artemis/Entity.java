@@ -1,7 +1,6 @@
 package com.artemis;
 
 import java.util.BitSet;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import com.artemis.utils.Bag;
 
@@ -23,17 +22,6 @@ import com.artemis.utils.Bag;
 public final class Entity
 {
 	/**
-	 * Provides thread safe counter for entity unique IDs.
-	 */
-	private static final AtomicInteger entityUniqueIDs = new AtomicInteger();
-
-	/**
-	 * Unique ID per entity. It is reassigned if the entity is reset. There
-	 * can't be two entities with the same uniqueID. Unused IDs won't be reused.
-	 */
-	private int uniqueID;
-
-	/**
 	 * The internal id for this entity within the framework. No other entity
 	 * will have the same ID, but ID's are however reused so another entity may
 	 * acquire this ID if the previous entity was deleted.
@@ -51,6 +39,7 @@ public final class Entity
 	 */
 	final BitSet systemBits;
 
+	/** World instance where this Entity is in. */
 	private final World world;
 
 	/** Bag to hold the indices this Entity takes in the systems. */
@@ -63,20 +52,7 @@ public final class Entity
 		this.systemBits = new BitSet();
 		this.componentBits = new BitSet();
 
-		this.uniqueID = entityUniqueIDs.getAndIncrement();
-
 		this.indexInSystems = new Bag<>( SystemEntityPair.class, 4 );
-	}
-
-	/**
-	 * Make entity ready for re-use. Will generate a new unique id for the
-	 * entity.
-	 */
-	void reset ()
-	{
-		systemBits.clear();
-		componentBits.clear();
-		uniqueID = entityUniqueIDs.getAndIncrement();
 	}
 
 	@Override
@@ -97,19 +73,6 @@ public final class Entity
 	{
 		world.getComponentManager().addComponent( this, component );
 		return this;
-	}
-
-	/**
-	 * Removes the component from this entity.
-	 * 
-	 * @param component
-	 *            to remove from this entity.
-	 * 
-	 * @return this entity for chaining.
-	 */
-	public Entity removeComponent ( final Component component )
-	{
-		return removeComponent( component.getClass() );
 	}
 
 	/**
@@ -283,17 +246,6 @@ public final class Entity
 	public void disable ()
 	{
 		world.disable( this );
-	}
-
-	/**
-	 * Get the unique ID for this entity. This unique ID is unique per entity
-	 * (re-used entities get a new unique ID).
-	 * 
-	 * @return unique ID for this entity.
-	 */
-	public int getUniqueID ()
-	{
-		return uniqueID;
 	}
 
 	/**
