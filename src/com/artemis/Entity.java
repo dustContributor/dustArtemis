@@ -308,10 +308,10 @@ public final class Entity
 
 	private static final class SystemEntityPair
 	{
-		public final int systemID;
-		public int indexInSystem;
+		final int systemID;
+		int indexInSystem;
 
-		public SystemEntityPair ( int systemID, int indexInSystem )
+		SystemEntityPair ( int systemID, int indexInSystem )
 		{
 			this.systemID = systemID;
 			this.indexInSystem = indexInSystem;
