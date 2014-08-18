@@ -25,20 +25,7 @@ public final class ComponentManager
 		}
 	}
 
-	private void removeComponentsOfEntity ( final Entity e )
-	{
-		final BoundedBag<Component>[] cmpBags = componentsByType.data();
-		final BitSet componentBits = e.componentBits;
-		
-		for ( int i = componentBits.nextSetBit( 0 ); i >= 0; i = componentBits.nextSetBit( i + 1 ) )
-		{
-			cmpBags[i].removeUnsafe( e.id );
-		}
-		
-		componentBits.clear();
-	}
-
-	protected void addComponent ( final Entity e, final Component component )
+	void addComponent ( final Entity e, final Component component )
 	{
 		final int cmpIndex = ClassIndexer.getIndexFor( component.getClass(), Component.class );
 		
@@ -47,7 +34,7 @@ public final class ComponentManager
 		e.componentBits.set( cmpIndex );
 	}
 
-	protected void removeComponent ( final Entity e, final Class<? extends Component> type )
+	void removeComponent ( final Entity e, final Class<? extends Component> type )
 	{
 		final int cmpIndex = ClassIndexer.getIndexFor( type, Component.class );
 		final BitSet componentBits = e.componentBits;
@@ -59,19 +46,19 @@ public final class ComponentManager
 		}
 	}
 
-	protected ImmutableBag<Component> getComponentsByType ( final Class<? extends Component> type )
+	ImmutableBag<Component> getComponentsByType ( final Class<? extends Component> type )
 	{
 		final int cmpIndex = ClassIndexer.getIndexFor( type, Component.class );
 		
 		return initIfAbsent( cmpIndex );
 	}
 
-	protected Component getComponent ( final Entity e, final Class<? extends Component> type )
+	Component getComponent ( final Entity e, final Class<? extends Component> type )
 	{
 		return getComponentsByType( type ).get( e.id );
 	}
 
-	protected Bag<Component> getComponentsFor ( final Entity e, final Bag<Component> fillBag )
+	Bag<Component> getComponentsFor ( final Entity e, final Bag<Component> fillBag )
 	{
 		final BoundedBag<Component>[] cmpBags = componentsByType.data();
 		final BitSet componentBits = e.componentBits;
@@ -84,17 +71,28 @@ public final class ComponentManager
 		return fillBag;
 	}
 
-	protected void clean ( final ImmutableBag<Entity> deleted )
+	void clean ( final ImmutableBag<Entity> deleted )
 	{
-		final Entity[] array = ((Bag<Entity>) deleted).data();
-		final int size = deleted.size();
-		
-		for ( int i = 0; i < size; ++i )
+		final BoundedBag<Component>[] cmpBags = componentsByType.data();
+
+		final Entity[] delarray = ((Bag<Entity>) deleted).data();
+		final int delsize = deleted.size();
+
+		for ( int i = 0; i < delsize; ++i )
 		{
-			removeComponentsOfEntity( array[i] );
+			final Entity e = delarray[i];
+			final BitSet cmpBits = e.componentBits;
+			final int eid = e.id;
+
+			for ( int j = cmpBits.length(); (j = cmpBits.previousSetBit( j - 1 )) >= 0; )
+			{
+				cmpBags[j].removeUnsafe( eid );
+			}
+
+			cmpBits.clear();
 		}
 	}
-
+	
 	/**
 	 * If the component index passed is too high for the
 	 * {@link #componentsByType} to hold, it resizes it and initializes all the
