@@ -87,7 +87,7 @@ public final class ComponentMapper<T extends Component>
 	 */
 	public final boolean has ( final Entity entity )
 	{
-		return components.get( entity.id ) != null;
+		return has( entity.id );
 	}
 	
 	/**
