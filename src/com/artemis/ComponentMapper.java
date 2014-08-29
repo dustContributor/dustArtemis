@@ -34,38 +34,71 @@ public final class ComponentMapper<T extends Component>
 	 * checks, so this could throw an ArrayIndexOutOfBoundsExeption, however in
 	 * most scenarios you already know the entity possesses this component.
 	 * 
-	 * @param e
-	 *            the entity that should possess the component
+	 * @param entity that should possess the component
 	 * @return the instance of the component
 	 */
-	public final T get ( final Entity e )
+	public final T get ( final Entity entity )
 	{
-		return components.getUnsafe( e.id );
+		return get( entity.id );
+	}
+	
+	/**
+	 * Fast but unsafe retrieval of a component for this entity. No bounding
+	 * checks, so this could throw an ArrayIndexOutOfBoundsExeption, however in
+	 * most scenarios you already know the entity possesses this component.
+	 * 
+	 * @param entityID of the entity that should have the component.
+	 * @return the instance of the component
+	 */
+	public final T get ( final int entityID )
+	{
+		return components.getUnsafe( entityID );
 	}
 
 	/**
 	 * Fast and safe retrieval of a component for this entity. If the entity
 	 * does not have this component then null is returned.
 	 * 
-	 * @param e
-	 *            the entity that should possess the component
+	 * @param entity that could have the component
 	 * @return the instance of the component
 	 */
-	public final T getSafe ( final Entity e )
+	public final T getSafe ( final Entity entity )
 	{
-		return components.get( e.id );
+		return getSafe( entity.id );
+	}
+	
+	/**
+	 * Fast and safe retrieval of a component for this entity. If the entity
+	 * does not have this component then null is returned.
+	 * 
+	 * @param entityID of the entity that could have the component.
+	 * @return the instance of the component
+	 */
+	public final T getSafe ( final int entityID )
+	{
+		return components.get( entityID );
 	}
 
 	/**
 	 * Checks if the entity has this type of component.
 	 * 
-	 * @param e
-	 *            the entity to check
+	 * @param entity that could have the component.
 	 * @return true if the entity has this component type, false if it doesn't.
 	 */
-	public final boolean has ( final Entity e )
+	public final boolean has ( final Entity entity )
 	{
-		return components.get( e.id ) != null;
+		return has( entity.id );
+	}
+	
+	/**
+	 * Checks if the entity has this type of component.
+	 * 
+	 * @param entityID of the entity that could have the component.
+	 * @return true if the entity has this component type, false if it doesn't.
+	 */
+	public final boolean has ( final int entityID )
+	{
+		return components.get( entityID ) != null;
 	}
 
 }
