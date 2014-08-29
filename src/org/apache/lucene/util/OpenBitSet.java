@@ -23,6 +23,11 @@
  * Made slight changes to the class hierarchy, also removing features 
  * that won't be used to reduce further dependencies.
  * 
+ * Made all methods use ints instead of longs. It means that with 
+ * BitSets sufficiently large, most results will be incorrect. 
+ * At most you can use to billion bits, so don't use more than
+ * (2^31 / 64) words.
+ * 
  * Thanks a lot to Apache Lucene project for this nifty bit set 
  * implementation!
  * ------------------------------------------------------------------
@@ -58,10 +63,10 @@ public class OpenBitSet implements Cloneable
 	protected int wlen; // number of words (elements) used in the array
 
 	// Used only for assert:
-	private long numBits;
+	private int numBits;
 
 	/** Constructs an OpenBitSet large enough to hold {@code numBits}. */
-	public OpenBitSet ( long numBits )
+	public OpenBitSet ( int numBits )
 	{
 		this.numBits = numBits;
 		bits = new long[bits2words( numBits )];
@@ -99,7 +104,7 @@ public class OpenBitSet implements Cloneable
 	 * Returns the current capacity in bits (1 greater than the index of the
 	 * last bit)
 	 */
-	public long capacity ()
+	public int capacity ()
 	{
 		return bits.length << 6;
 	}
@@ -108,7 +113,7 @@ public class OpenBitSet implements Cloneable
 	 * Returns the current capacity of this set. Included for compatibility.
 	 * This is *not* equal to {@link #cardinality}
 	 */
-	public long size ()
+	public int size ()
 	{
 		return capacity();
 	}
@@ -165,30 +170,6 @@ public class OpenBitSet implements Cloneable
 		return (bits[i] & bitmask) != 0;
 	}
 
-	/**
-	 * Returns true or false for the specified bit index
-	 */
-	public boolean get ( long index )
-	{
-		int i = (int) (index >> 6); // div 64
-		if ( i >= bits.length )
-			return false;
-		long bitmask = 1L << index;
-		return (bits[i] & bitmask) != 0;
-	}
-
-	/**
-	 * Returns true or false for the specified bit index. The index should be
-	 * less than the OpenBitSet size.
-	 */
-	public boolean fastGet ( long index )
-	{
-		assert index >= 0 && index < numBits;
-		int i = (int) (index >> 6); // div 64
-		long bitmask = 1L << index;
-		return (bits[i] & bitmask) != 0;
-	}
-
 	/*
 	 * // alternate implementation of get() public boolean get1(int index) { int
 	 * i = index >> 6; // div 64 int bit = index & 0x3f; // mod 64 return
@@ -210,14 +191,18 @@ public class OpenBitSet implements Cloneable
 	}
 
 	/*
-	 * public boolean get2(int index) { int word = index >> 6; // div 64 int bit
-	 * = index & 0x0000003f; // mod 64 return (bits[word] << bit) < 0; // hmmm,
-	 * this would work if bit order were reversed // we could right shift and
-	 * check for parity bit, if it was available to us. }
+	 * public boolean get2(int index) 
+	 * { 
+	 *     int word = index >> 6; // div 64 
+	 *     int bit = index & 0x0000003f; // mod 64 
+	 *     return (bits[word] << bit) < 0; // hmmm,
+	 *     this would work if bit order were reversed // we could right shift and
+	 *     check for parity bit, if it was available to us. 
+	 * }
 	 */
 
 	/** sets a bit, expanding the set size if necessary */
-	public void set ( long index )
+	public void set ( int index )
 	{
 		int wordNum = expandingWordNum( index );
 		long bitmask = 1L << index;
@@ -237,29 +222,17 @@ public class OpenBitSet implements Cloneable
 	}
 
 	/**
-	 * Sets the bit at the specified index. The index should be less than the
-	 * OpenBitSet size.
-	 */
-	public void fastSet ( long index )
-	{
-		assert index >= 0 && index < numBits;
-		int wordNum = (int) (index >> 6);
-		long bitmask = 1L << index;
-		bits[wordNum] |= bitmask;
-	}
-
-	/**
 	 * Sets a range of bits, expanding the set size if necessary
 	 *
 	 * @param startIndex lower index
 	 * @param endIndex one-past the last bit to set
 	 */
-	public void set ( long startIndex, long endIndex )
+	public void set ( int startIndex, int endIndex )
 	{
 		if ( endIndex <= startIndex )
 			return;
 
-		int startWord = (int) (startIndex >> 6);
+		int startWord = startIndex >> 6;
 
 		// since endIndex is one past the end, this is index of the last
 		// word to be changed.
@@ -280,9 +253,9 @@ public class OpenBitSet implements Cloneable
 		bits[endWord] |= endmask;
 	}
 
-	protected int expandingWordNum ( long index )
+	protected int expandingWordNum ( int index )
 	{
-		int wordNum = (int) (index >> 6);
+		int wordNum = index >> 6;
 		if ( wordNum >= wlen )
 		{
 			ensureCapacity( index + 1 );
@@ -311,23 +284,12 @@ public class OpenBitSet implements Cloneable
 	}
 
 	/**
-	 * clears a bit. The index should be less than the OpenBitSet size.
-	 */
-	public void fastClear ( long index )
-	{
-		assert index >= 0 && index < numBits;
-		int wordNum = (int) (index >> 6); // div 64
-		long bitmask = 1L << index;
-		bits[wordNum] &= ~bitmask;
-	}
-
-	/**
 	 * clears a bit, allowing access beyond the current set size without
 	 * changing the size.
 	 */
-	public void clear ( long index )
+	public void clear ( int index )
 	{
-		int wordNum = (int) (index >> 6); // div 64
+		int wordNum = index >> 6; // div 64
 		if ( wordNum >= wlen )
 			return;
 		long bitmask = 1L << index;
@@ -379,50 +341,6 @@ public class OpenBitSet implements Cloneable
 	}
 
 	/**
-	 * Clears a range of bits. Clearing past the end does not change the size of
-	 * the set.
-	 *
-	 * @param startIndex lower index
-	 * @param endIndex one-past the last bit to clear
-	 */
-	public void clear ( long startIndex, long endIndex )
-	{
-		if ( endIndex <= startIndex )
-			return;
-
-		int startWord = (int) (startIndex >> 6);
-		if ( startWord >= wlen )
-			return;
-
-		// since endIndex is one past the end, this is index of the last
-		// word to be changed.
-		int endWord = (int) ((endIndex - 1) >> 6);
-
-		long startmask = -1L << startIndex;
-		long endmask = -1L >>> -endIndex; // 64-(endIndex&0x3f) is the same as
-											// -endIndex due to wrap
-
-		// invert masks since we are clearing
-		startmask = ~startmask;
-		endmask = ~endmask;
-
-		if ( startWord == endWord )
-		{
-			bits[startWord] &= (startmask | endmask);
-			return;
-		}
-
-		bits[startWord] &= startmask;
-
-		int middle = Math.min( wlen, endWord );
-		Arrays.fill( bits, startWord + 1, middle, 0L );
-		if ( endWord < wlen )
-		{
-			bits[endWord] &= endmask;
-		}
-	}
-
-	/**
 	 * Sets all the bits in this set to zero.
 	 */
 	public void clear()
@@ -448,20 +366,6 @@ public class OpenBitSet implements Cloneable
 	}
 
 	/**
-	 * Sets a bit and returns the previous value. The index should be less than
-	 * the OpenBitSet size.
-	 */
-	public boolean getAndSet ( long index )
-	{
-		assert index >= 0 && index < numBits;
-		int wordNum = (int) (index >> 6); // div 64
-		long bitmask = 1L << index;
-		boolean val = (bits[wordNum] & bitmask) != 0;
-		bits[wordNum] |= bitmask;
-		return val;
-	}
-
-	/**
 	 * flips a bit. The index should be less than the OpenBitSet size.
 	 */
 	public void fastFlip ( int index )
@@ -471,20 +375,9 @@ public class OpenBitSet implements Cloneable
 		long bitmask = 1L << index;
 		bits[wordNum] ^= bitmask;
 	}
-
-	/**
-	 * flips a bit. The index should be less than the OpenBitSet size.
-	 */
-	public void fastFlip ( long index )
-	{
-		assert index >= 0 && index < numBits;
-		int wordNum = (int) (index >> 6); // div 64
-		long bitmask = 1L << index;
-		bits[wordNum] ^= bitmask;
-	}
-
+	
 	/** flips a bit, expanding the set size if necessary */
-	public void flip ( long index )
+	public void flip ( int index )
 	{
 		int wordNum = expandingWordNum( index );
 		long bitmask = 1L << index;
@@ -505,29 +398,16 @@ public class OpenBitSet implements Cloneable
 	}
 
 	/**
-	 * flips a bit and returns the resulting bit value. The index should be less
-	 * than the OpenBitSet size.
-	 */
-	public boolean flipAndGet ( long index )
-	{
-		assert index >= 0 && index < numBits;
-		int wordNum = (int) (index >> 6); // div 64
-		long bitmask = 1L << index;
-		bits[wordNum] ^= bitmask;
-		return (bits[wordNum] & bitmask) != 0;
-	}
-
-	/**
 	 * Flips a range of bits, expanding the set size if necessary
 	 *
 	 * @param startIndex lower index
 	 * @param endIndex one-past the last bit to flip
 	 */
-	public void flip ( long startIndex, long endIndex )
+	public void flip ( int startIndex, int endIndex )
 	{
 		if ( endIndex <= startIndex )
 			return;
-		int startWord = (int) (startIndex >> 6);
+		int startWord = startIndex >> 6;
 
 		// since endIndex is one past the end, this is index of the last
 		// word to be changed.
@@ -577,7 +457,7 @@ public class OpenBitSet implements Cloneable
 	 */
 
 	/** @return the number of set bits */
-	public long cardinality ()
+	public int cardinality ()
 	{
 		return BitUtil.pop_array( bits, 0, wlen );
 	}
@@ -586,7 +466,7 @@ public class OpenBitSet implements Cloneable
 	 * Returns the popcount or cardinality of the intersection of the two sets.
 	 * Neither set is modified.
 	 */
-	public static long intersectionCount ( OpenBitSet a, OpenBitSet b )
+	public static int intersectionCount ( OpenBitSet a, OpenBitSet b )
 	{
 		return BitUtil.pop_intersect( a.bits, b.bits, 0, Math.min( a.wlen, b.wlen ) );
 	}
@@ -595,9 +475,9 @@ public class OpenBitSet implements Cloneable
 	 * Returns the popcount or cardinality of the union of the two sets. Neither
 	 * set is modified.
 	 */
-	public static long unionCount ( OpenBitSet a, OpenBitSet b )
+	public static int unionCount ( OpenBitSet a, OpenBitSet b )
 	{
-		long tot = BitUtil.pop_union( a.bits, b.bits, 0, Math.min( a.wlen, b.wlen ) );
+		int tot = BitUtil.pop_union( a.bits, b.bits, 0, Math.min( a.wlen, b.wlen ) );
 		if ( a.wlen < b.wlen )
 		{
 			tot += BitUtil.pop_array( b.bits, a.wlen, b.wlen - a.wlen );
@@ -613,9 +493,9 @@ public class OpenBitSet implements Cloneable
 	 * Returns the popcount or cardinality of "a and not b" or
 	 * "intersection(a, not(b))". Neither set is modified.
 	 */
-	public static long andNotCount ( OpenBitSet a, OpenBitSet b )
+	public static int andNotCount ( OpenBitSet a, OpenBitSet b )
 	{
-		long tot = BitUtil.pop_andnot( a.bits, b.bits, 0, Math.min( a.wlen, b.wlen ) );
+		int tot = BitUtil.pop_andnot( a.bits, b.bits, 0, Math.min( a.wlen, b.wlen ) );
 		if ( a.wlen > b.wlen )
 		{
 			tot += BitUtil.pop_array( a.bits, b.wlen, a.wlen - b.wlen );
@@ -627,9 +507,9 @@ public class OpenBitSet implements Cloneable
 	 * Returns the popcount or cardinality of the exclusive-or of the two sets.
 	 * Neither set is modified.
 	 */
-	public static long xorCount ( OpenBitSet a, OpenBitSet b )
+	public static int xorCount ( OpenBitSet a, OpenBitSet b )
 	{
-		long tot = BitUtil.pop_xor( a.bits, b.bits, 0, Math.min( a.wlen, b.wlen ) );
+		int tot = BitUtil.pop_xor( a.bits, b.bits, 0, Math.min( a.wlen, b.wlen ) );
 		if ( a.wlen < b.wlen )
 		{
 			tot += BitUtil.pop_array( b.bits, a.wlen, b.wlen - a.wlen );
@@ -664,34 +544,6 @@ public class OpenBitSet implements Cloneable
 			word = bits[i];
 			if ( word != 0 )
 				return (i << 6) + Long.numberOfTrailingZeros( word );
-		}
-
-		return -1;
-	}
-
-	/**
-	 * Returns the index of the first set bit starting at the index specified.
-	 * -1 is returned if there are no more set bits.
-	 */
-	public long nextSetBit ( long index )
-	{
-		int i = (int) (index >>> 6);
-		if ( i >= wlen )
-			return -1;
-		int subIndex = (int) index & 0x3f; // index within the word
-		long word = bits[i] >>> subIndex; // skip all the bits to the right of
-											// index
-
-		if ( word != 0 )
-		{
-			return (((long) i) << 6) + (subIndex + Long.numberOfTrailingZeros( word ));
-		}
-
-		while ( ++i < wlen )
-		{
-			word = bits[i];
-			if ( word != 0 )
-				return (((long) i) << 6) + Long.numberOfTrailingZeros( word );
 		}
 
 		return -1;
@@ -735,50 +587,6 @@ public class OpenBitSet implements Cloneable
 			if ( word != 0 )
 			{
 				return (i << 6) + 63 - Long.numberOfLeadingZeros( word );
-			}
-		}
-
-		return -1;
-	}
-
-	/**
-	 * Returns the index of the first set bit starting downwards at the index
-	 * specified. -1 is returned if there are no more set bits.
-	 */
-	public long prevSetBit ( long index )
-	{
-		int i = (int) (index >> 6);
-		final int subIndex;
-		long word;
-		if ( i >= wlen )
-		{
-			i = wlen - 1;
-			if ( i < 0 )
-				return -1;
-			subIndex = 63; // last possible bit
-			word = bits[i];
-		}
-		else
-		{
-			if ( i < 0 )
-				return -1;
-			subIndex = (int) index & 0x3f; // index within the word
-			word = (bits[i] << (63 - subIndex)); // skip all the bits to the
-													// left of index
-		}
-
-		if ( word != 0 )
-		{
-			return (((long) i) << 6) + subIndex - Long.numberOfLeadingZeros( word ); // See
-																						// LUCENE-3197
-		}
-
-		while ( --i >= 0 )
-		{
-			word = bits[i];
-			if ( word != 0 )
-			{
-				return (((long) i) << 6) + 63 - Long.numberOfLeadingZeros( word );
 			}
 		}
 
@@ -925,7 +733,7 @@ public class OpenBitSet implements Cloneable
 	 * necessary.
 	 */
 	@SuppressWarnings ( "hiding" )
-	public void ensureCapacity ( long numBits )
+	public void ensureCapacity ( int numBits )
 	{
 		ensureCapacityWords( bits2words( numBits ) );
 		// ensureCapacityWords sets numBits to a multiple of 64, but we want to
@@ -947,9 +755,9 @@ public class OpenBitSet implements Cloneable
 	}
 
 	/** returns the number of 64 bit words it would take to hold numBits */
-	public static int bits2words ( long numBits )
+	public static int bits2words ( int numBits )
 	{
-		return (int) (((numBits - 1) >>> 6) + 1);
+		return ((numBits - 1) >>> 6) + 1;
 	}
 
 	/** returns true if both sets have the same bits set */
