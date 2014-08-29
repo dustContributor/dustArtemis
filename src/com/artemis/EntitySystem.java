@@ -1,7 +1,5 @@
 package com.artemis;
 
-import java.util.BitSet;
-
 import com.artemis.utils.Bag;
 import com.artemis.utils.ClassIndexer;
 import com.artemis.utils.ImmutableBag;
@@ -17,16 +15,12 @@ import com.artemis.utils.ImmutableBag;
 public abstract class EntitySystem extends EntityObserver
 {
 	private final int index;
-
-	protected World world;
-
 	private final Bag<Entity> actives;
-
-	private final BitSet allSet, exclusionSet, oneSet;
-
+	private final Aspect aspect;
+	
+	protected World world;
+	
 	private boolean active;
-
-	private final boolean hasNone, hasAll, hasExclusion, hasOne;
 
 	/**
 	 * Creates an entity system that uses the specified aspect as a matcher
@@ -37,24 +31,11 @@ public abstract class EntitySystem extends EntityObserver
 	 */
 	public EntitySystem ( final Aspect aspect )
 	{
-		actives = new Bag<>( Entity.class );
+		this.aspect = aspect;
+		this.active = false;
+		this.actives = new Bag<>( Entity.class );
 		
-		active = false;
-		
-		allSet = aspect.allSet;
-		exclusionSet = aspect.exclusionSet;
-		oneSet = aspect.oneSet;
-		
-		index = ClassIndexer.getIndexFor ( this.getClass(), EntitySystem.class );
-		
-		hasAll = !allSet.isEmpty();
-		hasExclusion = !exclusionSet.isEmpty();
-		hasOne = !oneSet.isEmpty();
-		/*
-		 * This system can't possibly be interested in any entity, so it must be
-		 * "dummy"
-		 */
-		hasNone = !(hasAll || hasExclusion || hasOne);
+		this.index = ClassIndexer.getIndexFor ( this.getClass(), EntitySystem.class );
 	}
 
 	/**
@@ -120,65 +101,6 @@ public abstract class EntitySystem extends EntityObserver
 	protected void removed ( final Entity e )
 	{
 		// Empty method.
-	}
-	
-	/**
-	 * Checks if the Entity is interesting to this system.
-	 * 
-	 * @param e entity to check
-	 * @return 'true' if it's interesting, 'false' otherwise.
-	 */
-	private final boolean isInteresting ( final Entity e )
-	{
-		// If has none, doesn't processes any entity.
-		if ( hasNone )
-		{
-			return false;
-		}
-
-		final BitSet componentBits = e.componentBits;
-		/*
-		 * Early rejection if the entity has an 'exclusion' component or doesn't
-		 * has any 'one' component.
-		 */
-		if ( 
-				/*
-				 * Check if the entity possesses ANY of the exclusion components, if it
-				 * does then the system is not interested.
-				 */
-				( hasExclusion && exclusionSet.intersects( componentBits ) ) 
-				/*
-				 * Check if the entity possesses ANY of the components in the oneSet. If
-				 * so, the system is interested.
-				 */
-				|| ( hasOne && !oneSet.intersects( componentBits ) ) 
-			)
-		{
-			/*
-			 * Entity system is not interested. If the entity is contained,
-			 * remove it.
-			 */
-			return false;
-		}
-		/*
-		 * Check if the entity possesses ALL of the components defined in the
-		 * aspect.
-		 */
-		if ( hasAll )
-		{
-			for ( int i = allSet.nextSetBit( 0 ); i >= 0; i = allSet.nextSetBit( i + 1 ) )
-			{
-				if ( !componentBits.get( i ) )
-				{
-					// Entity system is not interested.
-					return false;
-				}
-				// Entity system is still interested, continue checking.
-			}
-		}
-
-		// The entity system is interested.
-		return true;
 	}
 	
 	private final void removeFromSystem ( final Entity e )
@@ -268,7 +190,7 @@ public abstract class EntitySystem extends EntityObserver
 		for ( int i = 0; i < size; ++i )
 		{
 			final Entity e = array[i];
-			final int interesting = isInteresting( e ) ? 0b01 : 0b00;
+			final int interesting = aspect.isInteresting( e ) ? 0b01 : 0b00;
 			final int contains = e.systemBits.get( index ) ? 0b10 : 0b00;
 
 			switch (interesting | contains)
