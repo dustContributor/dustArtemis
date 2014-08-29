@@ -423,6 +423,17 @@ public class OpenBitSet implements Cloneable
 	}
 
 	/**
+	 * Sets all the bits in this set to zero.
+	 */
+	public void clear()
+	{
+		for ( int i = bits.length; i-- > 0; )
+		{
+			bits[i] = 0L;
+		}
+	}
+	
+	/**
 	 * Sets a bit and returns the previous value. The index should be less than
 	 * the OpenBitSet size.
 	 */
