@@ -119,15 +119,12 @@ public final class Aspect
 		if ( hasAll )
 		{
 			final OpenBitSet all = allSet;
-			for ( int i = all.nextSetBit( 0 ); i >= 0; i = all.nextSetBit( i + 1 ) )
-			{
-				if ( !cmpBits.get( i ) )
-				{
-					// Aspect isn't interested in the entity.
-					return false;
-				}
-				// Aspect is still interested, keep checking.
-			}
+			/*
+			 * Intersection bit count between allSet and cmpBits should be same
+			 * if Entity possesses all the components. Otherwise Aspect isn't
+			 * interested.
+			 */
+			return all.cardinality() == OpenBitSet.intersectionCount( all, cmpBits );
 		}
 
 		// The Aspect is interested in the Entity.
