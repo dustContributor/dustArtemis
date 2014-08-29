@@ -42,7 +42,7 @@ public final class ComponentManager
 		if ( componentBits.get( cmpIndex ) )
 		{
 			componentsByType.getUnsafe( cmpIndex ).removeUnsafe( e.id );
-			componentBits.clear( cmpIndex );
+			componentBits.fastClear( cmpIndex );
 		}
 	}
 
@@ -84,7 +84,7 @@ public final class ComponentManager
 			final OpenBitSet cmpBits = e.componentBits;
 			final int eid = e.id;
 
-			for ( int j = cmpBits.length(); (j = cmpBits.prevSetBit( j - 1 )) >= 0; )
+			for ( int j = cmpBits.nextSetBit( 0 ); j >= 0; j = cmpBits.nextSetBit( j + 1 ) )
 			{
 				cmpBags[j].removeUnsafe( eid );
 			}
