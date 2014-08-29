@@ -106,7 +106,7 @@ public abstract class EntitySystem extends EntityObserver
 	private final void removeFromSystem ( final Entity e )
 	{
 		final int ei = e.removedInSystem( this );
-		e.systemBits.clear( index );
+		e.systemBits.fastClear( index );
 		actives.removeUnsafe( ei );
 		
 		if ( (actives.size() - ei) > 0 )
