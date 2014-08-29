@@ -1,6 +1,6 @@
 package com.artemis;
 
-import java.util.BitSet;
+import org.apache.lucene.util.OpenBitSet;
 
 import com.artemis.utils.Bag;
 import com.artemis.utils.BoundedBag;
@@ -37,7 +37,7 @@ public final class ComponentManager
 	void removeComponent ( final Entity e, final Class<? extends Component> type )
 	{
 		final int cmpIndex = ClassIndexer.getIndexFor( type, Component.class );
-		final BitSet componentBits = e.componentBits;
+		final OpenBitSet componentBits = e.componentBits;
 		
 		if ( componentBits.get( cmpIndex ) )
 		{
@@ -61,7 +61,7 @@ public final class ComponentManager
 	Bag<Component> getComponentsFor ( final Entity e, final Bag<Component> fillBag )
 	{
 		final BoundedBag<Component>[] cmpBags = componentsByType.data();
-		final BitSet componentBits = e.componentBits;
+		final OpenBitSet componentBits = e.componentBits;
 
 		for ( int i = componentBits.nextSetBit( 0 ); i >= 0; i = componentBits.nextSetBit( i + 1 ) )
 		{
@@ -81,10 +81,10 @@ public final class ComponentManager
 		for ( int i = 0; i < delsize; ++i )
 		{
 			final Entity e = delarray[i];
-			final BitSet cmpBits = e.componentBits;
+			final OpenBitSet cmpBits = e.componentBits;
 			final int eid = e.id;
 
-			for ( int j = cmpBits.length(); (j = cmpBits.previousSetBit( j - 1 )) >= 0; )
+			for ( int j = cmpBits.length(); (j = cmpBits.prevSetBit( j - 1 )) >= 0; )
 			{
 				cmpBags[j].removeUnsafe( eid );
 			}

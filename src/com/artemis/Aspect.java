@@ -1,6 +1,6 @@
 package com.artemis;
 
-import java.util.BitSet;
+import org.apache.lucene.util.OpenBitSet;
 
 import com.artemis.utils.ClassIndexer;
 
@@ -35,16 +35,16 @@ public final class Aspect
 	public static final Aspect EMPTY_ASPECT = new Builder().build();
 
 	// Bit sets marking the components this aspect is interested in.
-	private final BitSet allSet;
-	private final BitSet exclusionSet;
-	private final BitSet oneSet;
+	private final OpenBitSet allSet;
+	private final OpenBitSet exclusionSet;
+	private final OpenBitSet oneSet;
 	
 	private final boolean hasAll;
 	private final boolean hasExclusion;
 	private final boolean hasOne;
 	private final boolean hasNone;
 	
-	Aspect ( BitSet all, BitSet exclusion, BitSet one )
+	Aspect ( OpenBitSet all, OpenBitSet exclusion, OpenBitSet one )
 	{
 		hasAll = !all.isEmpty();
 		hasExclusion = !exclusion.isEmpty();
@@ -53,7 +53,7 @@ public final class Aspect
 		hasNone = !(hasAll || hasExclusion || hasOne);
 		
 		/*
-		 * If any of the BitSets is empty, do not store them.
+		 * If any of the OpenBitSets is empty, do not store them.
 		 */
 		if ( hasAll )
 		{
@@ -97,7 +97,7 @@ public final class Aspect
 			return false;
 		}
 
-		final BitSet cmpBits = e.componentBits;
+		final OpenBitSet cmpBits = e.componentBits;
 		/*
 		 * Early rejection if the entity has an 'exclusion' component or doesn't
 		 * has any 'one' component.
@@ -118,7 +118,7 @@ public final class Aspect
 		 */
 		if ( hasAll )
 		{
-			final BitSet all = allSet;
+			final OpenBitSet all = allSet;
 			for ( int i = all.nextSetBit( 0 ); i >= 0; i = all.nextSetBit( i + 1 ) )
 			{
 				if ( !cmpBits.get( i ) )
@@ -142,15 +142,15 @@ public final class Aspect
 	 */
 	public static final class Builder
 	{
-		private final BitSet all;
-		private final BitSet exclusion;
-		private final BitSet one;
+		private final OpenBitSet all;
+		private final OpenBitSet exclusion;
+		private final OpenBitSet one;
 		
 		public Builder ()
 		{
-			all = new BitSet();
-			exclusion = new BitSet();
-			one = new BitSet();
+			all = new OpenBitSet();
+			exclusion = new OpenBitSet();
+			one = new OpenBitSet();
 		}
 		
 		/**
@@ -201,7 +201,7 @@ public final class Aspect
 		
 		@SafeVarargs
 		private static final void setBits (
-			final BitSet bits,
+			final OpenBitSet bits,
 			final Class<? extends Component>... types )
 		{
 			for ( int i = types.length; i-- > 0; )
