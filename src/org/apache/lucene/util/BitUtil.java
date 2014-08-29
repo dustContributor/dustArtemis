@@ -22,6 +22,11 @@
  * 
  * Removed features that wont be used.
  * 
+ * Made all methods use ints instead of longs. It means that if you pass
+ * a long[] sufficiently large to these methods, count results will be
+ * incorrect. So at most you can use to billion bits, in other words,
+ * don't pass long arrays longer than (2^31 / 64) elements.
+ * 
  * Thanks a lot to Apache Lucene project for these bit twiddling 
  * utilities!
  * ------------------------------------------------------------------
@@ -136,9 +141,9 @@ public final class BitUtil
 	// intrinsic since Java 6u18) in a naive loop, see LUCENE-2221
 
 	/** Returns the number of set bits in an array of longs. */
-	public static long pop_array ( long[] arr, int wordOffset, int numWords )
+	public static int pop_array ( long[] arr, int wordOffset, int numWords )
 	{
-		long popCount = 0;
+		int popCount = 0;
 		for ( int i = wordOffset, end = wordOffset + numWords; i < end; ++i )
 		{
 			popCount += Long.bitCount( arr[i] );
@@ -150,9 +155,9 @@ public final class BitUtil
 	 * Returns the popcount or cardinality of the two sets after an
 	 * intersection. Neither array is modified.
 	 */
-	public static long pop_intersect ( long[] arr1, long[] arr2, int wordOffset, int numWords )
+	public static int pop_intersect ( long[] arr1, long[] arr2, int wordOffset, int numWords )
 	{
-		long popCount = 0;
+		int popCount = 0;
 		for ( int i = wordOffset, end = wordOffset + numWords; i < end; ++i )
 		{
 			popCount += Long.bitCount( arr1[i] & arr2[i] );
@@ -164,9 +169,9 @@ public final class BitUtil
 	 * Returns the popcount or cardinality of the union of two sets. Neither
 	 * array is modified.
 	 */
-	public static long pop_union ( long[] arr1, long[] arr2, int wordOffset, int numWords )
+	public static int pop_union ( long[] arr1, long[] arr2, int wordOffset, int numWords )
 	{
-		long popCount = 0;
+		int popCount = 0;
 		for ( int i = wordOffset, end = wordOffset + numWords; i < end; ++i )
 		{
 			popCount += Long.bitCount( arr1[i] | arr2[i] );
@@ -177,9 +182,9 @@ public final class BitUtil
 	/**
 	 * Returns the popcount or cardinality of A & ~B. Neither array is modified.
 	 */
-	public static long pop_andnot ( long[] arr1, long[] arr2, int wordOffset, int numWords )
+	public static int pop_andnot ( long[] arr1, long[] arr2, int wordOffset, int numWords )
 	{
-		long popCount = 0;
+		int popCount = 0;
 		for ( int i = wordOffset, end = wordOffset + numWords; i < end; ++i )
 		{
 			popCount += Long.bitCount( arr1[i] & ~arr2[i] );
@@ -190,9 +195,9 @@ public final class BitUtil
 	/**
 	 * Returns the popcount or cardinality of A ^ B Neither array is modified.
 	 */
-	public static long pop_xor ( long[] arr1, long[] arr2, int wordOffset, int numWords )
+	public static int pop_xor ( long[] arr1, long[] arr2, int wordOffset, int numWords )
 	{
-		long popCount = 0;
+		int popCount = 0;
 		for ( int i = wordOffset, end = wordOffset + numWords; i < end; ++i )
 		{
 			popCount += Long.bitCount( arr1[i] ^ arr2[i] );
@@ -212,23 +217,6 @@ public final class BitUtil
 		v |= v >> 4;
 		v |= v >> 8;
 		v |= v >> 16;
-		v++;
-		return v;
-	}
-
-	/**
-	 * returns the next highest power of two, or the current value if it's
-	 * already a power of two or zero
-	 */
-	public static long nextHighestPowerOfTwo ( long v )
-	{
-		v--;
-		v |= v >> 1;
-		v |= v >> 2;
-		v |= v >> 4;
-		v |= v >> 8;
-		v |= v >> 16;
-		v |= v >> 32;
 		v++;
 		return v;
 	}
