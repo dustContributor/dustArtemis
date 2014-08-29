@@ -1,6 +1,6 @@
 package com.artemis;
 
-import java.util.BitSet;
+import org.apache.lucene.util.OpenBitSet;
 
 import com.artemis.utils.Bag;
 
@@ -31,13 +31,13 @@ public final class Entity
 	/**
 	 * BitSet instance containing bits of the components the entity possesses.
 	 */
-	final BitSet componentBits;
+	final OpenBitSet componentBits;
 
 	/**
 	 * BitSet instance containing bits signaling which systems this entity is
 	 * active in.
 	 */
-	final BitSet systemBits;
+	final OpenBitSet systemBits;
 
 	/** World instance where this Entity is in. */
 	private final World world;
@@ -49,8 +49,8 @@ public final class Entity
 	{
 		this.world = world;
 		this.id = id;
-		this.systemBits = new BitSet();
-		this.componentBits = new BitSet();
+		this.systemBits = new OpenBitSet();
+		this.componentBits = new OpenBitSet();
 
 		this.indexInSystems = new Bag<>( SystemEntityPair.class, 4 );
 	}
