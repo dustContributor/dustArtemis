@@ -341,7 +341,7 @@ public class World
 	 * (added, deleted, etc), it calls it for each entity in that bag, for each
 	 * manager and system present in this World instance.
 	 */
-	private void checkAll ()
+	private final void checkAll ()
 	{
 		// Checking all affected entities in all EntityObservers.
 		notifyObservers( managersBag );

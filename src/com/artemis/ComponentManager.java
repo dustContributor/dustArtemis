@@ -10,7 +10,7 @@ import com.artemis.utils.ImmutableBag;
 /**
  * @author Arni Arent
  */
-public final class ComponentManager
+final class ComponentManager
 {
 	private final Bag<BoundedBag<Component>> componentsByType;
 
@@ -62,10 +62,11 @@ public final class ComponentManager
 	{
 		final BoundedBag<Component>[] cmpBags = componentsByType.data();
 		final OpenBitSet componentBits = e.componentBits;
+		final int eid = e.id;
 
 		for ( int i = componentBits.nextSetBit( 0 ); i >= 0; i = componentBits.nextSetBit( i + 1 ) )
 		{
-			fillBag.add( cmpBags[i].getUnsafe( e.id ) );
+			fillBag.add( cmpBags[i].getUnsafe( eid ) );
 		}
 
 		return fillBag;
