@@ -718,12 +718,18 @@ public class OpenBitSet implements Cloneable
 	}
 
 	/**
-	 * Expand the long[] with the size given as a number of words (64 bit
-	 * longs).
+	 * Expands the backing array to hold the number of words (64 bit longs)
+	 * passed.
+	 * 
+	 * If the array is expanded, its size will be the next power of two size it
+	 * can hold the number of words passed.
 	 */
 	public void ensureCapacityWords ( int numWords )
 	{
-		bits = growIfNeeded( bits, numWords - 1 );
+		if ( (numWords - 1) >= bits.length )
+		{
+			bits = Arrays.copyOf( bits, BitUtil.nextHighestPowerOfTwo( numWords ) );
+		}
 		wlen = numWords;
 		assert (this.numBits = Math.max( this.numBits, numWords << 6 )) >= 0;
 	}
@@ -812,24 +818,6 @@ public class OpenBitSet implements Cloneable
 		// fold leftmost bits into right and add a constant to prevent
 		// empty sets from returning 0, which is too common.
 		return (int) ((h >> 32) ^ h) + 0x98761234;
-	}
-	
-	/**
-	 * It will return a power of two array capable of holding the passed index.
-	 * 
-	 * @param array to grow if needed.
-	 * @param index to check if can be hold.
-	 * @return new array if the provided one can't hold the index, otherwise it
-	 *         returns the same array that was passed.
-	 */
-	private static final long[] growIfNeeded ( final long[] array, final int index )
-	{
-		if ( index < array.length )
-		{
-			return array;
-		}
-		
-		return Arrays.copyOf( array, BitUtil.nextHighestPowerOfTwo( index ) );
 	}
 	
 }
