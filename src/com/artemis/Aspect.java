@@ -49,38 +49,14 @@ public final class Aspect
 		hasAll = !all.isEmpty();
 		hasExclusion = !exclusion.isEmpty();
 		hasOne = !one.isEmpty();
+		
 		// Check if this Aspect actually could be interested in an Entity.
 		hasNone = !(hasAll || hasExclusion || hasOne);
 		
-		/*
-		 * If any of the OpenBitSets is empty, do not store them.
-		 */
-		if ( hasAll )
-		{
-			allSet = all;
-		}
-		else
-		{
-			allSet = null;
-		}
-		
-		if ( hasExclusion )
-		{
-			exclusionSet = exclusion;
-		}
-		else
-		{
-			exclusionSet = null;
-		}
-		
-		if ( hasOne )
-		{
-			oneSet = one;
-		}
-		else
-		{
-			oneSet = null;
-		}
+		// If any of the OpenBitSets is empty, do not store them.
+		allSet = ( hasAll ) ? all : null;
+		exclusionSet = ( hasExclusion ) ? exclusion : null;
+		oneSet = ( hasOne ) ? one : null;
 	}
 	
 	/**
