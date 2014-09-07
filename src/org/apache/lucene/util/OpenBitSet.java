@@ -781,7 +781,7 @@ public final class OpenBitSet implements Cloneable
 		{
 			bits = Arrays.copyOf( bits, BitUtil.nextHighestPowerOfTwo( numWords ) );
 		}
-		wlen = numWords;
+		wlen = Math.max( wlen, numWords );
 		assert (this.numBits = Math.max( this.numBits, numWords << 6 )) >= 0;
 	}
 
