@@ -20,14 +20,6 @@
  * In  /lucene/dev/trunk/lucene/core/src/java/org/apache/lucene/util
  * svn rev. 1614787
  * 
- * Made slight changes to the class hierarchy, also removing features 
- * that won't be used to reduce further dependencies.
- * 
- * Made all methods use ints instead of longs. It means that with 
- * BitSets sufficiently large, most results will be incorrect. 
- * At most you can use to billion bits, so don't use more than
- * (2^31 / 64) words.
- * 
  * Thanks a lot to Apache Lucene project for this nifty bit set 
  * implementation!
  * ------------------------------------------------------------------
@@ -55,6 +47,21 @@ import java.util.function.IntConsumer;
  * totally encapsulated (and slower and limited) BitSet class, use
  * <code>java.util.BitSet</code>. <p/>
  * 
+ * <br></br>
+ * <p>Changes from dustArtemis:</p>
+ * <br></br>
+ * <p>Made slight changes to the class hierarchy, also removing features 
+ * that won't be used to reduce further dependencies.</p>
+ * <br></br>
+ * <p>Made all methods use ints instead of longs. It means that with 
+ * BitSets sufficiently large, most results will be incorrect. 
+ * At most you can use to billion bits, so don't use more than
+ * (2^31 / 64) words.</p>
+ * <br></br>
+ * <p>Added forEachSetBit method as an iterator over all the set bits.</p>
+ * 
+ * <br></br>
+ * @author originally from <b>Apache Lucene Project</b>.
  */
 
 @SuppressWarnings ( "javadoc" ) // No Javadoc warnings for external class.

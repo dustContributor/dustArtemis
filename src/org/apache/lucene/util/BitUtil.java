@@ -20,13 +20,6 @@
  * In  /lucene/dev/trunk/lucene/core/src/java/org/apache/lucene/util
  * svn rev. 1586669
  * 
- * Removed features that wont be used.
- * 
- * Made all methods use ints instead of longs. It means that if you pass
- * a long[] sufficiently large to these methods, count results will be
- * incorrect. So at most you can use to billion bits, in other words,
- * don't pass long arrays longer than (2^31 / 64) elements.
- * 
  * Thanks a lot to Apache Lucene project for these bit twiddling 
  * utilities!
  * ------------------------------------------------------------------
@@ -36,6 +29,19 @@ package org.apache.lucene.util; // from org.apache.solr.util rev 555343
 
 /**
  * A variety of high efficiency bit twiddling routines.
+ * 
+ * <br></br>
+ * <p>Changes from <b>dustArtemis</b>:</p>
+ * <br></br>
+ * <p>Removed features that wont be used.</p>
+ * <br></br>
+ * <p>Made all methods use ints instead of longs. It means that if you pass
+ * a long[] sufficiently large to these methods, count results will be
+ * incorrect. So at most you can use to billion bits, in other words,
+ * don't pass long arrays longer than (2^31 / 64) elements.</p>
+ * 
+ * <br></br>
+ * @author originally from <b>Apache Lucene Project</b>.
  */
 @SuppressWarnings ( "javadoc" )
 public final class BitUtil
