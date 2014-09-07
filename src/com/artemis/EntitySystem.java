@@ -191,7 +191,7 @@ public abstract class EntitySystem extends EntityObserver
 		{
 			final Entity e = array[i];
 			final int interesting = aspect.isInteresting( e ) ? 0b01 : 0b00;
-			final int contains = e.systemBits.get( index ) ? 0b10 : 0b00;
+			final int contains = e.systemBits.getBit( index ) << 1;
 
 			switch (interesting | contains)
 			{
