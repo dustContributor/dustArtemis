@@ -180,10 +180,25 @@ public class OpenBitSet implements Cloneable
 	 */
 
 	/**
+	 * returns 1 if the bit is set, 0 if not.
+	 */
+	public int getBit ( int index )
+	{
+		int i = index >> 6; // div 64
+		// signed shift will keep a negative index and force an
+		// array-index-out-of-bounds-exception, removing the need for an
+		// explicit check.
+		if ( i >= bits.length )
+			return 0;
+		
+		return ((int) (bits[i] >>> index)) & 0x01;
+	}
+	
+	/**
 	 * returns 1 if the bit is set, 0 if not. The index should be less than the
 	 * OpenBitSet size
 	 */
-	public int getBit ( int index )
+	public int fastGetBit ( int index )
 	{
 		assert index >= 0 && index < numBits;
 		int i = index >> 6; // div 64
