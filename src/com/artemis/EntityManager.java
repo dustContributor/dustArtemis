@@ -1,6 +1,6 @@
 package com.artemis;
 
-import java.util.BitSet;
+import org.apache.lucene.util.OpenBitSet;
 
 import com.artemis.utils.Bag;
 import com.artemis.utils.IdAllocator;
@@ -13,7 +13,7 @@ import com.artemis.utils.ImmutableBag;
 public final class EntityManager extends Manager
 {
 	private final Bag<Entity> entities;
-	private final BitSet disabled;
+	private final OpenBitSet disabled;
 
 	private int active;
 	private long added;
@@ -25,38 +25,39 @@ public final class EntityManager extends Manager
 	EntityManager ()
 	{
 		entities = new Bag<>( Entity.class );
-		disabled = new BitSet();
+		disabled = new OpenBitSet( 1024 );
 		idStore = new IdAllocator();
 	}
 
 	public Entity createEntityInstance ()
 	{
 		++created;
-		return new Entity( world, idStore.alloc() );
+		
+		final int eid = idStore.alloc();
+		/*
+		 * Guarantee 'entities' and 'disabled' can hold the Entity. This way we
+		 * can avoid doing bound checks in other methods later.
+		 */
+		entities.ensureCapacity( eid );
+		disabled.ensureCapacity( eid );
+		
+		return new Entity( world, eid );
 	}
 
 	@Override
 	public void added ( final ImmutableBag<Entity> entities )
 	{
-		final int size = entities.size();
-		int maxID = 0;
+		final int eSize = entities.size();
+		final Entity[] eArray = ((Bag<Entity>) entities).data();
+		final Entity[] meArray = this.entities.data();
 		
-		for ( int i = 0; i < size; ++i )
+		active += eSize;
+		added += eSize;
+		
+		for ( int i = eSize; i-- > 0; )
 		{
-			final int eid = entities.getUnsafe( i ).id;
-			maxID = ( maxID > eid ) ? maxID : eid;
-		}
-		
-		this.entities.ensureCapacity( maxID + 1 );
-		final Entity[] array = ((Bag<Entity>) entities).data();
-		
-		active += size;
-		added += size;
-		
-		for ( int i = 0; i < size; ++i )
-		{
-			final Entity e = array[i];
-			this.entities.setUnsafe( e.id, e );
+			final Entity e = eArray[i];
+			meArray[e.id] = e;
 		}
 	}
 	
@@ -64,11 +65,10 @@ public final class EntityManager extends Manager
 	public void enabled ( final ImmutableBag<Entity> entities )
 	{
 		final Entity[] array = ((Bag<Entity>) entities).data();
-		final int size = entities.size();
 		
-		for ( int i = 0; i < size; ++i )
+		for ( int i = entities.size(); i-- > 0; )
 		{
-			disabled.clear( array[i].id );
+			disabled.fastClear( array[i].id );
 		}
 	}
 	
@@ -76,38 +76,30 @@ public final class EntityManager extends Manager
 	public void disabled ( final ImmutableBag<Entity> entities )
 	{
 		final Entity[] array = ((Bag<Entity>) entities).data();
-		final int size = entities.size();
 		
-		for ( int i = 0; i < size; ++i )
+		for ( int i = entities.size(); i-- > 0; )
 		{
-			disabled.set( array[i].id );
+			disabled.fastSet( array[i].id );
 		}
 	}
 	
 	@Override
 	public void deleted ( final ImmutableBag<Entity> entities )
 	{
-		final int size = entities.size();
-		int maxID = 0;
+		final int eSize = entities.size();
+		final Entity[] eArray = ((Bag<Entity>) entities).data();
+		final Entity[] meArray = this.entities.data();
 		
-		for ( int i = 0; i < size; ++i )
+		active -= eSize;
+		deleted += eSize;
+		
+		for ( int i = eSize; i-- > 0; )
 		{
-			final int eid = entities.getUnsafe( i ).id;
-			maxID = ( maxID > eid ) ? maxID : eid;
-		}
-		
-		this.entities.ensureCapacity( maxID + 1 );
-		final Entity[] array = ((Bag<Entity>) entities).data();
-		
-		active -= size;
-		deleted += size;
-		
-		for ( int i = 0; i < size; ++i )
-		{
-			final Entity e = array[i];
+			final Entity e = eArray[i];
 			final int eid = e.id;
-			this.entities.setUnsafe( eid, null );
-			disabled.clear( eid );
+			
+			meArray[eid] = null;
+			disabled.fastClear( eid );
 			idStore.free( eid );
 		}
 	}
@@ -132,7 +124,7 @@ public final class EntityManager extends Manager
 	 */
 	public boolean isEnabled ( final int entityId )
 	{
-		return !disabled.get( entityId );
+		return !disabled.fastGet( entityId );
 	}
 
 	/**
