@@ -36,6 +36,7 @@
 package org.apache.lucene.util;
 
 import java.util.Arrays;
+import java.util.function.IntConsumer;
 
 /**
  * An "open" BitSet implementation that allows direct access to the array of
@@ -53,10 +54,11 @@ import java.util.Arrays;
  * their own version in order to get better performance). If you want a "safe",
  * totally encapsulated (and slower and limited) BitSet class, use
  * <code>java.util.BitSet</code>. <p/>
+ * 
  */
 
 @SuppressWarnings ( "javadoc" ) // No Javadoc warnings for external class.
-public class OpenBitSet implements Cloneable
+public final class OpenBitSet implements Cloneable
 {
 
 	protected long[] bits;
@@ -606,6 +608,33 @@ public class OpenBitSet implements Cloneable
 		}
 
 		return -1;
+	}
+	
+	/**
+	 * This method applies the supplied operation on the indices of all the set
+	 * bits of this bit set.
+	 * 
+	 * @param operation to apply to set bits.
+	 */
+	public void forEachSetBit ( final IntConsumer operation )
+	{
+		final int bSize = bits.length;
+		
+		for ( int i = 0; i < bSize; ++i )
+		{
+			long word = bits[i];
+			// While there are bit set.
+			while ( word != 0L )
+			{
+				// Get index of bit set.
+				int biti = (i << 6) + Long.numberOfTrailingZeros( word );
+				long bitmask = 1L << biti;
+				// Flip bit.
+				word ^= bitmask;
+				// Do operation.
+				operation.accept( biti );
+			}
+		}
 	}
 
 	@Override
