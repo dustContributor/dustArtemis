@@ -190,21 +190,26 @@ public abstract class EntitySystem extends EntityObserver
 		for ( int i = 0; i < size; ++i )
 		{
 			final Entity e = array[i];
-			final int interesting = aspect.isInteresting( e ) ? 0b01 : 0b00;
-			final int contains = e.systemBits.getBit( index ) << 1;
+			// Second bit for 'contains'.
+			int flags = e.systemBits.getBit( index ) << 1;
+			// First bit for 'interesting'.
+			flags |= aspect.isInteresting( e ) ? 0b1 : 0b0;
 
-			switch (interesting | contains)
+			switch (flags)
 			{
-				case 1:
+				// Interesting and system doesn't contains.
+				case 0b01:
 				{
 					insertToSystem( e );
 					continue;
 				}
-				case 2:
+				// Not interesting and system does contains.
+				case 0b10:
 				{
 					removeFromSystem( e );
 					continue;
 				}
+				// Otherwise do nothing.
 				default:
 					continue;
 			}
