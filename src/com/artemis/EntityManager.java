@@ -14,13 +14,13 @@ public final class EntityManager extends Manager
 {
 	private final Bag<Entity> entities;
 	private final OpenBitSet disabled;
+	
+	private final IdAllocator idStore;
 
 	private int active;
 	private long added;
 	private long created;
 	private long deleted;
-
-	private final IdAllocator idStore;
 
 	EntityManager ()
 	{
@@ -38,8 +38,8 @@ public final class EntityManager extends Manager
 		 * Guarantee 'entities' and 'disabled' can hold the Entity. This way we
 		 * can avoid doing bound checks in other methods later.
 		 */
-		entities.ensureCapacity( eid );
-		disabled.ensureCapacity( eid );
+		entities.ensureCapacity( eid + 1 );
+		disabled.ensureCapacity( eid + 1 );
 		
 		return new Entity( world, eid );
 	}
