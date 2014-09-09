@@ -246,6 +246,86 @@ public final class Bag<T> extends ImmutableBag<T>
 	}
 	
 	/**
+	 * Inserts an item into a position of this Bag, shifting any elements
+	 * remaining to the right, preserving their order.
+	 * 
+	 * @param index to insert the item at.
+	 * @param item to be inserted into the Bag.
+	 */
+	public void insert ( final int index, final T item )
+	{
+		if ( isInSize( index ) )
+		{
+			ensureCapacity( size + 1 );
+			insertUnsafe( index, item );
+		}
+	}
+	
+	/**
+	 * Inserts an item into a position of this Bag, shifting any elements
+	 * remaining to the right, preserving their order. 
+	 * 
+	 * <p>
+	 * <b>UNSAFE: Avoids doing any bounds check.</b>
+	 * </p>
+	 * 
+	 * @param index to insert the item at.
+	 * @param item to be inserted into the Bag.
+	 */
+	public void insertUnsafe ( final int index, final T item )
+	{
+		final T[] array = data;
+		final int aSize = size;
+		// Shift elements to the right.
+		System.arraycopy( array, index, array, index + 1, aSize - index );
+		// Set element and set new size.
+		array[index] = item;
+		size = aSize + 1;
+	}
+	
+	/**
+	 * Erases an element of this Bag, shifting the remaining elements to the
+	 * left, preserving their order.
+	 * 
+	 * @param index to erase an element at.
+	 * @return the element erased from this Bag.
+	 */
+	public T erase ( final int index )
+	{
+		if ( isInSize( index ) )
+		{
+			return eraseUnsafe( index );
+		}
+
+		return null;
+	}
+	
+	/**
+	 * Erases an element of this Bag, shifting the remaining elements to the
+	 * left, preserving their order.
+	 * 
+	 * <p>
+	 * <b>UNSAFE: Avoids doing any bounds check.</b>
+	 * </p>
+	 * 
+	 * @param index to erase an element at.
+	 * @return the element erased from this Bag.
+	 */
+	public T eraseUnsafe ( final int index )
+	{
+		final T[] array = data;
+		final T item = array[index];
+		final int newSize = size - 1;
+		// Shift elements to the left.
+		System.arraycopy( array, index + 1, array, index, newSize - index );
+		// Null last element and set new size.
+		array[newSize] = null;
+		size = newSize;
+		// Return erased element.
+		return item;
+	}
+	
+	/**
 	 * Removes the item at the specified position in this Bag. Does this by
 	 * overwriting it was last item then removing last item.
 	 * 

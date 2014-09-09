@@ -243,9 +243,23 @@ public abstract class ImmutableBag<T>
 	 * @return <code>true</code> if the index is within the bounds of the Bag,
 	 *         <code>false</code> otherwise.
 	 */
-	protected boolean isInBounds ( int index )
+	protected boolean isInBounds ( final int index )
 	{
 		return (index > -1 && index < data.length);
+	}
+	
+	/**
+	 * Checks if the index is within the size of the Bag (ie, if its bigger
+	 * or equal than 0 and less than the size of the bag).
+	 * 
+	 * @param index
+	 *            that needs to be checked.
+	 * @return <code>true</code> if the index is within the size of the Bag,
+	 *         <code>false</code> otherwise.
+	 */
+	protected boolean isInSize ( final int index )
+	{
+		return (index > -1 && index < size);
 	}
 	
 	/**
