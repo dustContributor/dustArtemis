@@ -1,5 +1,7 @@
 package com.artemis;
 
+import java.util.Arrays;
+
 import com.artemis.utils.Bag;
 import com.artemis.utils.ClassIndexer;
 import com.artemis.utils.ImmutableBag;
@@ -105,26 +107,29 @@ public abstract class EntitySystem extends EntityObserver
 	
 	private final void removeFromSystem ( final Entity e )
 	{
-		final int ei = e.removedInSystem( this );
+		final int ei = searchFor( e );
+		actives.eraseUnsafe( ei );
+		
 		e.systemBits.fastClear( index );
-		actives.removeUnsafe( ei );
-		
-		if ( (actives.size() - ei) > 0 )
-		{
-			final Entity tmp = actives.getUnsafe( ei );
-			tmp.updateInSystem( this, ei );
-		}
-		
 		removed( e );
 	}
 
 	private final void insertToSystem ( final Entity e )
 	{
-		e.addedInSystem( this, actives.size() );
-		e.systemBits.set( index );
-		actives.add( e );
+		final int ei = -(searchFor( e ) + 1);
 		
+		actives.ensureCapacity( actives.size() + 1 );
+		actives.insertUnsafe( ei, e );
+		
+		e.systemBits.set( index );
 		inserted( e );
+	}
+	
+	private final int searchFor ( final Entity e )
+	{
+		return Arrays.binarySearch( actives.data(), 
+									0, actives.size(), 
+									e, (a,b) -> a.id - b.id );
 	}
 	
 	@Override

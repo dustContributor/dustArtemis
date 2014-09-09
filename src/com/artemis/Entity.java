@@ -42,17 +42,12 @@ public final class Entity
 	/** World instance where this Entity is in. */
 	private final World world;
 
-	/** Bag to hold the indices this Entity takes in the systems. */
-	private final Bag<SystemEntityPair> indexInSystems;
-
 	Entity ( final World world, final int id )
 	{
 		this.world = world;
 		this.id = id;
 		this.systemBits = new OpenBitSet();
 		this.componentBits = new OpenBitSet();
-
-		this.indexInSystems = new Bag<>( SystemEntityPair.class, 4 );
 	}
 
 	@Override
@@ -143,67 +138,6 @@ public final class Entity
 	}
 
 	/**
-	 * Marks this entity as added in the passed system, stores the index
-	 * of the entity in said system.
-	 * 
-	 * @param system where the entity was added.
-	 * @param indexInSystem index of the entity in the system.
-	 */
-	void addedInSystem ( final EntitySystem system, final int indexInSystem )
-	{
-		final int si = system.getIndex();
-		indexInSystems.add( new SystemEntityPair( si, indexInSystem ) );
-		systemBits.set( si );
-	}
-
-	/**
-	 * Updates the entity index in the system.
-	 * 
-	 * @param system where the entity was moved.
-	 * @param indexInSystem index of the entity in the system.
-	 */
-	void updateInSystem ( final EntitySystem system, final int indexInSystem )
-	{
-		final int si = system.getIndex();
-		final SystemEntityPair[] array = indexInSystems.data();
-		
-		for ( int i = indexInSystems.size(); i-- > 0; )
-		{
-			final SystemEntityPair sep = array[i];
-			if ( sep.systemID == si )
-			{
-				sep.indexInSystem = indexInSystem;
-				return;
-			}
-		}
-	}
-
-	/**
-	 * Marks this entity as no longer present in the provided system. Returns
-	 * its index in said system.
-	 * 
-	 * @param system where the entity was removed.
-	 * @return the index of this entity in the provided system.
-	 */
-	int removedInSystem ( final EntitySystem system )
-	{
-		final int si = system.getIndex();
-		final SystemEntityPair[] array = indexInSystems.data();
-		
-		for ( int i = indexInSystems.size(); i-- > 0; )
-		{
-			final SystemEntityPair sep = array[i];
-			if ( sep.systemID == si )
-			{
-				indexInSystems.removeUnsafe( i );
-				return sep.indexInSystem;
-			}
-		}
-		
-		return -1;
-	}
-
-	/**
 	 * Refresh all changes to components for this entity. After adding or
 	 * removing components, you must call this method. It will update all
 	 * relevant systems. It is typical to call this after adding components to a
@@ -256,18 +190,6 @@ public final class Entity
 	public World getWorld ()
 	{
 		return world;
-	}
-
-	private static final class SystemEntityPair
-	{
-		final int systemID;
-		int indexInSystem;
-
-		SystemEntityPair ( int systemID, int indexInSystem )
-		{
-			this.systemID = systemID;
-			this.indexInSystem = indexInSystem;
-		}
 	}
 
 }
