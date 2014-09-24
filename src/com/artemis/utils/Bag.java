@@ -590,6 +590,72 @@ public final class Bag<T> extends ImmutableBag<T>
 		}
 		size = 0;
 	}
+	
+	/**
+	 * Compacts the backing array of this Bag to the left, leaving all null
+	 * values to the right. Preserves ordering.
+	 */
+	public void compact ()
+	{
+		final T[] arr = data;
+		final int prevSize = size;
+		int newSize = prevSize;
+
+		for ( int i = prevSize; i-- > 0; )
+		{
+			// If there isn't something to compact.
+			if ( arr[i] != null )
+			{
+				continue;
+			}
+			// Found something.
+			int j = i;
+
+			// Find more slots to compact.
+			while ( j-- > 0 )
+			{
+				if ( arr[j] != null )
+				{
+					break;
+				}
+			}
+			// Copy contents to left.
+			System.arraycopy( arr, i + 1, arr, j + 1, newSize - i - 1 );
+			// Size + diff between start and finish of null slots.
+			newSize += j - i;
+			// Jump over recently compacted elements.
+			i = j;
+		}
+		
+		// If something was compacted.
+		if ( prevSize != newSize )
+		{
+			// Nullify everything to right.
+			for ( int i = prevSize; i-- > newSize; )
+			{
+				arr[i] = null;
+			}
+			// Set new size.
+			size = newSize;
+		}
+	}
+	
+	/**
+	 * Shrinks the capacity of this Bag to the next capacity that could hold a
+	 * Bag of this size.
+	 * 
+	 * If the capacities match, then it leaves the Bag as it is.
+	 */
+	public void shrink ()
+	{
+		final int nextCap = nextCapacity( size );
+		final int newCap = Math.max( nextCap, MINIMUM_WORKING_CAPACITY );
+
+		if ( newCap < data.length )
+		{
+			grow( newCap );
+		}
+	}
 
 	public void setSize ( final int size )
 	{
