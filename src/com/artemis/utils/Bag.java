@@ -1,5 +1,6 @@
 package com.artemis.utils;
 
+import java.util.Arrays;
 import java.util.function.Predicate;
 
 /**
@@ -533,9 +534,7 @@ public final class Bag<T> extends ImmutableBag<T>
 
 	private void grow ( final int newCapacity )
 	{
-		final T[] newArray = newArray( type, newCapacity );
-		System.arraycopy( data, 0, newArray, 0, size );
-		data = newArray;
+		data = Arrays.copyOf( data, newCapacity );
 	}
 
 	/**

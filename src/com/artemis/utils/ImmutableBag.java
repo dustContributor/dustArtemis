@@ -78,10 +78,11 @@ public abstract class ImmutableBag<T>
 	 * @param capacity
 	 *            of the Bag.
 	 */
+	@SuppressWarnings ( "unchecked" )
 	public ImmutableBag ( final Class<T> type, final int capacity )
 	{
-		this.data = newArray( type, 
-				(capacity > MINIMUM_WORKING_CAPACITY) ? capacity : MINIMUM_WORKING_CAPACITY );
+		final int newCap = (capacity > MINIMUM_WORKING_CAPACITY) ? capacity : MINIMUM_WORKING_CAPACITY;
+		this.data = (T[]) Array.newInstance( type, newCap );
 		this.type = type;
 	}
 	
@@ -300,10 +301,5 @@ public abstract class ImmutableBag<T>
 
 		return dataLength + (dataLength >> 1);
 	}
-	
-	@SuppressWarnings ( "unchecked" )
-	protected static final <T> T[] newArray ( Class<T> type, int capacity )
-	{
-		return (T[]) Array.newInstance( type, capacity );
-	}
+
 }
