@@ -6,12 +6,15 @@ import com.artemis.utils.Bag;
 import com.artemis.utils.BoundedBag;
 import com.artemis.utils.ClassIndexer;
 import com.artemis.utils.ImmutableBag;
+import com.artemis.utils.MutableBitIterator;
 
 /**
  * @author Arni Arent
  */
 final class ComponentManager
 {
+	/** Mutable iterator for component bits.  */
+	private final MutableBitIterator bitIterator = new MutableBitIterator();
 	private final Bag<BoundedBag<Component>> componentsByType;
 
 	@SuppressWarnings ( { "unchecked", "rawtypes" } )
@@ -61,10 +64,12 @@ final class ComponentManager
 	Bag<Component> getComponentsFor ( final Entity e, final Bag<Component> fillBag )
 	{
 		final BoundedBag<Component>[] cmpBags = componentsByType.data();
-		final OpenBitSet componentBits = e.componentBits;
+		final MutableBitIterator mbi = bitIterator;
 		final int eid = e.id;
 
-		for ( int i = componentBits.nextSetBit( 0 ); i >= 0; i = componentBits.nextSetBit( i + 1 ) )
+		mbi.setBits( e.componentBits.getBits() );
+
+		for ( int i = mbi.nextSetBit(); i >= 0; i = mbi.nextSetBit() )
 		{
 			fillBag.add( cmpBags[i].getUnsafe( eid ) );
 		}
@@ -75,17 +80,19 @@ final class ComponentManager
 	void clean ( final ImmutableBag<Entity> deleted )
 	{
 		final BoundedBag<Component>[] cmpBags = componentsByType.data();
+		final MutableBitIterator mbi = bitIterator;
 
 		final Entity[] delarray = ((Bag<Entity>) deleted).data();
 		final int delsize = deleted.size();
 
 		for ( int i = 0; i < delsize; ++i )
 		{
-			final Entity e = delarray[i];
-			final OpenBitSet cmpBits = e.componentBits;
-			final int eid = e.id;
+			final OpenBitSet cmpBits = delarray[i].componentBits;
+			final int eid = delarray[i].id;
 
-			for ( int j = cmpBits.nextSetBit( 0 ); j >= 0; j = cmpBits.nextSetBit( j + 1 ) )
+			mbi.setBits( cmpBits.getBits() );
+
+			for ( int j = mbi.nextSetBit(); j >= 0; j = mbi.nextSetBit() )
 			{
 				cmpBags[j].removeUnsafe( eid );
 			}
