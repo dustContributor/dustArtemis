@@ -39,10 +39,13 @@ final class MapperImplementor
 	static final void initFor ( final Bag<? extends EntitySystem> systems, final World world )
 	{
 		final EntitySystem[] arSystems = systems.data();
-		
-		// Bag big enough so it shouldn't grow when adding fields to it.
-		final Bag<Field> fieldBag = new Bag<>( Field.class, 32 );
-		
+
+		// Fetch mapper amount per system.
+		int fbSize = DAConstants.APROX_MAPPERS_PER_SYSTEM;
+
+		// If correctly set, this bag won't need to grow.
+		final Bag<Field> fieldBag = new Bag<>( Field.class, fbSize );
+
 		// For each of the EntitySystems in systems Bag:
 		for ( int s = systems.size(); s-- > 0; )
 		{
