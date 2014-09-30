@@ -8,6 +8,8 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import com.artemis.DAConstants;
+
 /**
  * 
  * @author Arni Arent
@@ -287,10 +289,20 @@ public abstract class ImmutableBag<T>
 		return StreamSupport.stream( split, true ).limit( size );
 	}
 	
-	public static final int DEFAULT_CAPACITY = 16;
-	public static final int MINIMUM_WORKING_CAPACITY = 4;
-	public static final int GROW_RATE_THRESHOLD = 2048;
+	/**
+	 * This value is fetched from
+	 * {@link com.artemis.DAConstants#BAG_DEFAULT_CAPACITY}
+	 */
+	public static final int DEFAULT_CAPACITY = DAConstants.BAG_DEFAULT_CAPACITY;
+	/**
+	 * This value is fetched from
+	 * {@link com.artemis.DAConstants#BAG_GROW_RATE_THRESHOLD}
+	 */
+	public static final int GROW_RATE_THRESHOLD = DAConstants.BAG_GROW_RATE_THRESHOLD;
 	
+	/** Non-configurable value. */
+	public static final int MINIMUM_WORKING_CAPACITY = 4;
+
 	protected static final int nextCapacity ( final int dataLength )
 	{
 		if ( dataLength < GROW_RATE_THRESHOLD )

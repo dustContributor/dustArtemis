@@ -20,7 +20,10 @@ final class ComponentManager
 	@SuppressWarnings ( { "unchecked", "rawtypes" } )
 	ComponentManager ()
 	{
-		componentsByType = new Bag( BoundedBag.class, 8 );
+		// Fetch component types.
+		int size = DAConstants.APROX_COMPONENT_TYPES;
+		
+		componentsByType = new Bag( BoundedBag.class, size );
 		// Init all type bags.
 		for ( int i = componentsByType.capacity(); i-- > 0; )
 		{
