@@ -1,5 +1,7 @@
 package com.artemis;
 
+import static org.apache.lucene.util.OpenBitSet.intersectionCount;
+
 import org.apache.lucene.util.OpenBitSet;
 
 import com.artemis.utils.ClassIndexer;
@@ -36,27 +38,27 @@ public final class Aspect
 
 	// Bit sets marking the components this aspect is interested in.
 	private final OpenBitSet allSet;
-	private final OpenBitSet exclusionSet;
+	private final OpenBitSet noneSet;
 	private final OpenBitSet oneSet;
 	
-	private final boolean hasAll;
-	private final boolean hasExclusion;
-	private final boolean hasOne;
-	private final boolean hasNone;
+	private final boolean noAll;
+	private final boolean noNone;
+	private final boolean noOne;
+	private final boolean hasSome;
 	
-	Aspect ( OpenBitSet all, OpenBitSet exclusion, OpenBitSet one )
+	Aspect ( OpenBitSet all, OpenBitSet none, OpenBitSet one )
 	{
-		hasAll = !all.isEmpty();
-		hasExclusion = !exclusion.isEmpty();
-		hasOne = !one.isEmpty();
+		noAll = all.isEmpty();
+		noNone = none.isEmpty();
+		noOne = one.isEmpty();
 		
 		// Check if this Aspect actually could be interested in an Entity.
-		hasNone = !(hasAll || hasExclusion || hasOne);
+		hasSome = !(noAll && noNone && noOne);
 		
 		// If any of the OpenBitSets is empty, do not store them.
-		allSet = ( hasAll ) ? all : null;
-		exclusionSet = ( hasExclusion ) ? exclusion : null;
-		oneSet = ( hasOne ) ? one : null;
+		allSet = ( noAll ) ? null : all;
+		noneSet = ( noNone ) ? null : none;
+		oneSet = ( noOne ) ? null : one;
 	}
 	
 	/**
@@ -67,44 +69,56 @@ public final class Aspect
 	 */
 	public final boolean isInteresting ( final Entity e )
 	{
+		final OpenBitSet bits = e.componentBits;
+
 		// If has none, doesn't processes any entity.
-		if ( hasNone )
-		{
-			return false;
-		}
+		return 	hasSome &&
+				checkNone( bits ) && 
+				checkOne( bits ) && 
+				checkAll( bits );
+	}
 
-		final OpenBitSet cmpBits = e.componentBits;
-		/*
-		 * Early rejection if the entity has an 'exclusion' component or doesn't
-		 * has any 'one' component.
-		 */
-		if ( 
-				// Check if the entity possesses ANY of the exclusion components.
-				( hasExclusion && exclusionSet.intersects( cmpBits ) ) 
-				//  Check if the entity lacks ANY of the components in the oneSet.
-				|| ( hasOne && !oneSet.intersects( cmpBits ) ) 
-			)
-		{
-			// Aspect isn't interested in the entity.
-			return false;
-		}
-		/*
-		 * Check if the entity possesses ALL of the components defined in the
-		 * aspect.
-		 */
-		if ( hasAll )
-		{
-			final OpenBitSet all = allSet;
-			/*
-			 * Intersection bit count between allSet and cmpBits should be same
-			 * if Entity possesses all the components. Otherwise Aspect isn't
-			 * interested.
-			 */
-			return all.cardinality() == OpenBitSet.intersectionCount( all, cmpBits );
-		}
+	/**
+	 * Checks if the provided bit set has at none of the bits set in
+	 * noneSet.
+	 * 
+	 * @param bits to check.
+	 * @return true if the two bit sets don't intersect, false otherwise.
+	 */
+	private final boolean checkNone ( final OpenBitSet bits )
+	{
+		// Reject entity if it has any of 'none' bits.
+		return noNone || !noneSet.intersects( bits );
+	}
 
-		// The Aspect is interested in the Entity.
-		return true;
+	/**
+	 * Checks if the provided bit set has at least one of the bits set in
+	 * oneSet.
+	 * 
+	 * @param bits to check.
+	 * @return true if the two bit sets intersect, false otherwise.
+	 */
+	private final boolean checkOne ( final OpenBitSet bits )
+	{
+		// Reject entity if it has none of 'one' bits.
+		return noOne || oneSet.intersects( bits );
+	}
+
+	/**
+	 * Checks if the provided bit set has all of the specified bits in allSet.
+	 * 
+	 * @param bits to check.
+	 * @return true if bits has all the set bits in allSet, false otherwise.
+	 */
+	private final boolean checkAll ( final OpenBitSet bits )
+	{
+		final OpenBitSet all = allSet;
+		/*
+		 * Intersection bit count between allSet and bits should be same
+		 * if Entity possesses all the components. Otherwise Aspect isn't
+		 * interested.
+		 */
+		return noAll || all.cardinality() == intersectionCount( all, bits );
 	}
 	
 	/**
@@ -116,13 +130,13 @@ public final class Aspect
 	public static final class Builder
 	{
 		private final OpenBitSet all;
-		private final OpenBitSet exclusion;
+		private final OpenBitSet none;
 		private final OpenBitSet one;
 		
 		public Builder ()
 		{
 			all = new OpenBitSet();
-			exclusion = new OpenBitSet();
+			none = new OpenBitSet();
 			one = new OpenBitSet();
 		}
 		
@@ -153,7 +167,7 @@ public final class Aspect
 		@SafeVarargs
 		public final Builder exclude ( final Class<? extends Component>... types )
 		{
-			setBits( exclusion, types );
+			setBits( none, types );
 			return this;
 		}
 
@@ -190,7 +204,7 @@ public final class Aspect
 		 */
 		public final Aspect build ()
 		{
-			return new Aspect( all, exclusion, one );
+			return new Aspect( all, none, one );
 		}
 	}
 
