@@ -21,7 +21,7 @@ final class ComponentManager
 	ComponentManager ()
 	{
 		// Fetch component types.
-		int size = DAConstants.APROX_COMPONENT_TYPES;
+		int size = DAConstants.APPROX_COMPONENT_TYPES;
 		
 		componentsByType = new Bag( BoundedBag.class, size );
 		// Init all type bags.

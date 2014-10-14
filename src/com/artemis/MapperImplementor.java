@@ -41,7 +41,7 @@ final class MapperImplementor
 		final EntitySystem[] arSystems = systems.data();
 
 		// Fetch mapper amount per system.
-		int fbSize = DAConstants.APROX_MAPPERS_PER_SYSTEM;
+		int fbSize = DAConstants.APPROX_MAPPERS_PER_SYSTEM;
 
 		// If correctly set, this bag won't need to grow.
 		final Bag<Field> fieldBag = new Bag<>( Field.class, fbSize );

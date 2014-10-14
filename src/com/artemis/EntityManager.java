@@ -25,7 +25,7 @@ public final class EntityManager extends Manager
 	EntityManager ()
 	{
 		// Fetch approximate live entities.
-		int eSize = DAConstants.APROX_LIVE_ENTITIES;
+		int eSize = DAConstants.APPROX_LIVE_ENTITIES;
 
 		entities = new Bag<>( Entity.class, eSize );
 		disabled = new OpenBitSet( 1024 );

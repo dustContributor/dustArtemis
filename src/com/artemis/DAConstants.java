@@ -58,13 +58,13 @@ public final class DAConstants
 	/** Threshold in which growth strategy is changed for bags. */
 	public static final int BAG_GROW_RATE_THRESHOLD;
 	/** Approximate amount of live entities in the world. */
-	public static final int APROX_LIVE_ENTITIES;
+	public static final int APPROX_LIVE_ENTITIES;
 	/** Approximate amount of entities active in each system. */
-	public static final int APROX_ENTITIES_PER_SYSTEM;
+	public static final int APPROX_ENTITIES_PER_SYSTEM;
 	/** Approximate amount of component types. */
-	public static final int APROX_COMPONENT_TYPES;
+	public static final int APPROX_COMPONENT_TYPES;
 	/** Approximate amount of mappers per system. */
-	public static final int APROX_MAPPERS_PER_SYSTEM;
+	public static final int APPROX_MAPPERS_PER_SYSTEM;
 
 	static
 	{
@@ -78,17 +78,17 @@ public final class DAConstants
 		tmp = getIntOrDefault( props, "BAG_GROW_RATE_THRESHOLD", 2048 );
 		BAG_GROW_RATE_THRESHOLD = Math.max( tmp, 256 );
 
-		tmp = getIntOrDefault( props, "APROX_LIVE_ENTITIES", 1024 );
-		APROX_LIVE_ENTITIES = Math.max( tmp, 64 );
+		tmp = getIntOrDefault( props, "APPROX_LIVE_ENTITIES", 1024 );
+		APPROX_LIVE_ENTITIES = Math.max( tmp, 64 );
 
-		tmp = getIntOrDefault( props, "APROX_ENTITIES_PER_SYSTEM", 1024 );
-		APROX_ENTITIES_PER_SYSTEM = Math.max( tmp, 16 );
+		tmp = getIntOrDefault( props, "APPROX_ENTITIES_PER_SYSTEM", 1024 );
+		APPROX_ENTITIES_PER_SYSTEM = Math.max( tmp, 16 );
 
-		tmp = getIntOrDefault( props, "APROX_COMPONENT_TYPES", 64 );
-		APROX_COMPONENT_TYPES = Math.max( tmp, 16 );
+		tmp = getIntOrDefault( props, "APPROX_COMPONENT_TYPES", 64 );
+		APPROX_COMPONENT_TYPES = Math.max( tmp, 16 );
 		
-		tmp = getIntOrDefault( props, "APROX_MAPPERS_PER_SYSTEM", 8 );
-		APROX_MAPPERS_PER_SYSTEM = Math.max( tmp, 4 );
+		tmp = getIntOrDefault( props, "APPROX_MAPPERS_PER_SYSTEM", 8 );
+		APPROX_MAPPERS_PER_SYSTEM = Math.max( tmp, 4 );
 	}
 
 	/**

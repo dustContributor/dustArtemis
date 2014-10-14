@@ -39,7 +39,7 @@ public abstract class EntitySystem extends EntityObserver
 		this.index = ClassIndexer.getIndexFor ( this.getClass(), EntitySystem.class );
 		
 		// Fetch entity amount per system.
-		int actSize = DAConstants.APROX_ENTITIES_PER_SYSTEM;
+		int actSize = DAConstants.APPROX_ENTITIES_PER_SYSTEM;
 
 		this.actives = new Bag<>( Entity.class, actSize );
 	}
