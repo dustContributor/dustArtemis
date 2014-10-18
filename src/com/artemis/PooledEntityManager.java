@@ -37,14 +37,11 @@ public final class PooledEntityManager extends EntityManager
 		super.deleted( entities );
 
 		final int eSize = entities.size();
-		final int esSize = entityStore.size();
-		final int newSize = esSize + eSize;
+		final int newSize = entityStore.size() + eSize;
 		final int poolSize = Math.min( newSize, DAConstants.MAX_POOLED_ENTITIES );
 
-		entityStore.ensureCapacity( poolSize - 1 );
-
 		final Entity[] eArray = ((Bag<Entity>) entities).data();
-		entityStore.addAllUnsafe( eArray, eSize );
+		entityStore.addAll( eArray, eSize - (newSize - poolSize) );
 	}
 
 	public long getTotalPooled ()
