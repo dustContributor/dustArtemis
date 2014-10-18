@@ -51,7 +51,9 @@ public class World
 
 		cm = new ComponentManager();
 
-		em = new EntityManager();
+		boolean poolEnts = DAConstants.POOL_ENTITIES;
+		
+		em = poolEnts ? new PooledEntityManager() : new EntityManager();
 		setManager( em );
 	}
 

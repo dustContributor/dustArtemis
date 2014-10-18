@@ -8,14 +8,6 @@ import com.artemis.utils.Bag;
  * The entity class. Cannot be instantiated outside the framework, you must
  * create new entities using World.
  * 
- * <p>
- * dustArtemis: Instead of an UUID instance, now the unique ID is given by an
- * AtomicInteger that gets incremented each time an entity needs a new unique
- * id. This avoids the not-so-cheap UUID object initialization and its
- * "unique enough" for most cases. ie, you'll need to cover all the entire 32
- * bit range of an integer for it to start overlapping ids.
- * </p>
- * 
  * @author Arni Arent
  * 
  */
@@ -26,7 +18,7 @@ public final class Entity
 	 * will have the same ID, but ID's are however reused so another entity may
 	 * acquire this ID if the previous entity was deleted.
 	 */
-	public final int id;
+	int id;
 
 	/**
 	 * BitSet instance containing bits of the components the entity possesses.
@@ -59,8 +51,7 @@ public final class Entity
 	/**
 	 * Add a component to this entity.
 	 * 
-	 * @param component
-	 *            to add to this entity
+	 * @param component to add to this entity
 	 * 
 	 * @return this entity for chaining.
 	 */
@@ -73,8 +64,7 @@ public final class Entity
 	/**
 	 * Remove component by its type.
 	 * 
-	 * @param type
-	 *            of the component to be removed.
+	 * @param type of the component to be removed.
 	 * 
 	 * @return this entity for chaining.
 	 */
@@ -112,10 +102,8 @@ public final class Entity
 	 * retrieve components from an entity is using the ComponentMapper. Is fine
 	 * to use e.g. when creating new entities and setting data in components.
 	 * 
-	 * @param <T>
-	 *            the expected return component type.
-	 * @param type
-	 *            the expected return component type.
+	 * @param <T> the expected return component type.
+	 * @param type the expected return component type.
 	 * @return component that matches, or null if none is found.
 	 */
 	@SuppressWarnings ( "unchecked" )
@@ -128,8 +116,7 @@ public final class Entity
 	 * Returns a bag of all components this entity has. You need to reset the
 	 * bag yourself if you intend to fill it more than once.
 	 * 
-	 * @param fillBag
-	 *            the bag to put the components into.
+	 * @param fillBag the bag to put the components into.
 	 * @return the fillBag with the components in.
 	 */
 	public Bag<Component> getComponents ( final Bag<Component> fillBag )
@@ -186,10 +173,22 @@ public final class Entity
 	 * Returns the world this entity belongs to.
 	 * 
 	 * @return world of entity.
+	 * @see Entity#world
 	 */
 	public World getWorld ()
 	{
 		return world;
+	}
+
+	/**
+	 * Returns the id of this entity.
+	 * 
+	 * @return id of entity.
+	 * @see Entity#id
+	 */
+	public int id ()
+	{
+		return id;
 	}
 
 }
