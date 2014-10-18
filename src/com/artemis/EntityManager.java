@@ -63,7 +63,7 @@ public class EntityManager extends Manager
 		for ( int i = eSize; i-- > 0; )
 		{
 			final Entity e = eArray[i];
-			meArray[e.id()] = e;
+			meArray[e.id] = e;
 		}
 	}
 	
@@ -74,7 +74,7 @@ public class EntityManager extends Manager
 		
 		for ( int i = entities.size(); i-- > 0; )
 		{
-			disabled.fastClear( array[i].id() );
+			disabled.fastClear( array[i].id );
 		}
 	}
 	
@@ -85,7 +85,7 @@ public class EntityManager extends Manager
 		
 		for ( int i = entities.size(); i-- > 0; )
 		{
-			disabled.fastSet( array[i].id() );
+			disabled.fastSet( array[i].id );
 		}
 	}
 	
@@ -102,7 +102,7 @@ public class EntityManager extends Manager
 		for ( int i = eSize; i-- > 0; )
 		{
 			final Entity e = eArray[i];
-			final int eid = e.id();
+			final int eid = e.id;
 			
 			meArray[eid] = null;
 			disabled.fastClear( eid );

@@ -133,7 +133,7 @@ public abstract class EntitySystem extends EntityObserver
 	{
 		return Arrays.binarySearch( actives.data(), 
 									0, actives.size(), 
-									e, (a,b) -> a.id() - b.id() );
+									e, (a,b) -> a.id - b.id );
 	}
 	
 	@Override

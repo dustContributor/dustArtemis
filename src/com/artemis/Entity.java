@@ -8,12 +8,6 @@ import com.artemis.utils.Bag;
  * The entity class. Cannot be instantiated outside the framework, you must
  * create new entities using World.
  * 
- * <p> dustArtemis: Instead of an UUID instance, now the unique ID is given by
- * an AtomicInteger that gets incremented each time an entity needs a new unique
- * id. This avoids the not-so-cheap UUID object initialization and its
- * "unique enough" for most cases. ie, you'll need to cover all the entire 32
- * bit range of an integer for it to start overlapping ids. </p>
- * 
  * @author Arni Arent
  * 
  */
@@ -51,7 +45,7 @@ public final class Entity
 	@Override
 	public String toString ()
 	{
-		return "Entity[" + id() + "]";
+		return "Entity[" + id + "]";
 	}
 
 	/**
@@ -88,7 +82,7 @@ public final class Entity
 	 */
 	public boolean isActive ()
 	{
-		return world.getEntityManager().isActive( id() );
+		return world.getEntityManager().isActive( id );
 	}
 
 	/**
@@ -100,7 +94,7 @@ public final class Entity
 	 */
 	public boolean isEnabled ()
 	{
-		return world.getEntityManager().isEnabled( id() );
+		return world.getEntityManager().isEnabled( id );
 	}
 
 	/**
