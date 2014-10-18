@@ -28,7 +28,7 @@ public class EntityManager extends Manager
 		int eSize = DAConstants.APPROX_LIVE_ENTITIES;
 
 		this.entities = new Bag<>( Entity.class, eSize );
-		this.disabled = new OpenBitSet( 1024 );
+		this.disabled = new OpenBitSet( eSize );
 		this.idStore = new IdAllocator();
 	}
 
@@ -101,8 +101,7 @@ public class EntityManager extends Manager
 		
 		for ( int i = eSize; i-- > 0; )
 		{
-			final Entity e = eArray[i];
-			final int eid = e.id;
+			final int eid = eArray[i].id;
 			
 			meArray[eid] = null;
 			disabled.fastClear( eid );
