@@ -10,12 +10,12 @@ import com.artemis.utils.ImmutableBag;
  * @author Arni Arent
  */
 @SuppressWarnings ( "hiding" )
-public final class EntityManager extends Manager
+public class EntityManager extends Manager
 {
 	private final Bag<Entity> entities;
 	private final OpenBitSet disabled;
 	
-	private final IdAllocator idStore;
+	final IdAllocator idStore;
 
 	private int active;
 	private long added;
@@ -27,26 +27,29 @@ public final class EntityManager extends Manager
 		// Fetch approximate live entities.
 		int eSize = DAConstants.APPROX_LIVE_ENTITIES;
 
-		entities = new Bag<>( Entity.class, eSize );
-		disabled = new OpenBitSet( 1024 );
-		idStore = new IdAllocator();
+		this.entities = new Bag<>( Entity.class, eSize );
+		this.disabled = new OpenBitSet( 1024 );
+		this.idStore = new IdAllocator();
 	}
 
 	public Entity createEntityInstance ()
 	{
+		return newEntityInstance( idStore.alloc() );
+	}
+
+	final Entity newEntityInstance ( final int eid )
+	{
 		++created;
-		
-		final int eid = idStore.alloc();
 		/*
 		 * Guarantee 'entities' and 'disabled' can hold the Entity. This way we
 		 * can avoid doing bound checks in other methods later.
 		 */
 		entities.ensureCapacity( eid + 1 );
 		disabled.ensureCapacity( eid + 1 );
-		
+
 		return new Entity( world, eid );
 	}
-
+	
 	@Override
 	public void added ( final ImmutableBag<Entity> entities )
 	{
@@ -60,7 +63,7 @@ public final class EntityManager extends Manager
 		for ( int i = eSize; i-- > 0; )
 		{
 			final Entity e = eArray[i];
-			meArray[e.id] = e;
+			meArray[e.id()] = e;
 		}
 	}
 	
@@ -71,7 +74,7 @@ public final class EntityManager extends Manager
 		
 		for ( int i = entities.size(); i-- > 0; )
 		{
-			disabled.fastClear( array[i].id );
+			disabled.fastClear( array[i].id() );
 		}
 	}
 	
@@ -82,7 +85,7 @@ public final class EntityManager extends Manager
 		
 		for ( int i = entities.size(); i-- > 0; )
 		{
-			disabled.fastSet( array[i].id );
+			disabled.fastSet( array[i].id() );
 		}
 	}
 	
@@ -99,7 +102,7 @@ public final class EntityManager extends Manager
 		for ( int i = eSize; i-- > 0; )
 		{
 			final Entity e = eArray[i];
-			final int eid = e.id;
+			final int eid = e.id();
 			
 			meArray[eid] = null;
 			disabled.fastClear( eid );

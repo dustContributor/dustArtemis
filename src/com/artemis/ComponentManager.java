@@ -35,7 +35,7 @@ final class ComponentManager
 	{
 		final int cmpIndex = ClassIndexer.getIndexFor( component.getClass(), Component.class );
 		
-		initIfAbsent( cmpIndex ).add( e.id, component );
+		initIfAbsent( cmpIndex ).add( e.id(), component );
 
 		e.componentBits.set( cmpIndex );
 	}
@@ -47,7 +47,7 @@ final class ComponentManager
 		
 		if ( componentBits.get( cmpIndex ) )
 		{
-			componentsByType.getUnsafe( cmpIndex ).removeUnsafe( e.id );
+			componentsByType.getUnsafe( cmpIndex ).removeUnsafe( e.id() );
 			componentBits.fastClear( cmpIndex );
 		}
 	}
@@ -61,14 +61,14 @@ final class ComponentManager
 
 	Component getComponent ( final Entity e, final Class<? extends Component> type )
 	{
-		return getComponentsByType( type ).get( e.id );
+		return getComponentsByType( type ).get( e.id() );
 	}
 
 	Bag<Component> getComponentsFor ( final Entity e, final Bag<Component> fillBag )
 	{
 		final BoundedBag<Component>[] cmpBags = componentsByType.data();
 		final MutableBitIterator mbi = bitIterator;
-		final int eid = e.id;
+		final int eid = e.id();
 
 		mbi.setBits( e.componentBits.getBits() );
 
@@ -91,7 +91,7 @@ final class ComponentManager
 		for ( int i = 0; i < delsize; ++i )
 		{
 			final OpenBitSet cmpBits = delarray[i].componentBits;
-			final int eid = delarray[i].id;
+			final int eid = delarray[i].id();
 
 			mbi.setBits( cmpBits.getBits() );
 

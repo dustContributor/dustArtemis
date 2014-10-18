@@ -39,7 +39,7 @@ public final class ComponentMapper<T extends Component>
 	 */
 	public final T get ( final Entity entity )
 	{
-		return get( entity.id );
+		return get( entity.id() );
 	}
 	
 	/**
@@ -64,7 +64,7 @@ public final class ComponentMapper<T extends Component>
 	 */
 	public final T getSafe ( final Entity entity )
 	{
-		return getSafe( entity.id );
+		return getSafe( entity.id() );
 	}
 	
 	/**
@@ -87,7 +87,7 @@ public final class ComponentMapper<T extends Component>
 	 */
 	public final boolean has ( final Entity entity )
 	{
-		return has( entity.id );
+		return has( entity.id() );
 	}
 	
 	/**

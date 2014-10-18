@@ -9,8 +9,8 @@ import java.util.Properties;
  * dustArtemis constants used through the framework.
  * 
  * <br> <p> These values are loaded from a config file when the class is loaded.
- * Config file path is retrieved from <b>"dustArtemis.cfgpath"</b>
- * property in Java's system properties. </p> </br>
+ * Config file path is retrieved from {@value #CFG_FILE_PROPERTY_NAME} property
+ * in Java's system properties. </p> </br>
  * 
  * <br><p> Constants not specified in the file will be set to a reasonable
  * default, also all constants have minimum bounds too. </p> </br>
@@ -31,7 +31,7 @@ import java.util.Properties;
  * <br><p> Then just point to its relative path (from the application's POV)
  * where the file is located like this:</p></br>
  * 
- * <p><code><br>System.getProperties().put( "dustArtemis.cfgpath",
+ * <p><code><br>System.getProperties().put( {@value #CFG_FILE_PROPERTY_NAME},
  * "cfg/artemis.cfg");</br></code></p>
  * 
  * <br><p> Extension is not important, it just needs to be a plain text file.
@@ -52,7 +52,7 @@ public final class DAConstants
 
 	/** Name of the property that will be used to fetch config file path from. */
 	private static final String CFG_FILE_PROPERTY_NAME = "dustArtemis.cfgpath";
-	
+
 	/** Default capacity for ImmutableBag and subclasses. */
 	public static final int BAG_DEFAULT_CAPACITY;
 	/** Threshold in which growth strategy is changed for bags. */
@@ -65,30 +65,41 @@ public final class DAConstants
 	public static final int APPROX_COMPONENT_TYPES;
 	/** Approximate amount of mappers per system. */
 	public static final int APPROX_MAPPERS_PER_SYSTEM;
+	/** Defines if World instances pool entities or not. */
+	public static final boolean POOL_ENTITIES;
+	/** Defines max entities that can be retained in the entity pool. */
+	public static final int MAX_POOLED_ENTITIES;
 
 	static
 	{
 		final Properties props = loadCfgFile();
 		
-		int tmp = 0;
+		int itmp = 0;
+		boolean btmp = false;
 
-		tmp = getIntOrDefault( props, "BAG_DEFAULT_CAPACITY", 16 );
-		BAG_DEFAULT_CAPACITY = Math.max( tmp, 4 );
+		itmp = getIntOrDefault( props, "BAG_DEFAULT_CAPACITY", 16 );
+		BAG_DEFAULT_CAPACITY = Math.max( itmp, 4 );
 
-		tmp = getIntOrDefault( props, "BAG_GROW_RATE_THRESHOLD", 2048 );
-		BAG_GROW_RATE_THRESHOLD = Math.max( tmp, 256 );
+		itmp = getIntOrDefault( props, "BAG_GROW_RATE_THRESHOLD", 2048 );
+		BAG_GROW_RATE_THRESHOLD = Math.max( itmp, 256 );
 
-		tmp = getIntOrDefault( props, "APPROX_LIVE_ENTITIES", 1024 );
-		APPROX_LIVE_ENTITIES = Math.max( tmp, 64 );
+		itmp = getIntOrDefault( props, "APPROX_LIVE_ENTITIES", 1024 );
+		APPROX_LIVE_ENTITIES = Math.max( itmp, 64 );
 
-		tmp = getIntOrDefault( props, "APPROX_ENTITIES_PER_SYSTEM", 1024 );
-		APPROX_ENTITIES_PER_SYSTEM = Math.max( tmp, 16 );
+		itmp = getIntOrDefault( props, "APPROX_ENTITIES_PER_SYSTEM", 1024 );
+		APPROX_ENTITIES_PER_SYSTEM = Math.max( itmp, 16 );
 
-		tmp = getIntOrDefault( props, "APPROX_COMPONENT_TYPES", 64 );
-		APPROX_COMPONENT_TYPES = Math.max( tmp, 16 );
+		itmp = getIntOrDefault( props, "APPROX_COMPONENT_TYPES", 64 );
+		APPROX_COMPONENT_TYPES = Math.max( itmp, 16 );
 		
-		tmp = getIntOrDefault( props, "APPROX_MAPPERS_PER_SYSTEM", 8 );
-		APPROX_MAPPERS_PER_SYSTEM = Math.max( tmp, 4 );
+		itmp = getIntOrDefault( props, "APPROX_MAPPERS_PER_SYSTEM", 8 );
+		APPROX_MAPPERS_PER_SYSTEM = Math.max( itmp, 4 );
+		
+		btmp = getBoolOrDefault( props, "POOL_ENTITIES", true );
+		POOL_ENTITIES = btmp;
+		
+		itmp = getIntOrDefault( props, "MAX_POOLED_ENTITIES", Integer.MAX_VALUE );
+		MAX_POOLED_ENTITIES = Math.max( itmp, 16 );
 	}
 
 	/**
@@ -103,6 +114,29 @@ public final class DAConstants
 			if ( tmp != null )
 			{
 				return Integer.parseInt( tmp );
+			}
+		}
+		// Prolly the only exception type that could be raised here.
+		catch ( NumberFormatException ex )
+		{
+			// Fail silently.
+		}
+		
+		return defValue;
+	}
+	
+	/**
+	 * Returns a boolean fetched and parsed from the properties table, or defaults
+	 * to passed value if there isn't one or the value couldn't be parsed.
+	 */
+	private static final boolean getBoolOrDefault ( Properties props, String key, boolean defValue )
+	{
+		try
+		{
+			String tmp = props.getProperty( key );
+			if ( tmp != null )
+			{
+				return Boolean.parseBoolean( tmp );
 			}
 		}
 		// Prolly the only exception type that could be raised here.
