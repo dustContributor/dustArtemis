@@ -44,7 +44,7 @@ public final class PooledEntityManager extends EntityManager
 		entityStore.addAll( eArray, eSize - (newSize - poolSize) );
 	}
 
-	public long getTotalPooled ()
+	public int getTotalPooled ()
 	{
 		return entityStore.size();
 	}

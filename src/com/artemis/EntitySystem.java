@@ -20,10 +20,6 @@ public abstract class EntitySystem extends EntityObserver
 	private final Bag<Entity> actives;
 	private final Aspect aspect;
 	
-	protected World world;
-	
-	private boolean active;
-
 	/**
 	 * Creates an entity system that uses the specified aspect as a matcher
 	 * against entities.
@@ -52,6 +48,7 @@ public abstract class EntitySystem extends EntityObserver
 		// Empty method.
 	}
 
+	@Override
 	public final void process ()
 	{
 		begin();
@@ -223,20 +220,6 @@ public abstract class EntitySystem extends EntityObserver
 					continue;
 			}
 		}
-	}
-	
-	/**
-	 * 
-	 * @return true if the system should be processed, false if not.
-	 */
-	public boolean isActive ()
-	{
-		return active;
-	}
-
-	public void setActive ( final boolean active )
-	{
-		this.active = active;
 	}
 	
 	public int getIndex ()

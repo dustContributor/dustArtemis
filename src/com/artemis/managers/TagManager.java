@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.artemis.Entity;
-import com.artemis.Manager;
+import com.artemis.EntityObserver;
 import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
 
@@ -16,7 +16,7 @@ import com.artemis.utils.ImmutableBag;
  * @author Arni Arent
  *
  */
-public class TagManager extends Manager
+public class TagManager  extends EntityObserver
 {
 	private final Map<String, Entity> entitiesByTag;
 	private final Map<Entity, String> tagsByEntity;

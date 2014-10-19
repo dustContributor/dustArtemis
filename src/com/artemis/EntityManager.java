@@ -10,17 +10,17 @@ import com.artemis.utils.ImmutableBag;
  * @author Arni Arent
  */
 @SuppressWarnings ( "hiding" )
-public class EntityManager extends Manager
+public class EntityManager extends EntityObserver
 {
 	private final Bag<Entity> entities;
 	private final OpenBitSet disabled;
 	
 	final IdAllocator idStore;
 
-	private int active;
-	private long added;
-	private long created;
-	private long deleted;
+	private long activeCount;
+	private long addedCount;
+	private long createdCount;
+	private long deletedCount;
 
 	EntityManager ()
 	{
@@ -39,7 +39,7 @@ public class EntityManager extends Manager
 
 	final Entity newEntityInstance ( final int eid )
 	{
-		++created;
+		++createdCount;
 		/*
 		 * Guarantee 'entities' and 'disabled' can hold the Entity. This way we
 		 * can avoid doing bound checks in other methods later.
@@ -57,8 +57,8 @@ public class EntityManager extends Manager
 		final Entity[] eArray = ((Bag<Entity>) entities).data();
 		final Entity[] meArray = this.entities.data();
 		
-		active += eSize;
-		added += eSize;
+		activeCount += eSize;
+		addedCount += eSize;
 		
 		for ( int i = eSize; i-- > 0; )
 		{
@@ -96,8 +96,8 @@ public class EntityManager extends Manager
 		final Entity[] eArray = ((Bag<Entity>) entities).data();
 		final Entity[] meArray = this.entities.data();
 		
-		active -= eSize;
-		deleted += eSize;
+		activeCount -= eSize;
+		deletedCount += eSize;
 		
 		for ( int i = eSize; i-- > 0; )
 		{
@@ -148,9 +148,9 @@ public class EntityManager extends Manager
 	 * 
 	 * @return how many entities are currently active.
 	 */
-	public int getActiveEntityCount ()
+	public long getActiveEntityCount ()
 	{
-		return active;
+		return activeCount;
 	}
 
 	/**
@@ -162,7 +162,7 @@ public class EntityManager extends Manager
 	 */
 	public long getTotalCreated ()
 	{
-		return created;
+		return createdCount;
 	}
 
 	/**
@@ -172,7 +172,7 @@ public class EntityManager extends Manager
 	 */
 	public long getTotalAdded ()
 	{
-		return added;
+		return addedCount;
 	}
 
 	/**
@@ -182,7 +182,7 @@ public class EntityManager extends Manager
 	 */
 	public long getTotalDeleted ()
 	{
-		return deleted;
+		return deletedCount;
 	}
 
 }
