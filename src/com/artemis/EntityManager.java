@@ -12,15 +12,19 @@ import com.artemis.utils.ImmutableBag;
 @SuppressWarnings ( "hiding" )
 public class EntityManager extends EntityObserver
 {
+	/** Bag of all the entities. */
 	private final Bag<Entity> entities;
+	/** Bit set with the 'disabled' status of all entities. */
 	private final OpenBitSet disabled;
-	
-	final IdAllocator idStore;
 
+	/* Various counters of entity state in this manager. */
 	private long activeCount;
 	private long addedCount;
 	private long createdCount;
 	private long deletedCount;
+
+	/** Store for allocating entity IDs. */
+	final IdAllocator idStore;
 
 	EntityManager ()
 	{
@@ -49,60 +53,60 @@ public class EntityManager extends EntityObserver
 
 		return new Entity( world, eid );
 	}
-	
+
 	@Override
 	public void added ( final ImmutableBag<Entity> entities )
 	{
 		final int eSize = entities.size();
 		final Entity[] eArray = ((Bag<Entity>) entities).data();
 		final Entity[] meArray = this.entities.data();
-		
+
 		activeCount += eSize;
 		addedCount += eSize;
-		
+
 		for ( int i = eSize; i-- > 0; )
 		{
 			final Entity e = eArray[i];
 			meArray[e.id] = e;
 		}
 	}
-	
+
 	@Override
 	public void enabled ( final ImmutableBag<Entity> entities )
 	{
 		final Entity[] array = ((Bag<Entity>) entities).data();
-		
+
 		for ( int i = entities.size(); i-- > 0; )
 		{
 			disabled.fastClear( array[i].id );
 		}
 	}
-	
+
 	@Override
 	public void disabled ( final ImmutableBag<Entity> entities )
 	{
 		final Entity[] array = ((Bag<Entity>) entities).data();
-		
+
 		for ( int i = entities.size(); i-- > 0; )
 		{
 			disabled.fastSet( array[i].id );
 		}
 	}
-	
+
 	@Override
 	public void deleted ( final ImmutableBag<Entity> entities )
 	{
 		final int eSize = entities.size();
 		final Entity[] eArray = ((Bag<Entity>) entities).data();
 		final Entity[] meArray = this.entities.data();
-		
+
 		activeCount -= eSize;
 		deletedCount += eSize;
-		
+
 		for ( int i = eSize; i-- > 0; )
 		{
 			final int eid = eArray[i].id;
-			
+
 			meArray[eid] = null;
 			disabled.fastClear( eid );
 			idStore.free( eid );

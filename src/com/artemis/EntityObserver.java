@@ -1,8 +1,5 @@
 package com.artemis;
 
-import java.io.Closeable;
-import java.io.IOException;
-
 import com.artemis.utils.ImmutableBag;
 
 /**
@@ -11,8 +8,9 @@ import com.artemis.utils.ImmutableBag;
 @SuppressWarnings ( "unused" )
 public abstract class EntityObserver
 {
+	private boolean active;
+
 	protected World world;
-	protected boolean active;
 
 	public void init ()
 	{
@@ -28,7 +26,7 @@ public abstract class EntityObserver
 	{
 		// Empty by default.
 	}
-	
+
 	public void added ( ImmutableBag<Entity> entities )
 	{
 		// Empty by default.
@@ -55,14 +53,22 @@ public abstract class EntityObserver
 	}
 
 	/**
+	 * Returns the state of this observer
 	 * 
-	 * @return true if the observer should be processed, false if not.
+	 * @return {@code true} if its active and will get processed, {@code false}
+	 *         otherwise.
 	 */
 	public boolean isActive ()
 	{
 		return active;
 	}
 
+	/**
+	 * Sets the state of this observer.
+	 * 
+	 * @param active {@code true} if its active and will get processed,
+	 *            {@code false} otherwise.
+	 */
 	public void setActive ( final boolean active )
 	{
 		this.active = active;

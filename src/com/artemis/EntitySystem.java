@@ -29,11 +29,11 @@ public abstract class EntitySystem extends EntityObserver
 	 */
 	public EntitySystem ( final Aspect aspect )
 	{
+		this.setActive( false );
+
 		this.aspect = aspect;
-		this.active = false;
-		
-		this.index = ClassIndexer.getIndexFor ( this.getClass(), EntitySystem.class );
-		
+		this.index = ClassIndexer.getIndexFor( this.getClass(), EntitySystem.class );
+
 		// Fetch entity amount per system.
 		int actSize = DAConstants.APPROX_ENTITIES_PER_SYSTEM;
 

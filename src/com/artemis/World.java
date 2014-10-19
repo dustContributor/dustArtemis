@@ -31,7 +31,7 @@ public class World
 
 	private final HashMap<Class<EntityObserver>, EntityObserver> observerMap;
 	private final Bag<EntityObserver> observers;
-	
+
 	public World ()
 	{
 		observerMap = new HashMap<>();
@@ -46,18 +46,18 @@ public class World
 		cm = new ComponentManager();
 
 		boolean poolEnts = DAConstants.POOL_ENTITIES;
-		
+
 		em = poolEnts ? new PooledEntityManager() : new EntityManager();
 		setObserver( em );
 	}
 
 	/**
-	 * Makes sure all managers systems are initialized in the order they were
+	 * Makes sure all managers observers are initialized in the order they were
 	 * added.
 	 */
 	public void initialize ()
 	{
-		// Injecting all ComponentMappers into the systems.
+		// Injecting all ComponentMappers into the observers.
 		MapperImplementor.initFor( observers, this );
 
 		// Initialize all observers.
@@ -119,7 +119,7 @@ public class World
 	 * Add an observer into this world. It can be retrieved later. World will
 	 * notify this observer of changes to entities.
 	 * 
-	 * @param observer the system to add.
+	 * @param observer the observer to add.
 	 * @param active whether or not this observer will be processed by
 	 *            World.process()
 	 * @return the added observer.
@@ -173,8 +173,7 @@ public class World
 	/**
 	 * You must specify the delta for the game here.
 	 * 
-	 * @param delta
-	 *            time since last game loop.
+	 * @param delta time since last game loop.
 	 */
 	public void setDelta ( final float delta )
 	{
@@ -184,59 +183,55 @@ public class World
 	/**
 	 * Adds a entity to this world.
 	 * 
-	 * @param e
-	 *            entity
+	 * @param e entity
 	 */
 	public void addEntity ( final Entity e )
 	{
 		added.add( e );
 	}
-	
+
 	public boolean isAdded ( final Entity e )
 	{
-		return added.contains( e ) > -1 ;
+		return added.contains( e ) > -1;
 	}
 
 	/**
-	 * Ensure all systems are notified of changes to this entity. If you're
+	 * Ensure all observers are notified of changes to this entity. If you're
 	 * adding a component to an entity after it's been added to the world, then
 	 * you need to invoke this method.
 	 * 
-	 * @param e
-	 *            entity
+	 * @param e entity
 	 */
 	public void changedEntity ( final Entity e )
 	{
 		changed.add( e );
 	}
-	
+
 	public boolean isChanged ( final Entity e )
 	{
-		return changed.contains( e ) > -1 ;
+		return changed.contains( e ) > -1;
 	}
 
 	/**
 	 * Delete the entity from the world.
 	 * 
-	 * @param e
-	 *            entity
+	 * @param e entity
 	 */
 	public void deleteEntity ( final Entity e )
 	{
 		deleted.add( e );
 	}
-	
+
 	public boolean isDeleted ( final Entity e )
 	{
-		return deleted.contains( e ) > -1 ;
+		return deleted.contains( e ) > -1;
 	}
 
 	/**
 	 * (Re)enable the entity in the world, after it having being disabled. Won't
 	 * do anything unless it was already disabled.
 	 * 
-	 * @param e
-	 *            entity to be enabled.
+	 * @param e entity to be enabled.
 	 */
 	public void enable ( final Entity e )
 	{
@@ -247,8 +242,7 @@ public class World
 	 * Disable the entity from being processed. Won't delete it, it will
 	 * continue to exist but won't get processed.
 	 * 
-	 * @param e
-	 *            entity to be disabled.
+	 * @param e entity to be disabled.
 	 */
 	public void disable ( final Entity e )
 	{
@@ -276,11 +270,11 @@ public class World
 	{
 		return em.getEntity( entityId );
 	}
-	
+
 	/**
 	 * Iterates over all entity bags, and which each corresponding action
 	 * (added, deleted, etc), it calls it for each entity in that bag, for each
-	 * manager and system present in this World instance.
+	 * entity observer present in this World instance.
 	 */
 	private final void checkAll ()
 	{
@@ -291,7 +285,7 @@ public class World
 		// Clearing all the affected entities before next world update.
 		clearAllBags();
 	}
-	
+
 	private final void clearAllBags ()
 	{
 		added.clear();
@@ -300,7 +294,7 @@ public class World
 		enabled.clear();
 		deleted.clear();
 	}
-	
+
 	@SuppressWarnings ( "hiding" )
 	private final <T extends EntityObserver> void notifyObservers ( final Bag<T> observers )
 	{
@@ -319,15 +313,15 @@ public class World
 	}
 
 	/**
-	 * Process all active systems.
+	 * Process all active observers.
 	 */
 	public void process ()
 	{
 		checkAll();
-		
+
 		final EntityObserver[] sArray = observers.data();
 		final int sSize = observers.size();
-		
+
 		for ( int i = 0; i < sSize; ++i )
 		{
 			final EntityObserver obs = sArray[i];
@@ -343,8 +337,7 @@ public class World
 	 * Retrieves a ComponentMapper instance for fast retrieval of components
 	 * from entities.
 	 * 
-	 * @param type
-	 *            of component to get mapper for.
+	 * @param type of component to get mapper for.
 	 * @return mapper for specified component type.
 	 */
 	public <T extends Component> ComponentMapper<T> getMapper ( final Class<T> type )

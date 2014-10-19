@@ -4,16 +4,20 @@ import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
 
 /**
+ * This kind of entity manager will pool entity instances instead of
+ * deleting/creating them as needed.
+ * 
  * @author Dust Contributor
  */
 public final class PooledEntityManager extends EntityManager
 {
-	private final Bag<Entity> entityStore;
+	/** Store of unused entities. */
+	private final Bag<Entity> unusedStore;
 
 	PooledEntityManager ()
 	{
 		super();
-		entityStore = new Bag<>( Entity.class, 16 );
+		unusedStore = new Bag<>( Entity.class, 16 );
 	}
 
 	@Override
@@ -21,9 +25,9 @@ public final class PooledEntityManager extends EntityManager
 	{
 		final int eid = idStore.alloc();
 
-		if ( entityStore.size() > 0 )
+		if ( unusedStore.size() > 0 )
 		{
-			Entity e = entityStore.removeLastUnsafe();
+			Entity e = unusedStore.removeLastUnsafe();
 			e.id = eid;
 			return e;
 		}
@@ -37,16 +41,22 @@ public final class PooledEntityManager extends EntityManager
 		super.deleted( entities );
 
 		final int eSize = entities.size();
-		final int newSize = entityStore.size() + eSize;
+		final int newSize = unusedStore.size() + eSize;
 		final int poolSize = Math.min( newSize, DAConstants.MAX_POOLED_ENTITIES );
 
 		final Entity[] eArray = ((Bag<Entity>) entities).data();
-		entityStore.addAll( eArray, eSize - (newSize - poolSize) );
+		unusedStore.addAll( eArray, eSize - (newSize - poolSize) );
 	}
 
+	/**
+	 * Returns the total of entities that are retained in the pool in this
+	 * moment.
+	 * 
+	 * @return count of entities that are retained in the pool.
+	 */
 	public int getTotalPooled ()
 	{
-		return entityStore.size();
+		return unusedStore.size();
 	}
 
 }
