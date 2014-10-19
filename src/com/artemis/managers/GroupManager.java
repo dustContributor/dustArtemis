@@ -3,7 +3,7 @@ package com.artemis.managers;
 import java.util.HashMap;
 
 import com.artemis.Entity;
-import com.artemis.Manager;
+import com.artemis.EntityObserver;
 import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
 
@@ -17,7 +17,7 @@ import com.artemis.utils.ImmutableBag;
  * @author Arni Arent
  * 
  */
-public class GroupManager extends Manager
+public class GroupManager extends EntityObserver
 {
 	private final HashMap<String, Bag<Entity>> entitiesByGroup;
 	private final HashMap<Entity, Bag<String>> groupsByEntity;

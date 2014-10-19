@@ -10,17 +10,21 @@ import com.artemis.utils.ImmutableBag;
  * @author Arni Arent
  */
 @SuppressWarnings ( "hiding" )
-public class EntityManager extends Manager
+public class EntityManager extends EntityObserver
 {
+	/** Bag of all the entities. */
 	private final Bag<Entity> entities;
+	/** Bit set with the 'disabled' status of all entities. */
 	private final OpenBitSet disabled;
-	
-	final IdAllocator idStore;
 
-	private int active;
-	private long added;
-	private long created;
-	private long deleted;
+	/* Various counters of entity state in this manager. */
+	private long activeCount;
+	private long addedCount;
+	private long createdCount;
+	private long deletedCount;
+
+	/** Store for allocating entity IDs. */
+	final IdAllocator idStore;
 
 	EntityManager ()
 	{
@@ -39,7 +43,7 @@ public class EntityManager extends Manager
 
 	final Entity newEntityInstance ( final int eid )
 	{
-		++created;
+		++createdCount;
 		/*
 		 * Guarantee 'entities' and 'disabled' can hold the Entity. This way we
 		 * can avoid doing bound checks in other methods later.
@@ -49,60 +53,60 @@ public class EntityManager extends Manager
 
 		return new Entity( world, eid );
 	}
-	
+
 	@Override
 	public void added ( final ImmutableBag<Entity> entities )
 	{
 		final int eSize = entities.size();
 		final Entity[] eArray = ((Bag<Entity>) entities).data();
 		final Entity[] meArray = this.entities.data();
-		
-		active += eSize;
-		added += eSize;
-		
+
+		activeCount += eSize;
+		addedCount += eSize;
+
 		for ( int i = eSize; i-- > 0; )
 		{
 			final Entity e = eArray[i];
 			meArray[e.id] = e;
 		}
 	}
-	
+
 	@Override
 	public void enabled ( final ImmutableBag<Entity> entities )
 	{
 		final Entity[] array = ((Bag<Entity>) entities).data();
-		
+
 		for ( int i = entities.size(); i-- > 0; )
 		{
 			disabled.fastClear( array[i].id );
 		}
 	}
-	
+
 	@Override
 	public void disabled ( final ImmutableBag<Entity> entities )
 	{
 		final Entity[] array = ((Bag<Entity>) entities).data();
-		
+
 		for ( int i = entities.size(); i-- > 0; )
 		{
 			disabled.fastSet( array[i].id );
 		}
 	}
-	
+
 	@Override
 	public void deleted ( final ImmutableBag<Entity> entities )
 	{
 		final int eSize = entities.size();
 		final Entity[] eArray = ((Bag<Entity>) entities).data();
 		final Entity[] meArray = this.entities.data();
-		
-		active -= eSize;
-		deleted += eSize;
-		
+
+		activeCount -= eSize;
+		deletedCount += eSize;
+
 		for ( int i = eSize; i-- > 0; )
 		{
 			final int eid = eArray[i].id;
-			
+
 			meArray[eid] = null;
 			disabled.fastClear( eid );
 			idStore.free( eid );
@@ -148,9 +152,9 @@ public class EntityManager extends Manager
 	 * 
 	 * @return how many entities are currently active.
 	 */
-	public int getActiveEntityCount ()
+	public long getActiveEntityCount ()
 	{
-		return active;
+		return activeCount;
 	}
 
 	/**
@@ -162,7 +166,7 @@ public class EntityManager extends Manager
 	 */
 	public long getTotalCreated ()
 	{
-		return created;
+		return createdCount;
 	}
 
 	/**
@@ -172,7 +176,7 @@ public class EntityManager extends Manager
 	 */
 	public long getTotalAdded ()
 	{
-		return added;
+		return addedCount;
 	}
 
 	/**
@@ -182,7 +186,7 @@ public class EntityManager extends Manager
 	 */
 	public long getTotalDeleted ()
 	{
-		return deleted;
+		return deletedCount;
 	}
 
 }

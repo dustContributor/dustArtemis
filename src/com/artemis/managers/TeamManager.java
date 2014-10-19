@@ -2,7 +2,7 @@ package com.artemis.managers;
 
 import java.util.HashMap;
 
-import com.artemis.Manager;
+import com.artemis.EntityObserver;
 import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
 
@@ -17,7 +17,7 @@ import com.artemis.utils.ImmutableBag;
  * @author Arni Arent
  * 
  */
-public class TeamManager extends Manager
+public class TeamManager extends EntityObserver
 {
 	private final HashMap<String, Bag<String>> playersByTeam;
 	private final HashMap<String, String> teamByPlayer;

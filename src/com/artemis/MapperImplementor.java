@@ -9,13 +9,13 @@ import com.artemis.utils.Bag;
  * Class with static method for initializing ComponentMappers.
  * 
  * The init method of original Artemis got reworked this way so it operates on
- * an entire collection of systems.
+ * an entire collection of observers.
  * 
  * It no longer uses annotations for defining what should be initialized. It
- * just plain initializes any ComponentMapper it comes across in each system.
+ * just plain initializes any ComponentMapper it comes across in each observer.
  * 
  * Looking for annotations was quite a bit slower, so changing it for direct
- * type comparison, making it iterate over all the systems inside the method and
+ * type comparison, making it iterate over all the observers inside the method and
  * making it so it collects the fields before initializing them, it made the
  * whole initialization process faster.
  * 
@@ -30,45 +30,45 @@ final class MapperImplementor
 	}
 
 	/**
-	 * For each of the EntitySystems provided in the Bag, they will get a proper
+	 * For each of the EntityObservers provided in the Bag, they will get a proper
 	 * instance for each of their ComponentMapper fields.
 	 * 
-	 * @param systems that you need initialized.
+	 * @param observers that you need initialized.
 	 * @param world where the components come from.
 	 */
-	static final void initFor ( final Bag<? extends EntitySystem> systems, final World world )
+	static final void initFor ( final Bag<? extends EntityObserver> observers, final World world )
 	{
-		final EntitySystem[] arSystems = systems.data();
+		final EntityObserver[] arObservers = observers.data();
 
-		// Fetch mapper amount per system.
+		// Fetch mapper amount per observer.
 		int fbSize = DAConstants.APPROX_MAPPERS_PER_SYSTEM;
 
 		// If correctly set, this bag won't need to grow.
 		final Bag<Field> fieldBag = new Bag<>( Field.class, fbSize );
 
-		// For each of the EntitySystems in systems Bag:
-		for ( int s = systems.size(); s-- > 0; )
+		// For each of the EntityObservers in observers Bag:
+		for ( int s = observers.size(); s-- > 0; )
 		{
-			final EntitySystem system = arSystems[s];
+			final EntityObserver observer = arObservers[s];
 			/*
-			 * Iterating over superclasses until reaching EntitySystem (or as a
+			 * Iterating over superclasses until reaching EntityObserver (or as a
 			 * safety check, unti reaching Object). This allows using
-			 * EntitySystem class hierarchies inheriting mapper fields.
+			 * EntityObserver class hierarchies inheriting mapper fields.
 			 * Otherwise mappers would only get assigned to the mappers declared
-			 * in the downmost EntitySystem subclass in the hierarchy.
+			 * in the downmost EntityObserver subclass in the hierarchy.
 			 */
-			for ( 	Class<?> clazz = system.getClass(); 
-					clazz != EntitySystem.class && clazz != Object.class; 
+			for ( 	Class<?> clazz = observer.getClass(); 
+					clazz != EntityObserver.class && clazz != Object.class; 
 					clazz = clazz.getSuperclass() )
 			{
-				// Collect all the fields that are of ComponentMapper class in this system class.
+				// Collect all the fields that are of ComponentMapper class in this observer class.
 				collectMapperFields( clazz.getDeclaredFields(), fieldBag );
 			}
 			
-			// Initialize all the collected mappers in this system for the supplied World.
-			initMapperFields( fieldBag, system, world );
+			// Initialize all the collected mappers in this observer for the supplied World.
+			initMapperFields( fieldBag, observer, world );
 			
-			// Clear the field bag for the next system.
+			// Clear the field bag for the next observer.
 			fieldBag.clear();
 		}
 	}
@@ -97,15 +97,15 @@ final class MapperImplementor
 	 * Initializes all ComponentMapper fields in the bag.
 	 * 
 	 * @param fieldBag filled with ComponentMappers.
-	 * @param system owner of these fields.
+	 * @param observer owner of these fields.
 	 * @param world where to pull the ComponentMappers from.
 	 */
 	@SuppressWarnings ( "unchecked" )
-	private static final void initMapperFields ( final Bag<Field> fieldBag, final EntitySystem system, final World world )
+	private static final void initMapperFields ( final Bag<Field> fieldBag, final EntityObserver observer, final World world )
 	{
 		final Field[] fields = fieldBag.data();
 		
-		// Now for each of those ComponentMapper fields in the system:
+		// Now for each of those ComponentMapper fields in the observer:
 		for ( int f = fieldBag.size(); f-- > 0; )
 		{
 			final Field field = fields[f];
@@ -119,7 +119,7 @@ final class MapperImplementor
 			try
 			{
 				// Assign proper ComponentMapper instance.
-				field.set( system, mapper );
+				field.set( observer, mapper );
 			}
 			catch ( IllegalArgumentException | IllegalAccessException e )
 			{
