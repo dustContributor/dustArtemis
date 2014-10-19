@@ -19,13 +19,12 @@ public abstract class EntitySystem extends EntityObserver
 	private final int index;
 	private final Bag<Entity> actives;
 	private final Aspect aspect;
-	
+
 	/**
 	 * Creates an entity system that uses the specified aspect as a matcher
 	 * against entities.
 	 * 
-	 * @param aspect
-	 *            to match against entities
+	 * @param aspect to match against entities
 	 */
 	public EntitySystem ( final Aspect aspect )
 	{
@@ -68,26 +67,15 @@ public abstract class EntitySystem extends EntityObserver
 	 * Any implementing entity system must implement this method and the logic
 	 * to process the given entities of the system.
 	 * 
-	 * @param entities
-	 *            the entities this system contains.
+	 * @param entities the entities this system contains.
 	 */
 	protected abstract void processEntities ( ImmutableBag<Entity> entities );
-
-	/**
-	 * Override to implement code that gets executed when systems are
-	 * initialized.
-	 */
-	protected void initialize ()
-	{
-		// Empty method.
-	}
 
 	/**
 	 * Called if the system has received a entity it is interested in, e.g.
 	 * created or a component was added to it.
 	 * 
-	 * @param e
-	 *            the entity that was added to this system.
+	 * @param e the entity that was added to this system.
 	 */
 	protected void inserted ( final Entity e )
 	{
@@ -98,19 +86,18 @@ public abstract class EntitySystem extends EntityObserver
 	 * Called if a entity was removed from this system, e.g. deleted or had one
 	 * of it's components removed.
 	 * 
-	 * @param e
-	 *            the entity that was removed from this system.
+	 * @param e the entity that was removed from this system.
 	 */
 	protected void removed ( final Entity e )
 	{
 		// Empty method.
 	}
-	
+
 	private final void removeFromSystem ( final Entity e )
 	{
 		final int ei = searchFor( e );
 		actives.eraseUnsafe( ei );
-		
+
 		e.systemBits.fastClear( index );
 		removed( e );
 	}
@@ -118,61 +105,59 @@ public abstract class EntitySystem extends EntityObserver
 	private final void insertToSystem ( final Entity e )
 	{
 		final int ei = -(searchFor( e ) + 1);
-		
+
 		actives.ensureCapacity( actives.size() + 1 );
 		actives.insertUnsafe( ei, e );
-		
+
 		e.systemBits.set( index );
 		inserted( e );
 	}
-	
+
 	private final int searchFor ( final Entity e )
 	{
-		return Arrays.binarySearch( actives.data(), 
-									0, actives.size(), 
-									e, (a,b) -> a.id - b.id );
+		return Arrays.binarySearch( actives.data(), 0, actives.size(), e, ( a, b ) -> a.id - b.id );
 	}
-	
+
 	@Override
 	public void added ( final ImmutableBag<Entity> entities )
 	{
 		checkAll( entities );
 	}
-	
+
 	@Override
 	public void changed ( final ImmutableBag<Entity> entities )
 	{
 		checkAll( entities );
 	}
-	
+
 	@Override
 	public void deleted ( final ImmutableBag<Entity> entities )
 	{
 		removeAll( entities );
 	}
-	
+
 	@Override
 	public void disabled ( final ImmutableBag<Entity> entities )
 	{
 		removeAll( entities );
 	}
-	
+
 	private final void removeAll ( final ImmutableBag<Entity> entities )
 	{
 		final Entity[] array = ((Bag<Entity>) entities).data();
 		final int size = entities.size();
-		
+
 		for ( int i = 0; i < size; ++i )
 		{
 			final Entity e = array[i];
-			
+
 			if ( e.systemBits.get( index ) )
 			{
 				removeFromSystem( e );
 			}
 		}
 	}
-	
+
 	@Override
 	public void enabled ( final ImmutableBag<Entity> entities )
 	{
@@ -180,11 +165,11 @@ public abstract class EntitySystem extends EntityObserver
 	}
 
 	/**
-	 * Adds entity if the system is interested in it
-	 * and hasn't been added before.
+	 * Adds entity if the system is interested in it and hasn't been added
+	 * before.
 	 * 
-	 * Removes entity from system if its not interesting
-	 * and it has been added before.
+	 * Removes entity from system if its not interesting and it has been added
+	 * before.
 	 * 
 	 * @param e entities to check.
 	 */
@@ -203,7 +188,7 @@ public abstract class EntitySystem extends EntityObserver
 
 			switch (flags)
 			{
-				// Interesting and system doesn't contains.
+			// Interesting and system doesn't contains.
 				case 0b01:
 				{
 					insertToSystem( e );
@@ -221,7 +206,7 @@ public abstract class EntitySystem extends EntityObserver
 			}
 		}
 	}
-	
+
 	public int getIndex ()
 	{
 		return index;
