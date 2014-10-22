@@ -25,12 +25,6 @@ public final class Entity
 	 */
 	final OpenBitSet componentBits;
 
-	/**
-	 * BitSet instance containing bits signaling which systems this entity is
-	 * active in.
-	 */
-	final OpenBitSet systemBits;
-
 	/** World instance where this Entity is in. */
 	private final World world;
 
@@ -38,7 +32,6 @@ public final class Entity
 	{
 		this.world = world;
 		this.id = id;
-		this.systemBits = new OpenBitSet();
 		this.componentBits = new OpenBitSet();
 	}
 

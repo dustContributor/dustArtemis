@@ -2,6 +2,8 @@ package com.artemis;
 
 import java.util.Arrays;
 
+import org.apache.lucene.util.OpenBitSet;
+
 import com.artemis.utils.Bag;
 import com.artemis.utils.ClassIndexer;
 import com.artemis.utils.ImmutableBag;
@@ -18,6 +20,7 @@ public abstract class EntitySystem extends EntityObserver
 {
 	private final int index;
 	private final Bag<Entity> actives;
+	private final OpenBitSet activeBits;
 	private final Aspect aspect;
 
 	/**
@@ -37,6 +40,7 @@ public abstract class EntitySystem extends EntityObserver
 		int actSize = DAConstants.APPROX_ENTITIES_PER_SYSTEM;
 
 		this.actives = new Bag<>( Entity.class, actSize );
+		this.activeBits = new OpenBitSet( actSize );
 	}
 
 	/**
@@ -98,7 +102,7 @@ public abstract class EntitySystem extends EntityObserver
 		final int ei = searchFor( e );
 		actives.eraseUnsafe( ei );
 
-		e.systemBits.fastClear( index );
+		activeBits.fastClear( e.id );
 		removed( e );
 	}
 
@@ -109,7 +113,7 @@ public abstract class EntitySystem extends EntityObserver
 		actives.ensureCapacity( actives.size() + 1 );
 		actives.insertUnsafe( ei, e );
 
-		e.systemBits.set( index );
+		activeBits.set( e.id );
 		inserted( e );
 	}
 
@@ -151,7 +155,7 @@ public abstract class EntitySystem extends EntityObserver
 		{
 			final Entity e = array[i];
 
-			if ( e.systemBits.get( index ) )
+			if ( activeBits.get( e.id ) )
 			{
 				removeFromSystem( e );
 			}
@@ -182,7 +186,7 @@ public abstract class EntitySystem extends EntityObserver
 		{
 			final Entity e = array[i];
 			// Second bit for 'contains'.
-			int flags = e.systemBits.getBit( index ) << 1;
+			int flags = activeBits.getBit( e.id ) << 1;
 			// First bit for 'interesting'.
 			flags |= aspect.isInteresting( e ) ? 0b1 : 0b0;
 
