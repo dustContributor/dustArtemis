@@ -33,16 +33,16 @@ final class ComponentManager
 
 	void addComponent ( final Entity e, final Component component )
 	{
-		final int cmpIndex = ClassIndexer.getIndexFor( component.getClass(), Component.class );
+		final int cmpIndex = indexFor( component.getClass() );
 		
-		initIfAbsent( cmpIndex ).add( e.id, component );
+		initIfAbsent( cmpIndex ).set( e.id, component );
 
 		e.componentBits.set( cmpIndex );
 	}
 
 	void removeComponent ( final Entity e, final Class<? extends Component> type )
 	{
-		final int cmpIndex = ClassIndexer.getIndexFor( type, Component.class );
+		final int cmpIndex = indexFor( type );
 		final OpenBitSet componentBits = e.componentBits;
 		
 		if ( componentBits.get( cmpIndex ) )
@@ -54,7 +54,7 @@ final class ComponentManager
 
 	ImmutableBag<Component> getComponentsByType ( final Class<? extends Component> type )
 	{
-		final int cmpIndex = ClassIndexer.getIndexFor( type, Component.class );
+		final int cmpIndex = indexFor( type );
 		
 		return initIfAbsent( cmpIndex );
 	}
@@ -131,6 +131,11 @@ final class ComponentManager
 		}
 		
 		return componentsByType.getUnsafe( cmpIndex );
+	}
+	
+	private static final int indexFor ( final Class<? extends Component> type )
+	{
+		return ClassIndexer.getIndexFor( type, Component.class );
 	}
 
 }

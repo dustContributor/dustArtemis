@@ -68,6 +68,32 @@ public final class Entity
 	}
 
 	/**
+	 * Add a pooled component to this entity.
+	 * 
+	 * @param type of component to add to this entity
+	 * 
+	 * @return this entity for chaining.
+	 */
+	public Entity addPooledComponent ( final Class<? extends PooledComponent> type )
+	{
+		world.getPooledComponentManager().addComponent( this, type );
+		return this;
+	}
+
+	/**
+	 * Remove a pooled component by its type.
+	 * 
+	 * @param type of the pooled component to be removed.
+	 * 
+	 * @return this entity for chaining.
+	 */
+	public Entity removePooledComponent ( final Class<? extends PooledComponent> type )
+	{
+		world.getPooledComponentManager().removeComponent( this, type );
+		return this;
+	}
+
+	/**
 	 * Checks if the entity has been added to the world and has not been deleted
 	 * from it. If the entity has been disabled this will still return true.
 	 * 

@@ -4,6 +4,7 @@ import java.util.HashMap;
 
 import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
+import com.artemis.utils.SimplePool;
 
 /**
  * The primary instance for the framework. It contains all the managers.
@@ -20,6 +21,7 @@ public class World
 {
 	private final EntityManager em;
 	private final ComponentManager cm;
+	private final PooledComponentManager pcm;
 
 	public float delta;
 
@@ -44,6 +46,7 @@ public class World
 		disabled = new Bag<>( Entity.class );
 
 		cm = new ComponentManager();
+		pcm = new PooledComponentManager();
 
 		boolean poolEnts = DAConstants.POOL_ENTITIES;
 
@@ -91,6 +94,21 @@ public class World
 	protected ComponentManager getComponentManager ()
 	{
 		return cm;
+	}
+	
+	/**
+	 * Returns a manager that takes care of all the pooled components in the world.
+	 * 
+	 * @return pooled component manager.
+	 */
+	protected PooledComponentManager getPooledComponentManager ()
+	{
+		return pcm;
+	}
+	
+	public <T extends PooledComponent> void registerFactory ( Class<T> type, SimplePool<T> factory )
+	{
+		
 	}
 
 	/**
@@ -281,9 +299,22 @@ public class World
 		// Checking all affected entities in all EntityObservers.
 		notifyObservers( observers );
 		// Clean components from deleted entities.
-		cm.clean( deleted );
+		componentManagersChecks();
 		// Clearing all the affected entities before next world update.
 		clearAllBags();
+	}
+	
+	private final void componentManagersChecks ()
+	{
+		cm.clean( deleted );
+		pcm.clean( deleted );
+
+		final Entity[] ents = deleted.data();
+
+		for ( int i = deleted.size(); i-- > 0; )
+		{
+			ents[i].componentBits.clear();
+		}
 	}
 
 	private final void clearAllBags ()
