@@ -6,7 +6,6 @@ import java.util.function.Supplier;
 
 import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
-import com.artemis.utils.SimplePool;
 
 /**
  * The primary instance for the framework. It contains all the managers.
