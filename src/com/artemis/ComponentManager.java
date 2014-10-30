@@ -43,7 +43,7 @@ final class ComponentManager
 	{
 		final int cmpIndex = indexFor( component.getClass() );
 
-		initIfAbsent( cmpIndex ).add( e.id, component );
+		initIfAbsent( cmpIndex ).set( e.id, component );
 
 		e.componentBits.set( cmpIndex );
 	}
@@ -53,7 +53,7 @@ final class ComponentManager
 		final int cmpIndex = indexFor( type );
 		final Component cmp = poolsByType[cmpIndex].get();
 
-		initIfAbsent( cmpIndex ).add( e.id, cmp );
+		initIfAbsent( cmpIndex ).set( e.id, cmp );
 
 		e.componentBits.set( cmpIndex );
 	}
