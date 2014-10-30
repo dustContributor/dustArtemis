@@ -74,22 +74,9 @@ public final class Entity
 	 * 
 	 * @return this entity for chaining.
 	 */
-	public Entity addPooledComponent ( final Class<? extends PooledComponent> type )
+	public Entity addPooledComponent ( final Class<? extends Component> type )
 	{
-		world.getPooledComponentManager().addComponent( this, type );
-		return this;
-	}
-
-	/**
-	 * Remove a pooled component by its type.
-	 * 
-	 * @param type of the pooled component to be removed.
-	 * 
-	 * @return this entity for chaining.
-	 */
-	public Entity removePooledComponent ( final Class<? extends PooledComponent> type )
-	{
-		world.getPooledComponentManager().removeComponent( this, type );
+		world.getComponentManager().addPooledComponent( this, type );
 		return this;
 	}
 

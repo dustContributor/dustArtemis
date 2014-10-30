@@ -22,7 +22,6 @@ public class World
 {
 	private final EntityManager em;
 	private final ComponentManager cm;
-	private final PooledComponentManager pcm;
 
 	public float delta;
 
@@ -47,7 +46,6 @@ public class World
 		disabled = new Bag<>( Entity.class );
 
 		cm = new ComponentManager();
-		pcm = new PooledComponentManager();
 
 		boolean poolEnts = DAConstants.POOL_ENTITIES;
 
@@ -96,26 +94,16 @@ public class World
 	{
 		return cm;
 	}
-	
-	/**
-	 * Returns a manager that takes care of all the pooled components in the world.
-	 * 
-	 * @return pooled component manager.
-	 */
-	protected PooledComponentManager getPooledComponentManager ()
-	{
-		return pcm;
-	}
-	
+
 	/**
 	 * Registers a poolable component with its supplier.
 	 * 
 	 * @param type of the poolable component.
 	 * @param supplier of new component instances.
 	 */
-	public <T extends PooledComponent> void registerPoolable ( Class<T> type, Supplier<T> supplier )
+	public <T extends Component> void registerPoolable ( Class<T> type, Supplier<T> supplier )
 	{
-		pcm.registerPoolable( type, supplier, null );
+		cm.registerPoolable( type, supplier, null );
 	}
 
 	/**
@@ -126,13 +114,12 @@ public class World
 	 * @param supplier of new component instances.
 	 * @param resetter of components that will be reused.
 	 */
-	public <T extends PooledComponent> void registerPoolable (
+	public <T extends Component> void registerPoolable (
 		Class<T> type,
 		Supplier<T> supplier,
 		Consumer<T> resetter )
 	{
-		resetter = (resetter != null) ? resetter : ( a ) -> {};
-		pcm.registerPoolable( type, supplier, resetter);
+		cm.registerPoolable( type, supplier, resetter );
 	}
 
 	/**
@@ -323,22 +310,9 @@ public class World
 		// Checking all affected entities in all EntityObservers.
 		notifyObservers( observers );
 		// Clean components from deleted entities.
-		componentManagersChecks();
+		cm.clean( deleted );
 		// Clearing all the affected entities before next world update.
 		clearAllBags();
-	}
-	
-	private final void componentManagersChecks ()
-	{
-		cm.clean( deleted );
-		pcm.clean( deleted );
-
-		final Entity[] ents = deleted.data();
-
-		for ( int i = deleted.size(); i-- > 0; )
-		{
-			ents[i].componentBits.clear();
-		}
 	}
 
 	private final void clearAllBags ()

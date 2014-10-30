@@ -3,7 +3,7 @@ package com.artemis.utils;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class SimplePool<T>
+public final class SimplePool<T>
 {
 	private final Bag<T> store;
 	private final Supplier<T> supplier;
@@ -28,13 +28,18 @@ public class SimplePool<T>
 		return supplier.get();
 	}
 
-	public void store ( T item )
+	public void store ( final T item )
 	{
 		store.add( item );
 	}
-	
-	public void storeAll ( T[] items, int size )
+
+	public void storeAll ( final T[] items, final int size )
 	{
 		store.addAll( items, size );
+	}
+
+	public void clearStore ()
+	{
+		store.clear();
 	}
 }
