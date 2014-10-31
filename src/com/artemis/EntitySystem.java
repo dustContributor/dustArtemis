@@ -26,6 +26,7 @@ public abstract class EntitySystem extends EntityObserver
 	private final MutableBitIterator bitIterator;
 
 	private boolean modified = false;
+	private int minModifiedId = Integer.MAX_VALUE;
 
 	/**
 	 * Creates an entity system that uses the specified aspect as a matcher
@@ -73,21 +74,32 @@ public abstract class EntitySystem extends EntityObserver
 
 	private final void rebuildEntityList ()
 	{
+		final int nSize = activeBits.cardinality();
+		actives.ensureCapacity( nSize );
+		actives.setSize( nSize );
+
 		final MutableBitIterator mbi = bitIterator;
 		mbi.setBits( activeBits.getBits() );
 
-		final int nSize = activeBits.cardinality();
-		actives.ensureCapacity( nSize );
-
 		final Entity[] actEnts = actives.data();
 		final Entity[] ents = world.getEntityManager().entities.data();
+		// Store and reset minimum modified entity ID number.
+		final int minId = minModifiedId;
+		minModifiedId = Integer.MAX_VALUE;
 
-		for ( int i = mbi.nextSetBit(), j = 0; i >= 0; i = mbi.nextSetBit(), ++j )
+		int i;
+		int j = 0;
+
+		// Basically, try to start counting from the lowest ID modified.
+		while ( (i = mbi.nextSetBit()) < minId && i >= 0 )
+		{
+			++j;
+		}
+		// From the found position, copy all the entity references in the array.
+		for ( ; i >= 0; i = mbi.nextSetBit(), ++j )
 		{
 			actEnts[j] = ents[i];
 		}
-
-		actives.setSize( nSize );
 	}
 
 	/**
@@ -130,17 +142,23 @@ public abstract class EntitySystem extends EntityObserver
 
 	private final void removeFromSystem ( final Entity e )
 	{
-		modified = true;
+		final int eid = e.id;
 
-		activeBits.fastClear( e.id );
+		modified = true;
+		minModifiedId = Math.min( minModifiedId, eid );
+
+		activeBits.fastClear( eid );
 		removed( e );
 	}
 
 	private final void insertToSystem ( final Entity e )
 	{
-		modified = true;
+		final int eid = e.id;
 
-		activeBits.set( e.id );
+		modified = true;
+		minModifiedId = Math.min( minModifiedId, eid );
+
+		activeBits.set( eid );
 		inserted( e );
 	}
 
