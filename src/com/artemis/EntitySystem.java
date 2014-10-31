@@ -1,12 +1,11 @@
 package com.artemis;
 
-import java.util.Arrays;
-
 import org.apache.lucene.util.OpenBitSet;
 
 import com.artemis.utils.Bag;
 import com.artemis.utils.ClassIndexer;
 import com.artemis.utils.ImmutableBag;
+import com.artemis.utils.MutableBitIterator;
 
 /**
  * The most raw entity system. It should not typically be used, but you can
@@ -19,9 +18,14 @@ import com.artemis.utils.ImmutableBag;
 public abstract class EntitySystem extends EntityObserver
 {
 	private final int index;
-	private final Bag<Entity> actives;
-	private final OpenBitSet activeBits;
 	private final Aspect aspect;
+
+	private final Bag<Entity> actives;
+
+	private final OpenBitSet activeBits;
+	private final MutableBitIterator bitIterator;
+
+	private boolean modified = false;
 
 	/**
 	 * Creates an entity system that uses the specified aspect as a matcher
@@ -31,16 +35,18 @@ public abstract class EntitySystem extends EntityObserver
 	 */
 	public EntitySystem ( final Aspect aspect )
 	{
-		this.setActive( false );
+		this.index = ClassIndexer.getIndexFor( this.getClass(), EntitySystem.class );
+		this.bitIterator = new MutableBitIterator();
 
 		this.aspect = aspect;
-		this.index = ClassIndexer.getIndexFor( this.getClass(), EntitySystem.class );
 
 		// Fetch entity amount per system.
 		int actSize = DAConstants.APPROX_ENTITIES_PER_SYSTEM;
 
 		this.actives = new Bag<>( Entity.class, actSize );
 		this.activeBits = new OpenBitSet( actSize );
+
+		this.setActive( false );
 	}
 
 	/**
@@ -54,9 +60,34 @@ public abstract class EntitySystem extends EntityObserver
 	@Override
 	public final void process ()
 	{
+		if ( modified )
+		{
+			modified = false;
+			rebuildEntityList();
+		}
+
 		begin();
 		processEntities( actives );
 		end();
+	}
+
+	private final void rebuildEntityList ()
+	{
+		final MutableBitIterator mbi = bitIterator;
+		mbi.setBits( activeBits.getBits() );
+
+		final int nSize = activeBits.cardinality();
+		actives.ensureCapacity( nSize );
+
+		final Entity[] actEnts = actives.data();
+		final Entity[] ents = world.getEntityManager().entities.data();
+
+		for ( int i = mbi.nextSetBit(), j = 0; i >= 0; i = mbi.nextSetBit(), ++j )
+		{
+			actEnts[j] = ents[i];
+		}
+
+		actives.setSize( nSize );
 	}
 
 	/**
@@ -99,8 +130,7 @@ public abstract class EntitySystem extends EntityObserver
 
 	private final void removeFromSystem ( final Entity e )
 	{
-		final int ei = searchFor( e );
-		actives.eraseUnsafe( ei );
+		modified = true;
 
 		activeBits.fastClear( e.id );
 		removed( e );
@@ -108,18 +138,10 @@ public abstract class EntitySystem extends EntityObserver
 
 	private final void insertToSystem ( final Entity e )
 	{
-		final int ei = -(searchFor( e ) + 1);
-
-		actives.ensureCapacity( actives.size() + 1 );
-		actives.insertUnsafe( ei, e );
+		modified = true;
 
 		activeBits.set( e.id );
 		inserted( e );
-	}
-
-	private final int searchFor ( final Entity e )
-	{
-		return Arrays.binarySearch( actives.data(), 0, actives.size(), e, ( a, b ) -> a.id - b.id );
 	}
 
 	@Override

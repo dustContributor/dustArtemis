@@ -12,8 +12,6 @@ import com.artemis.utils.ImmutableBag;
 @SuppressWarnings ( "hiding" )
 public class EntityManager extends EntityObserver
 {
-	/** Bag of all the entities. */
-	private final Bag<Entity> entities;
 	/** Bit set with the 'disabled' status of all entities. */
 	private final OpenBitSet disabled;
 
@@ -25,6 +23,8 @@ public class EntityManager extends EntityObserver
 
 	/** Store for allocating entity IDs. */
 	final IdAllocator idStore;
+	/** Bag of all the entities. */
+	final Bag<Entity> entities;
 
 	EntityManager ()
 	{
