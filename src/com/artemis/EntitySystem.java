@@ -25,7 +25,6 @@ public abstract class EntitySystem extends EntityObserver
 	private final OpenBitSet activeBits;
 	private final MutableBitIterator bitIterator;
 
-	private boolean modified = false;
 	private int minModifiedId = Integer.MAX_VALUE;
 
 	/**
@@ -61,10 +60,11 @@ public abstract class EntitySystem extends EntityObserver
 	@Override
 	public final void process ()
 	{
-		if ( modified )
+		if ( minModifiedId < Integer.MAX_VALUE )
 		{
-			modified = false;
 			rebuildEntityList();
+			// Reset min modified entity ID.
+			minModifiedId = Integer.MAX_VALUE;
 		}
 
 		begin();
@@ -83,9 +83,9 @@ public abstract class EntitySystem extends EntityObserver
 
 		final Entity[] actEnts = actives.data();
 		final Entity[] ents = world.getEntityManager().entities.data();
-		// Store and reset minimum modified entity ID number.
+
+		// Fetch min modified entity ID.
 		final int minId = minModifiedId;
-		minModifiedId = Integer.MAX_VALUE;
 
 		int i;
 		int j = 0;
@@ -144,7 +144,6 @@ public abstract class EntitySystem extends EntityObserver
 	{
 		final int eid = e.id;
 
-		modified = true;
 		minModifiedId = Math.min( minModifiedId, eid );
 
 		activeBits.fastClear( eid );
@@ -155,7 +154,6 @@ public abstract class EntitySystem extends EntityObserver
 	{
 		final int eid = e.id;
 
-		modified = true;
 		minModifiedId = Math.min( minModifiedId, eid );
 
 		activeBits.set( eid );
