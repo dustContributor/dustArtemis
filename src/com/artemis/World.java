@@ -1,6 +1,8 @@
 package com.artemis;
 
 import java.util.HashMap;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
@@ -91,6 +93,33 @@ public class World
 	protected ComponentManager getComponentManager ()
 	{
 		return cm;
+	}
+
+	/**
+	 * Registers a poolable component with its supplier.
+	 * 
+	 * @param type of the poolable component.
+	 * @param supplier of new component instances.
+	 */
+	public <T extends Component> void registerPoolable ( Class<T> type, Supplier<T> supplier )
+	{
+		cm.registerPoolable( type, supplier, null );
+	}
+
+	/**
+	 * Registers a poolable component with its supplier and a resetter for
+	 * components that need to be reset in some way before being reused.
+	 * 
+	 * @param type of the poolable component.
+	 * @param supplier of new component instances.
+	 * @param resetter of components that will be reused.
+	 */
+	public <T extends Component> void registerPoolable (
+		Class<T> type,
+		Supplier<T> supplier,
+		Consumer<T> resetter )
+	{
+		cm.registerPoolable( type, supplier, resetter );
 	}
 
 	/**

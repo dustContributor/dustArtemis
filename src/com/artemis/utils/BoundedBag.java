@@ -78,7 +78,7 @@ public final class BoundedBag<T> extends AbstractBag<T>
 	 * @param index of item
 	 * @param item to be set.
 	 */
-	public void add ( final int index, final T item )
+	public void set ( final int index, final T item )
 	{
 		// If its the first element to be added.
 		if ( isEmpty() )
@@ -112,13 +112,15 @@ public final class BoundedBag<T> extends AbstractBag<T>
 	 * Removes the item at the specified position in this Bag.
 	 * 
 	 * @param index the index of item to be removed
+	 * @return item that was removed.
 	 */
-	public void remove ( final int index )
+	public T remove ( final int index )
 	{
 		if ( isInBounds( index - offset ) )
 		{
-			removeUnsafe( index );
+			return removeUnsafe( index );
 		}
+		return null;
 	}
 
 	/**
@@ -127,10 +129,12 @@ public final class BoundedBag<T> extends AbstractBag<T>
 	 * <p> <b>UNSAFE: Avoids doing any bounds check.</b> </p>
 	 * 
 	 * @param index the index of item to be removed
+	 * @return item that was removed.
 	 */
-	public void removeUnsafe ( final int index )
+	public T removeUnsafe ( final int index )
 	{
-		int diff = index - offset;
+		final int diff = index - offset;
+		final T item = data[diff];
 		data[diff] = null;
 
 		// If its the first one.
@@ -142,19 +146,20 @@ public final class BoundedBag<T> extends AbstractBag<T>
 			{
 				offset = 0;
 				size = 0;
-				return;
+				return item;
 			}
 			// It isn't the last one.
 			shiftLeft( nextNonNull );
 			offset += nextNonNull;
 			size -= nextNonNull;
-			return;
+			return item;
 		}
 		// If its the last one.
 		if ( diff == (size - 1) )
 		{
 			size = prevNonNull( diff ) + 1;
 		}
+		return item;
 	}
 
 	@Override
