@@ -92,6 +92,19 @@ final class ComponentManager
 		}
 	}
 
+	void removePooledComponent ( final Entity e, final Class<? extends Component> type )
+	{
+		final int cmpIndex = indexFor( type );
+		final OpenBitSet componentBits = e.componentBits;
+
+		if ( componentBits.get( cmpIndex ) )
+		{
+			final Component c = componentsByType[cmpIndex].removeUnsafe( e.id );
+			componentBits.fastClear( cmpIndex );
+			poolsByType[cmpIndex].store( c );
+		}
+	}
+
 	Component getComponent ( final Entity e, final Class<? extends Component> type )
 	{
 		return initIfAbsent( indexFor( type ), type ).get( e.id );

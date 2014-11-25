@@ -81,6 +81,19 @@ public final class Entity
 	}
 
 	/**
+	 * Remove pooled component by its type.
+	 * 
+	 * @param type of the pooled component to be removed.
+	 * 
+	 * @return this entity for chaining.
+	 */
+	public Entity removePooledComponent ( final Class<? extends Component> type )
+	{
+		world.getComponentManager().removePooledComponent( this, type );
+		return this;
+	}
+
+	/**
 	 * Checks if the entity has been added to the world and has not been deleted
 	 * from it. If the entity has been disabled this will still return true.
 	 * 
