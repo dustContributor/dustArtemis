@@ -371,7 +371,7 @@ public class World
 	 */
 	public <T extends Component> ComponentMapper<T> getMapper ( final Class<T> type )
 	{
-		return new ComponentMapper<>( type, this );
+		return cm.getMapperFor( type );
 	}
 
 }
