@@ -1,6 +1,6 @@
 package com.artemis;
 
-import org.apache.lucene.util.OpenBitSet;
+import org.apache.lucene.util.FixedBitSet;
 
 import com.artemis.utils.Bag;
 
@@ -23,7 +23,7 @@ public final class Entity
 	/**
 	 * BitSet instance containing bits of the components the entity possesses.
 	 */
-	final OpenBitSet componentBits;
+	final FixedBitSet componentBits;
 
 	/** World instance where this Entity is in. */
 	private final World world;
@@ -32,7 +32,7 @@ public final class Entity
 	{
 		this.world = world;
 		this.id = id;
-		this.componentBits = new OpenBitSet();
+		this.componentBits = FixedBitSet.newBitSetByWords( DAConstants.COMPONENT_BITS_WORD_COUNT );
 	}
 
 	@Override

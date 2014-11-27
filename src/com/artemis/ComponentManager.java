@@ -5,12 +5,12 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.apache.lucene.util.BitUtil;
-import org.apache.lucene.util.OpenBitSet;
+import org.apache.lucene.util.FixedBitSet;
 
 import com.artemis.utils.Bag;
 import com.artemis.utils.ClassIndexer;
+import com.artemis.utils.FixedBitIterator;
 import com.artemis.utils.ImmutableBag;
-import com.artemis.utils.MutableBitIterator;
 import com.artemis.utils.SimplePool;
 
 /**
@@ -19,11 +19,11 @@ import com.artemis.utils.SimplePool;
 final class ComponentManager
 {
 	/** Mutable iterator for component bits. */
-	private final MutableBitIterator bitIterator = new MutableBitIterator();
+	private final FixedBitIterator bitIterator = new FixedBitIterator();
 	/** Bits holding which type of components are pooled. */
-	private final OpenBitSet pooledComponentBits = new OpenBitSet();
+	private final FixedBitSet pooledComponentBits = FixedBitSet.newBitSetByWords( DAConstants.COMPONENT_BITS_WORD_COUNT );
 	/** Temp bit set to do some operations. */
-	private final OpenBitSet tmpBits = new OpenBitSet();
+	private final FixedBitSet tmpBits = FixedBitSet.newBitSetByWords( DAConstants.COMPONENT_BITS_WORD_COUNT );
 	/** Component bags by type index. */
 	private ComponentMapper<Component>[] componentsByType;
 	/** Component pools by type index. */
@@ -83,24 +83,24 @@ final class ComponentManager
 	void removeComponent ( final Entity e, final Class<? extends Component> type )
 	{
 		final int cmpIndex = indexFor( type );
-		final OpenBitSet componentBits = e.componentBits;
+		final FixedBitSet componentBits = e.componentBits;
 
 		if ( componentBits.get( cmpIndex ) )
 		{
 			componentsByType[cmpIndex].removeUnsafe( e.id );
-			componentBits.fastClear( cmpIndex );
+			componentBits.clear( cmpIndex );
 		}
 	}
 
 	void removePooledComponent ( final Entity e, final Class<? extends Component> type )
 	{
 		final int cmpIndex = indexFor( type );
-		final OpenBitSet componentBits = e.componentBits;
+		final FixedBitSet componentBits = e.componentBits;
 
 		if ( componentBits.get( cmpIndex ) )
 		{
 			final Component c = componentsByType[cmpIndex].removeUnsafe( e.id );
-			componentBits.fastClear( cmpIndex );
+			componentBits.clear( cmpIndex );
 			poolsByType[cmpIndex].store( c );
 		}
 	}
@@ -113,10 +113,10 @@ final class ComponentManager
 	Bag<Component> getComponentsFor ( final Entity e, final Bag<Component> fillBag )
 	{
 		final ComponentMapper<Component>[] cmpBags = componentsByType;
-		final MutableBitIterator mbi = bitIterator;
+		final FixedBitIterator mbi = bitIterator;
 		final int eid = e.id;
 
-		mbi.setBits( e.componentBits.getBits() );
+		mbi.setBits( e.componentBits );
 
 		for ( int i = mbi.nextSetBit(); i >= 0; i = mbi.nextSetBit() )
 		{
@@ -148,18 +148,18 @@ final class ComponentManager
 	{
 		final ComponentMapper<Component>[] cmpBags = componentsByType;
 		final SimplePool<Component>[] pools = poolsByType;
-		final MutableBitIterator mbi = bitIterator;
-		final OpenBitSet tmp = tmpBits;
+		final FixedBitIterator mbi = bitIterator;
+		final FixedBitSet tmp = tmpBits;
 
 		for ( int i = size; i-- > 0; )
 		{
-			final OpenBitSet cmpBits = ents[i].componentBits;
+			final FixedBitSet cmpBits = ents[i].componentBits;
 			final int eid = ents[i].id;
 
 			tmp.clear();
 			tmp.or( pooledComponentBits );
 			tmp.and( cmpBits );
-			mbi.setBits( tmp.getBits() );
+			mbi.setBits( tmp );
 
 			for ( int j = mbi.nextSetBit(); j >= 0; j = mbi.nextSetBit() )
 			{
@@ -173,14 +173,14 @@ final class ComponentManager
 	private final void clearComponents ( final Entity[] ents, final int size )
 	{
 		final ComponentMapper<Component>[] cmpBags = componentsByType;
-		final MutableBitIterator mbi = bitIterator;
+		final FixedBitIterator mbi = bitIterator;
 
 		for ( int i = size; i-- > 0; )
 		{
-			final OpenBitSet cmpBits = ents[i].componentBits;
+			final FixedBitSet cmpBits = ents[i].componentBits;
 			final int eid = ents[i].id;
 
-			mbi.setBits( cmpBits.getBits() );
+			mbi.setBits( cmpBits );
 
 			for ( int j = mbi.nextSetBit(); j >= 0; j = mbi.nextSetBit() )
 			{

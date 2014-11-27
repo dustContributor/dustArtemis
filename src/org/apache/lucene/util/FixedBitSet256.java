@@ -10,27 +10,27 @@ public class FixedBitSet256 extends FixedBitSet192
 	}
 
 	@Override
-	protected boolean getOnWord ( int word, long msk )
+	public boolean get ( int index )
 	{
-		switch (word)
+		switch (index / 64)
 		{
 			case 0:
-				return (word0 & msk) != 0L;
+				return (word0 & (1L << index)) != 0L;
 			case 1:
-				return (word1 & msk) != 0L;
+				return (word1 & (1L << index)) != 0L;
 			case 2:
-				return (word2 & msk) != 0L;
+				return (word2 & (1L << index)) != 0L;
 			case 3:
-				return (word3 & msk) != 0L;
+				return (word3 & (1L << index)) != 0L;
 			default:
 				return false;
 		}
 	}
 
 	@Override
-	protected int getBitOnWord ( int word, int index )
+	public int getBit ( int index )
 	{
-		switch (word)
+		switch (index / 64)
 		{
 			case 0:
 				return (int) ((word0 >>> index) & 0x01L);
@@ -46,21 +46,21 @@ public class FixedBitSet256 extends FixedBitSet192
 	}
 
 	@Override
-	protected void clearOnWord ( int word, long msk )
+	public void clear ( int index )
 	{
-		switch (word)
+		switch (index / 64)
 		{
 			case 0:
-				word0 &= ~msk;
+				word0 &= ~(1L << index);
 				return;
 			case 1:
-				word1 &= ~msk;
+				word1 &= ~(1L << index);
 				return;
 			case 2:
-				word2 &= ~msk;
+				word2 &= ~(1L << index);
 				return;
 			case 3:
-				word3 &= ~msk;
+				word3 &= ~(1L << index);
 				return;
 			default:
 				return;
@@ -68,66 +68,31 @@ public class FixedBitSet256 extends FixedBitSet192
 	}
 
 	@Override
-	protected void setOnWord ( int word, long msk )
+	public void set ( int index )
 	{
-		switch (word)
+		switch (index / 64)
 		{
 			case 0:
-				word0 |= msk;
+				word0 |= (1L << index);
 				return;
 			case 1:
-				word1 |= msk;
+				word1 |= (1L << index);
 				return;
 			case 2:
-				word2 |= msk;
+				word2 |= (1L << index);
 				return;
 			case 3:
-				word3 |= msk;
+				word3 |= (1L << index);
 				return;
 			default:
 				return;
 		}
-	}
-
-	@Override
-	public boolean intersects ( FixedBitSet bits )
-	{
-		return intersects( (FixedBitSet256) bits );
 	}
 
 	@Override
 	public void and ( FixedBitSet bits )
 	{
-		and( (FixedBitSet256) bits );
-	}
-
-	@Override
-	public void or ( FixedBitSet bits )
-	{
-		or( (FixedBitSet256) bits );
-	}
-
-	@Override
-	public void andNot ( FixedBitSet bits )
-	{
-		andNot( (FixedBitSet256) bits );
-	}
-
-	@Override
-	public int intersectCount ( FixedBitSet bits )
-	{
-		return intersectCount( (FixedBitSet256) bits );
-	}
-
-	public final boolean intersects ( FixedBitSet256 bits )
-	{
-		return super.intersects( bits ) && (bits.word3 & word3) != 0L;
-	}
-
-	public final void or ( FixedBitSet256 bits )
-	{
-		super.or( bits );
-		word3 |= bits.word3;
+		bits.andTo( this );
 	}
 
 	public final void and ( FixedBitSet256 bits )
@@ -136,15 +101,80 @@ public class FixedBitSet256 extends FixedBitSet192
 		word3 &= bits.word3;
 	}
 
-	public final void andNot ( FixedBitSet256 bits )
+	@Override
+	protected final void andTo ( FixedBitSet256 bits )
+	{
+		bits.and( this );
+	}
+
+	@Override
+	public void or ( FixedBitSet bits )
+	{
+		bits.orTo( this );
+	}
+
+	public final void or ( FixedBitSet256 bits )
+	{
+		super.or( bits );
+		word3 |= bits.word3;
+	}
+
+	@Override
+	protected final void orTo ( FixedBitSet256 bits )
+	{
+		bits.or( this );
+	}
+
+	@Override
+	public void andNot ( FixedBitSet bits )
+	{
+		bits.andNotTo( this );
+	}
+
+	protected final void andNot ( FixedBitSet256 bits )
 	{
 		super.andNot( bits );
 		word3 &= ~bits.word3;
 	}
 
+	@Override
+	public void andNotTo ( FixedBitSet256 bits )
+	{
+		bits.andNot( this );
+	}
+
+	@Override
+	public int intersectCount ( FixedBitSet bits )
+	{
+		return bits.intersectCountTo( this );
+	}
+
 	public final int intersectCount ( FixedBitSet256 bits )
 	{
 		return super.intersectCount( bits ) + Long.bitCount( bits.word3 & word3 );
+	}
+
+	@Override
+	protected final int intersectCountTo ( FixedBitSet256 bits )
+	{
+		return bits.intersectCount( this );
+	}
+
+	@Override
+	public boolean intersects ( FixedBitSet bits )
+	{
+		return bits.intersectsTo( this );
+	}
+
+	public final boolean intersects ( FixedBitSet256 bits )
+	{
+		return super.intersects( bits ) || (bits.word3 & word3) != 0L;
+	}
+
+	@Override
+	protected final boolean intersectsTo ( FixedBitSet256 bits )
+	{
+		return bits.intersects( this );
 	}
 
 	@Override
@@ -159,11 +189,17 @@ public class FixedBitSet256 extends FixedBitSet192
 	{
 		return 256;
 	}
-	
+
 	@Override
 	public int size ()
 	{
 		return 4;
+	}
+
+	@Override
+	public boolean isEmpty ()
+	{
+		return super.isEmpty() && word3 == 0L;
 	}
 
 	@Override

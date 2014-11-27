@@ -10,62 +10,33 @@ public class FixedBitSet64 extends FixedBitSet
 	}
 
 	@Override
-	protected boolean getOnWord ( int word, long msk )
+	public boolean get ( int index )
 	{
-		return (word0 & msk) != 0L;
+		return (word0 & (1L << index)) != 0L;
 	}
 
 	@Override
-	protected int getBitOnWord ( int word, int index )
+	public int getBit ( int index )
 	{
 		return (int) ((word0 >>> index) & 0x01L);
 	}
 
 	@Override
-	protected void setOnWord ( int word, long msk )
+	public void set ( int index )
 	{
-		word0 |= msk;
+		word0 |= (1L << index);
 	}
 
 	@Override
-	protected void clearOnWord ( int word, long msk )
+	public void clear ( int index )
 	{
-		word0 &= ~msk;
+		word0 &= ~(1L << index);
 	}
 
 	@Override
 	public void and ( FixedBitSet bits )
 	{
-		and( (FixedBitSet64) bits );
-	}
-
-	@Override
-	public void or ( FixedBitSet bits )
-	{
-		or( (FixedBitSet64) bits );
-	}
-
-	@Override
-	public void andNot ( FixedBitSet bits )
-	{
-		andNot( (FixedBitSet64) bits );
-	}
-
-	@Override
-	public boolean intersects ( FixedBitSet bits )
-	{
-		return intersects( (FixedBitSet64) bits );
-	}
-
-	@Override
-	public int intersectCount ( FixedBitSet bits )
-	{
-		return intersectCount( (FixedBitSet64) bits );
-	}
-
-	public final boolean intersects ( FixedBitSet64 bits )
-	{
-		return (bits.word0 & word0) != 0L;
+		bits.andTo( this );
 	}
 
 	public final void and ( FixedBitSet64 bits )
@@ -73,9 +44,69 @@ public class FixedBitSet64 extends FixedBitSet
 		word0 &= bits.word0;
 	}
 
+	@Override
+	protected final void andTo ( FixedBitSet64 bits )
+	{
+		bits.and( this );
+	}
+
+	@Override
+	protected void andTo ( FixedBitSet128 bits )
+	{
+		bits.and( this );
+	}
+
+	@Override
+	protected void andTo ( FixedBitSet192 bits )
+	{
+		bits.and( this );
+	}
+
+	@Override
+	protected void andTo ( FixedBitSet256 bits )
+	{
+		bits.and( this );
+	}
+
+	@Override
+	public void or ( FixedBitSet bits )
+	{
+		bits.orTo( this );
+	}
+
 	public final void or ( FixedBitSet64 bits )
 	{
 		word0 |= bits.word0;
+	}
+
+	@Override
+	protected final void orTo ( FixedBitSet64 bits )
+	{
+		bits.or( this );
+	}
+
+	@Override
+	protected void orTo ( FixedBitSet128 bits )
+	{
+		bits.or( this );
+	}
+
+	@Override
+	protected void orTo ( FixedBitSet192 bits )
+	{
+		bits.or( this );
+	}
+
+	@Override
+	protected void orTo ( FixedBitSet256 bits )
+	{
+		bits.or( this );
+	}
+
+	@Override
+	public void andNot ( FixedBitSet bits )
+	{
+		bits.andNotTo( this );
 	}
 
 	public final void andNot ( FixedBitSet64 bits )
@@ -83,9 +114,98 @@ public class FixedBitSet64 extends FixedBitSet
 		word0 &= ~bits.word0;
 	}
 
+	@Override
+	protected final void andNotTo ( FixedBitSet64 bits )
+	{
+		bits.andNot( this );
+	}
+
+	@Override
+	protected void andNotTo ( FixedBitSet128 bits )
+	{
+		bits.andNot( this );
+	}
+
+	@Override
+	protected void andNotTo ( FixedBitSet192 bits )
+	{
+		bits.andNot( this );
+	}
+
+	@Override
+	protected void andNotTo ( FixedBitSet256 bits )
+	{
+		bits.andNot( this );
+	}
+
+	@Override
+	public boolean intersects ( FixedBitSet bits )
+	{
+		return bits.intersectsTo( this );
+	}
+
+	public final boolean intersects ( FixedBitSet64 bits )
+	{
+		return (bits.word0 & word0) != 0L;
+	}
+
+	@Override
+	protected final boolean intersectsTo ( FixedBitSet64 bits )
+	{
+		return bits.intersects( this );
+	}
+
+	@Override
+	protected boolean intersectsTo ( FixedBitSet128 bits )
+	{
+		return bits.intersects( this );
+	}
+
+	@Override
+	protected boolean intersectsTo ( FixedBitSet192 bits )
+	{
+		return bits.intersects( this );
+	}
+
+	@Override
+	protected boolean intersectsTo ( FixedBitSet256 bits )
+	{
+		return bits.intersects( this );
+	}
+
+	@Override
+	public int intersectCount ( FixedBitSet bits )
+	{
+		return bits.intersectCountTo( this );
+	}
+
 	public final int intersectCount ( FixedBitSet64 bits )
 	{
 		return Long.bitCount( bits.word0 & word0 );
+	}
+
+	@Override
+	protected final int intersectCountTo ( FixedBitSet64 bits )
+	{
+		return bits.intersectCount( this );
+	}
+
+	@Override
+	protected int intersectCountTo ( FixedBitSet128 bits )
+	{
+		return bits.intersectCount( this );
+	}
+
+	@Override
+	protected int intersectCountTo ( FixedBitSet192 bits )
+	{
+		return bits.intersectCount( this );
+	}
+
+	@Override
+	protected int intersectCountTo ( FixedBitSet256 bits )
+	{
+		return bits.intersectCount( this );
 	}
 
 	@Override
@@ -99,11 +219,17 @@ public class FixedBitSet64 extends FixedBitSet
 	{
 		return 64;
 	}
-	
+
 	@Override
 	public int size ()
 	{
 		return 1;
+	}
+
+	@Override
+	public boolean isEmpty ()
+	{
+		return word0 == 0L;
 	}
 
 	@Override

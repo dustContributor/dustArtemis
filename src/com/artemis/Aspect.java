@@ -1,8 +1,6 @@
 package com.artemis;
 
-import static org.apache.lucene.util.OpenBitSet.intersectionCount;
-
-import org.apache.lucene.util.OpenBitSet;
+import org.apache.lucene.util.FixedBitSet;
 
 import com.artemis.utils.ClassIndexer;
 
@@ -37,16 +35,16 @@ public final class Aspect
 	public static final Aspect EMPTY_ASPECT = new Builder().build();
 
 	// Bit sets marking the components this aspect is interested in.
-	private final OpenBitSet allSet;
-	private final OpenBitSet noneSet;
-	private final OpenBitSet oneSet;
+	private final FixedBitSet allSet;
+	private final FixedBitSet noneSet;
+	private final FixedBitSet oneSet;
 	
 	private final boolean noAll;
 	private final boolean noNone;
 	private final boolean noOne;
 	private final boolean hasSome;
 	
-	Aspect ( OpenBitSet all, OpenBitSet none, OpenBitSet one )
+	Aspect ( FixedBitSet all, FixedBitSet none, FixedBitSet one )
 	{
 		noAll = all.isEmpty();
 		noNone = none.isEmpty();
@@ -55,7 +53,7 @@ public final class Aspect
 		// Check if this Aspect actually could be interested in an Entity.
 		hasSome = !(noAll && noNone && noOne);
 		
-		// If any of the OpenBitSets is empty, do not store them.
+		// If any of the FixedBitSets is empty, do not store them.
 		allSet = ( noAll ) ? null : all;
 		noneSet = ( noNone ) ? null : none;
 		oneSet = ( noOne ) ? null : one;
@@ -69,7 +67,7 @@ public final class Aspect
 	 */
 	public final boolean isInteresting ( final Entity e )
 	{
-		final OpenBitSet bits = e.componentBits;
+		final FixedBitSet bits = e.componentBits;
 
 		// If has none, doesn't processes any entity.
 		return 	hasSome &&
@@ -85,7 +83,7 @@ public final class Aspect
 	 * @param bits to check.
 	 * @return true if the two bit sets don't intersect, false otherwise.
 	 */
-	private final boolean checkNone ( final OpenBitSet bits )
+	private final boolean checkNone ( final FixedBitSet bits )
 	{
 		// Reject entity if it has any of 'none' bits.
 		return noNone || !noneSet.intersects( bits );
@@ -98,7 +96,7 @@ public final class Aspect
 	 * @param bits to check.
 	 * @return true if the two bit sets intersect, false otherwise.
 	 */
-	private final boolean checkOne ( final OpenBitSet bits )
+	private final boolean checkOne ( final FixedBitSet bits )
 	{
 		// Reject entity if it has none of 'one' bits.
 		return noOne || oneSet.intersects( bits );
@@ -110,15 +108,15 @@ public final class Aspect
 	 * @param bits to check.
 	 * @return true if bits has all the set bits in allSet, false otherwise.
 	 */
-	private final boolean checkAll ( final OpenBitSet bits )
+	private final boolean checkAll ( final FixedBitSet bits )
 	{
-		final OpenBitSet all = allSet;
+		final FixedBitSet all = allSet;
 		/*
 		 * Intersection bit count between allSet and bits should be same
 		 * if Entity possesses all the components. Otherwise Aspect isn't
 		 * interested.
 		 */
-		return noAll || all.cardinality() == intersectionCount( all, bits );
+		return noAll || all.cardinality() == bits.intersectCount( all );
 	}
 	
 	/**
@@ -129,15 +127,16 @@ public final class Aspect
 	 */
 	public static final class Builder
 	{
-		private final OpenBitSet all;
-		private final OpenBitSet none;
-		private final OpenBitSet one;
+		private final FixedBitSet all;
+		private final FixedBitSet none;
+		private final FixedBitSet one;
 		
 		public Builder ()
 		{
-			all = new OpenBitSet();
-			none = new OpenBitSet();
-			one = new OpenBitSet();
+			final int wordCount = DAConstants.COMPONENT_BITS_WORD_COUNT;
+			all = FixedBitSet.newBitSetByWords( wordCount );
+			none = FixedBitSet.newBitSetByWords( wordCount );
+			one = FixedBitSet.newBitSetByWords( wordCount );
 		}
 		
 		/**
@@ -188,7 +187,7 @@ public final class Aspect
 		
 		@SafeVarargs
 		private static final void setBits (
-			final OpenBitSet bits,
+			final FixedBitSet bits,
 			final Class<? extends Component>... types )
 		{
 			for ( int i = types.length; i-- > 0; )

@@ -2,49 +2,88 @@ package org.apache.lucene.util;
 
 public abstract class FixedBitSet
 {
-	public final boolean get ( int index )
-	{
-		return getOnWord( index / 64, 1L << index );
-	}
+	public abstract boolean get ( int index );
 
-	public final int getBit ( int index )
-	{
-		return getBitOnWord( index / 64, index );
-	}
+	public abstract int getBit ( int index );
 
-	public final void set ( int index )
-	{
-		setOnWord( index / 64, 1L << index );
-	}
+	public abstract void set ( int index );
 
-	public final void clear ( int index )
-	{
-		clearOnWord( index / 64, 1L << index );
-	}
-
-	protected abstract boolean getOnWord ( int word, long msk );
-
-	protected abstract int getBitOnWord ( int word, int index );
-
-	protected abstract void setOnWord ( int word, long msk );
-
-	protected abstract void clearOnWord ( int word, long msk );
+	public abstract void clear ( int index );
 
 	public abstract boolean intersects ( FixedBitSet bits );
 
+	protected abstract boolean intersectsTo ( FixedBitSet64 bits );
+
+	protected abstract boolean intersectsTo ( FixedBitSet128 bits );
+
+	protected abstract boolean intersectsTo ( FixedBitSet192 bits );
+
+	protected abstract boolean intersectsTo ( FixedBitSet256 bits );
+
 	public abstract int intersectCount ( FixedBitSet bits );
+
+	protected abstract int intersectCountTo ( FixedBitSet64 bits );
+
+	protected abstract int intersectCountTo ( FixedBitSet128 bits );
+
+	protected abstract int intersectCountTo ( FixedBitSet192 bits );
+
+	protected abstract int intersectCountTo ( FixedBitSet256 bits );
 
 	public abstract void and ( FixedBitSet bits );
 
+	protected abstract void andTo ( FixedBitSet64 bits );
+
+	protected abstract void andTo ( FixedBitSet128 bits );
+
+	protected abstract void andTo ( FixedBitSet192 bits );
+
+	protected abstract void andTo ( FixedBitSet256 bits );
+
 	public abstract void or ( FixedBitSet bits );
 
+	protected abstract void orTo ( FixedBitSet64 bits );
+
+	protected abstract void orTo ( FixedBitSet128 bits );
+
+	protected abstract void orTo ( FixedBitSet192 bits );
+
+	protected abstract void orTo ( FixedBitSet256 bits );
+
 	public abstract void andNot ( FixedBitSet bits );
+
+	protected abstract void andNotTo ( FixedBitSet64 bits );
+
+	protected abstract void andNotTo ( FixedBitSet128 bits );
+
+	protected abstract void andNotTo ( FixedBitSet192 bits );
+
+	protected abstract void andNotTo ( FixedBitSet256 bits );
 
 	public abstract void clear ();
 
 	public abstract int cardinality ();
 
 	public abstract int capacity ();
-	
-	public abstract int size();
+
+	public abstract int size ();
+
+	public abstract boolean isEmpty ();
+
+	public static final FixedBitSet newBitSetByWords ( final int words )
+	{
+		switch (words)
+		{
+			case 1:
+				return new FixedBitSet64();
+			case 2:
+				return new FixedBitSet128();
+			case 3:
+				return new FixedBitSet192();
+			case 4:
+				return new FixedBitSet256();
+			default:
+				return null;
+		}
+	}
 }
