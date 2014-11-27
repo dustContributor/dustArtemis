@@ -209,6 +209,12 @@ public class FixedBitSet64 extends FixedBitSet
 	}
 
 	@Override
+	public long getWord ( int index )
+	{
+		return word0;
+	}
+	
+	@Override
 	public void clear ()
 	{
 		word0 = 0L;

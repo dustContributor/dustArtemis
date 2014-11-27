@@ -177,6 +177,18 @@ public class FixedBitSet128 extends FixedBitSet64
 	}
 
 	@Override
+	public long getWord ( int index )
+	{
+		switch (index)
+		{
+			case 0:
+				return word0;
+			default:
+				return word1;
+		}
+	}
+
+	@Override
 	public boolean isEmpty ()
 	{
 		return super.isEmpty() && word1 == 0L;

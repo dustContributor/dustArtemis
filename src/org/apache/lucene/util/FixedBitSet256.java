@@ -178,6 +178,22 @@ public class FixedBitSet256 extends FixedBitSet192
 	}
 
 	@Override
+	public long getWord ( int index )
+	{
+		switch (index)
+		{
+			case 0:
+				return word0;
+			case 1:
+				return word1;
+			case 2:
+				return word2;
+			default:
+				return word3;
+		}
+	}
+	
+	@Override
 	public void clear ()
 	{
 		super.clear();

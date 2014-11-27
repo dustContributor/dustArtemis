@@ -69,6 +69,8 @@ public abstract class FixedBitSet
 	public abstract int size ();
 
 	public abstract boolean isEmpty ();
+	
+	public abstract long getWord( int index);
 
 	public static final FixedBitSet newBitSetByWords ( final int words )
 	{
