@@ -5,21 +5,22 @@ import org.apache.lucene.util.FixedBitSet;
 import com.artemis.utils.ClassIndexer;
 
 /**
- * <p>An Aspect is used by systems as a matcher against entities, to check if a system is
- * interested in an entity. Aspects define what sort of component types an entity must
- * possess, or not possess.</p>
- * <p></p>
- * <p>This creates an aspect where an entity must possess A and B and C:
+ * <p>An Aspect is used by systems as a matcher against entities, to check if a
+ * system is interested in an entity. Aspects define what sort of component
+ * types an entity must possess, or not possess.</p> <p></p> <p>This creates an
+ * aspect where an entity must possess A and B and C:
  * 
- * <p>new Aspect.Builder().all(A.class, B.class, C.class).build()</p>
- * <p></p>
- * <p>This creates an aspect where an entity must possess A and B and C, but must not possess U or V.</p>
+ * <p>new Aspect.Builder().all(A.class, B.class, C.class).build()</p> <p></p>
+ * <p>This creates an aspect where an entity must possess A and B and C, but
+ * must not possess U or V.</p>
  * 
- * <p>new Aspect.Builder().all(A.class, B.class, C.class).exclude(U.class, V.class).build()</p>
- * <p></p>
- * <p>This creates an aspect where an entity must possess A and B and C, but must not possess U or V, but must possess one of X or Y or Z.</p>
+ * <p>new Aspect.Builder().all(A.class, B.class, C.class).exclude(U.class,
+ * V.class).build()</p> <p></p> <p>This creates an aspect where an entity must
+ * possess A and B and C, but must not possess U or V, but must possess one of X
+ * or Y or Z.</p>
  * 
- * <p>new Aspect.Builder().all(A.class, B.class, C.class).exclude(U.class, V.class).one(X.class, Y.class, Z.class).build()</p>
+ * <p>new Aspect.Builder().all(A.class, B.class, C.class).exclude(U.class,
+ * V.class).one(X.class, Y.class, Z.class).build()</p>
  * 
  * @author Arni Arent
  *
@@ -38,27 +39,27 @@ public final class Aspect
 	private final FixedBitSet allSet;
 	private final FixedBitSet noneSet;
 	private final FixedBitSet oneSet;
-	
+
 	private final boolean noAll;
 	private final boolean noNone;
 	private final boolean noOne;
 	private final boolean hasSome;
-	
+
 	Aspect ( FixedBitSet all, FixedBitSet none, FixedBitSet one )
 	{
 		noAll = all.isEmpty();
 		noNone = none.isEmpty();
 		noOne = one.isEmpty();
-		
+
 		// Check if this Aspect actually could be interested in an Entity.
 		hasSome = !(noAll && noNone && noOne);
-		
+
 		// If any of the FixedBitSets is empty, do not store them.
-		allSet = ( noAll ) ? null : all;
-		noneSet = ( noNone ) ? null : none;
-		oneSet = ( noOne ) ? null : one;
+		allSet = (noAll) ? null : all;
+		noneSet = (noNone) ? null : none;
+		oneSet = (noOne) ? null : one;
 	}
-	
+
 	/**
 	 * Checks if the Entity is interesting to this aspect.
 	 * 
@@ -70,15 +71,11 @@ public final class Aspect
 		final FixedBitSet bits = e.componentBits;
 
 		// If has none, doesn't processes any entity.
-		return 	hasSome &&
-				checkNone( bits ) && 
-				checkOne( bits ) && 
-				checkAll( bits );
+		return hasSome && checkNone( bits ) && checkOne( bits ) && checkAll( bits );
 	}
 
 	/**
-	 * Checks if the provided bit set has at none of the bits set in
-	 * noneSet.
+	 * Checks if the provided bit set has at none of the bits set in noneSet.
 	 * 
 	 * @param bits to check.
 	 * @return true if the two bit sets don't intersect, false otherwise.
@@ -110,15 +107,14 @@ public final class Aspect
 	 */
 	private final boolean checkAll ( final FixedBitSet bits )
 	{
-		final FixedBitSet all = allSet;
 		/*
-		 * Intersection bit count between allSet and bits should be same
-		 * if Entity possesses all the components. Otherwise Aspect isn't
-		 * interested.
+		 * If the intersection of the two bit sets is equal to allSet, it means
+		 * the passed bit set has all of allSet's bits set. Otherwise, reject
+		 * the entity.
 		 */
-		return noAll || all.cardinality() == bits.intersectCount( all );
+		return noAll || allSet.isIntersectionEqual( bits );
 	}
-	
+
 	/**
 	 * Builder class to configure and create Aspects from it.
 	 * 
@@ -130,7 +126,7 @@ public final class Aspect
 		private final FixedBitSet all;
 		private final FixedBitSet none;
 		private final FixedBitSet one;
-		
+
 		public Builder ()
 		{
 			final int wordCount = DAConstants.COMPONENT_BITS_WORD_COUNT;
@@ -138,13 +134,12 @@ public final class Aspect
 			none = FixedBitSet.newBitSetByWords( wordCount );
 			one = FixedBitSet.newBitSetByWords( wordCount );
 		}
-		
+
 		/**
 		 * Returns a Builder where an entity must possess all of the specified
 		 * component types.
 		 * 
-		 * @param types
-		 *            a required component types.
+		 * @param types a required component types.
 		 * @return this Builder instance.
 		 */
 		@SafeVarargs
@@ -155,12 +150,11 @@ public final class Aspect
 		}
 
 		/**
-		 * Excludes all of the specified component types from the Builder. A system
-		 * will not be interested in an entity that possesses one of the specified
-		 * exclusion component types.
+		 * Excludes all of the specified component types from the Builder. A
+		 * system will not be interested in an entity that possesses one of the
+		 * specified exclusion component types.
 		 * 
-		 * @param types
-		 *            component types to exclude.
+		 * @param types component types to exclude.
 		 * @return this Builder instance.
 		 */
 		@SafeVarargs
@@ -174,8 +168,7 @@ public final class Aspect
 		 * Returns an Builder where an entity must possess any of the specified
 		 * component types.
 		 * 
-		 * @param types
-		 *            any of the types the entity must possess.
+		 * @param types any of the types the entity must possess.
 		 * @return this Builder instance.
 		 */
 		@SafeVarargs
@@ -184,7 +177,7 @@ public final class Aspect
 			setBits( one, types );
 			return this;
 		}
-		
+
 		@SafeVarargs
 		private static final void setBits (
 			final FixedBitSet bits,
@@ -195,7 +188,7 @@ public final class Aspect
 				bits.set( ClassIndexer.getIndexFor( types[i], Component.class ) );
 			}
 		}
-		
+
 		/**
 		 * Builds an Aspect based on how this Builder was configured.
 		 * 

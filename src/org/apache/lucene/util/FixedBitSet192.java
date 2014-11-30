@@ -168,6 +168,23 @@ public class FixedBitSet192 extends FixedBitSet128
 	}
 
 	@Override
+	public boolean isIntersectionEqual ( FixedBitSet bits )
+	{
+		return bits.isIntersectionEqualTo( this );
+	}
+
+	public final boolean isIntersectionEqual ( FixedBitSet192 bits )
+	{
+		return super.isIntersectionEqual( bits ) && (bits.word2 & word2) == word2;
+	}
+
+	@Override
+	protected final boolean isIntersectionEqualTo ( FixedBitSet192 bits )
+	{
+		return bits.isIntersectionEqual( this );
+	}
+
+	@Override
 	public long getWord ( int index )
 	{
 		switch (index)

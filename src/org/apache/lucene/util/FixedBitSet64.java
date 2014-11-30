@@ -209,11 +209,46 @@ public class FixedBitSet64 extends FixedBitSet
 	}
 
 	@Override
+	public boolean isIntersectionEqual ( FixedBitSet bits )
+	{
+		return bits.isIntersectionEqualTo( this );
+	}
+
+	public final boolean isIntersectionEqual ( FixedBitSet64 bits )
+	{
+		return (bits.word0 & word0) == word0;
+	}
+
+	@Override
+	protected final boolean isIntersectionEqualTo ( FixedBitSet64 bits )
+	{
+		return bits.isIntersectionEqual( this );
+	}
+
+	@Override
+	protected boolean isIntersectionEqualTo ( FixedBitSet128 bits )
+	{
+		return bits.isIntersectionEqual( this );
+	}
+
+	@Override
+	protected boolean isIntersectionEqualTo ( FixedBitSet192 bits )
+	{
+		return bits.isIntersectionEqual( this );
+	}
+
+	@Override
+	protected boolean isIntersectionEqualTo ( FixedBitSet256 bits )
+	{
+		return bits.isIntersectionEqual( this );
+	}
+
+	@Override
 	public long getWord ( int index )
 	{
 		return word0;
 	}
-	
+
 	@Override
 	public void clear ()
 	{

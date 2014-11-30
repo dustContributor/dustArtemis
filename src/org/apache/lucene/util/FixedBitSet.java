@@ -60,6 +60,16 @@ public abstract class FixedBitSet
 
 	protected abstract void andNotTo ( FixedBitSet256 bits );
 
+	public abstract boolean isIntersectionEqual ( FixedBitSet bits );
+
+	protected abstract boolean isIntersectionEqualTo ( FixedBitSet64 bits );
+
+	protected abstract boolean isIntersectionEqualTo ( FixedBitSet128 bits );
+
+	protected abstract boolean isIntersectionEqualTo ( FixedBitSet192 bits );
+
+	protected abstract boolean isIntersectionEqualTo ( FixedBitSet256 bits );
+
 	public abstract void clear ();
 
 	public abstract int cardinality ();
@@ -69,8 +79,8 @@ public abstract class FixedBitSet
 	public abstract int size ();
 
 	public abstract boolean isEmpty ();
-	
-	public abstract long getWord( int index);
+
+	public abstract long getWord ( int index );
 
 	public static final FixedBitSet newBitSetByWords ( final int words )
 	{
