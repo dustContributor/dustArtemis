@@ -63,6 +63,8 @@ public final class DAConstants
 	public static final int APPROX_ENTITIES_PER_SYSTEM;
 	/** Approximate amount of component types. */
 	public static final int APPROX_COMPONENT_TYPES;
+	/** Approximate amount of component types. */
+	public static final int COMPONENT_BITS_WORD_COUNT;
 	/** Approximate amount of mappers per system. */
 	public static final int APPROX_MAPPERS_PER_SYSTEM;
 	/** Defines if World instances pool entities or not. */
@@ -73,7 +75,7 @@ public final class DAConstants
 	static
 	{
 		final Properties props = loadCfgFile();
-		
+
 		int itmp = 0;
 		boolean btmp = false;
 
@@ -90,14 +92,16 @@ public final class DAConstants
 		APPROX_ENTITIES_PER_SYSTEM = Math.max( itmp, 16 );
 
 		itmp = getIntOrDefault( props, "APPROX_COMPONENT_TYPES", 64 );
-		APPROX_COMPONENT_TYPES = Math.max( itmp, 16 );
-		
+		itmp = Math.max( itmp, 16 );
+		APPROX_COMPONENT_TYPES = itmp;
+		COMPONENT_BITS_WORD_COUNT = ((Math.min( itmp, 256 ) - 1) / 64) + 1;
+
 		itmp = getIntOrDefault( props, "APPROX_MAPPERS_PER_SYSTEM", 8 );
 		APPROX_MAPPERS_PER_SYSTEM = Math.max( itmp, 4 );
-		
+
 		btmp = getBoolOrDefault( props, "POOL_ENTITIES", true );
 		POOL_ENTITIES = btmp;
-		
+
 		itmp = getIntOrDefault( props, "MAX_POOLED_ENTITIES", Integer.MAX_VALUE );
 		MAX_POOLED_ENTITIES = Math.max( itmp, 16 );
 	}
@@ -121,13 +125,14 @@ public final class DAConstants
 		{
 			// Fail silently.
 		}
-		
+
 		return defValue;
 	}
-	
+
 	/**
-	 * Returns a boolean fetched and parsed from the properties table, or defaults
-	 * to passed value if there isn't one or the value couldn't be parsed.
+	 * Returns a boolean fetched and parsed from the properties table, or
+	 * defaults to passed value if there isn't one or the value couldn't be
+	 * parsed.
 	 */
 	private static final boolean getBoolOrDefault ( Properties props, String key, boolean defValue )
 	{
@@ -144,10 +149,10 @@ public final class DAConstants
 		{
 			// Fail silently.
 		}
-		
+
 		return defValue;
 	}
-	
+
 	/**
 	 * Loads configuration file for dustArtemis constants, fetching the path
 	 * from the property {@value #CFG_FILE_PROPERTY_NAME}.
@@ -184,7 +189,7 @@ public final class DAConstants
 				}
 			}
 		}
-		
+
 		return props;
 	}
 }
