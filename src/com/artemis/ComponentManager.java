@@ -33,7 +33,7 @@ final class ComponentManager
 	ComponentManager ()
 	{
 		// Fetch component types.
-		int size = DAConstants.APPROX_COMPONENT_TYPES;
+		int size = DAConstants.COMPONENT_TYPES_COUNT;
 		// Init all type bags.
 		componentsByType = new ComponentMapper[size];
 		poolsByType = new SimplePool[size];
