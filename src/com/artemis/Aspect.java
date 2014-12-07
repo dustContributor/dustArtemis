@@ -40,16 +40,13 @@ public final class Aspect
 	private final FixedBitSet noneSet;
 	private final FixedBitSet oneSet;
 
-	private final boolean noAll;
-	private final boolean noNone;
-	private final boolean noOne;
 	private final boolean hasSome;
 
 	Aspect ( FixedBitSet all, FixedBitSet none, FixedBitSet one )
 	{
-		noAll = all.isEmpty();
-		noNone = none.isEmpty();
-		noOne = one.isEmpty();
+		boolean noAll = all.isEmpty();
+		boolean noNone = none.isEmpty();
+		boolean noOne = one.isEmpty();
 
 		// Check if this Aspect actually could be interested in an Entity.
 		hasSome = !(noAll && noNone && noOne);
@@ -83,7 +80,7 @@ public final class Aspect
 	private final boolean checkNone ( final FixedBitSet bits )
 	{
 		// Reject entity if it has any of 'none' bits.
-		return noNone || !noneSet.intersects( bits );
+		return (noneSet == null) || !noneSet.intersects( bits );
 	}
 
 	/**
@@ -96,7 +93,7 @@ public final class Aspect
 	private final boolean checkOne ( final FixedBitSet bits )
 	{
 		// Reject entity if it has none of 'one' bits.
-		return noOne || oneSet.intersects( bits );
+		return (oneSet == null) || oneSet.intersects( bits );
 	}
 
 	/**
@@ -112,7 +109,7 @@ public final class Aspect
 		 * the passed bit set has all of allSet's bits set. Otherwise, reject
 		 * the entity.
 		 */
-		return noAll || allSet.isIntersectionEqual( bits );
+		return (allSet == null) || allSet.isIntersectionEqual( bits );
 	}
 
 	/**
