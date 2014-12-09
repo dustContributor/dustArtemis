@@ -12,7 +12,7 @@ import static java.lang.Integer.MAX_VALUE;
 public final class IdAllocator
 {
 	/** List of ranges of free ID numbers. */
-	private final Bag<int[]> freeRanges;
+	private final Bag<FreeRange> freeRanges;
 
 	/**
 	 * Creates an IdAllocator that will manage IDs in the interval [0,
@@ -34,8 +34,8 @@ public final class IdAllocator
 	 */
 	public IdAllocator ( int rangeStart, int rangeEnd )
 	{
-		this.freeRanges = new Bag<>( int[].class, 16 );
-		this.freeRanges.addUnsafe( new int[] { rangeStart, rangeEnd } );
+		this.freeRanges = new Bag<>( FreeRange.class, 16 );
+		this.freeRanges.addUnsafe( new FreeRange( rangeStart, rangeEnd ) );
 	}
 
 	/**
@@ -47,16 +47,16 @@ public final class IdAllocator
 	public final int alloc ()
 	{
 		// Get lowest free range.
-		int[] fRange = freeRanges.getUnsafe( 0 );
+		FreeRange fRange = freeRanges.getUnsafe( 0 );
 		// Free range's start will be new ID.
-		int id = fRange[0];
+		int id = fRange.start;
 		// New start will be that ID plus one.
 		int nStart = id + 1;
-		fRange[0] = nStart;
+		fRange.start = nStart;
 
 		// If free range's end was reached,
 		// remove it from the list.
-		if ( nStart >= fRange[1] )
+		if ( nStart >= fRange.end )
 		{
 			freeRanges.eraseUnsafe( 0 );
 		}
@@ -72,19 +72,19 @@ public final class IdAllocator
 	 * 
 	 * @param id to be freed.
 	 */
-	public final void free ( final int id )
+	public final void free ( int id )
 	{
 		/*
 		 * We're going to assume you're not freeing an ID thats outside of this
 		 * IdAllocator's initial range.
 		 */
-		final int frSize = freeRanges.size();
-		final int[][] fRanges = freeRanges.data();
+		int frSize = freeRanges.size();
+		FreeRange[] fRanges = freeRanges.data();
 
 		for ( int i = 0; i < frSize; ++i )
 		{
-			int[] fRange = fRanges[i];
-			int frStart = fRange[0];
+			FreeRange fRange = fRanges[i];
+			int frStart = fRange.start;
 			// If ID is to the left.
 			if ( frStart > id )
 			{
@@ -92,18 +92,18 @@ public final class IdAllocator
 				if ( frStart == (id + 1) )
 				{
 					// Set new free range start as ID.
-					fRange[0] = id;
+					fRange.start = id;
 					// If it isn't the first range, update range on the left.
 					if ( i != 0 )
 					{
 						// Grab range on the left.
-						int[] lfRange = fRanges[i - 1];
-						int lfrEnd = lfRange[1];
+						FreeRange lfRange = fRanges[i - 1];
+						int lfrEnd = lfRange.end;
 						// If range on the left ends at ID.
 						if ( lfrEnd == id )
 						{
 							// Extend left range limit to right range limit.
-							lfRange[1] = fRange[1];
+							lfRange.end = fRange.end;
 							// Remove right range.
 							freeRanges.eraseUnsafe( i );
 						}
@@ -114,12 +114,12 @@ public final class IdAllocator
 				if ( i != 0 )
 				{
 					// Grab range to the left.
-					int[] lfRange = fRanges[i - 1];
+					FreeRange lfRange = fRanges[i - 1];
 					// If left range ends at ID.
-					if ( lfRange[1] == id )
+					if ( lfRange.end == id )
 					{
 						// Update left range's end and return.
-						++lfRange[1];
+						lfRange.end = id + 1;
 						return;
 					}
 				}
@@ -128,7 +128,7 @@ public final class IdAllocator
 				 * one.
 				 */
 				freeRanges.ensureCapacity( frSize + 1 );
-				freeRanges.insertUnsafe( i, new int[] { id, id + 1 } );
+				freeRanges.insertUnsafe( i, new FreeRange( id, id + 1 ) );
 				return;
 			}
 		}
@@ -146,14 +146,30 @@ public final class IdAllocator
 
 		for ( int i = 0; i < freeRanges.size(); ++i )
 		{
-			final int[] range = freeRanges.getUnsafe( i );
 			sb.append( System.lineSeparator() );
-			sb.append( "Range N_" ).append( i );
-			sb.append( " Start: " ).append( range[0] );
-			sb.append( " _ End: " ).append( range[1] );
+			sb.append( freeRanges.getUnsafe( i ).toString() );
 		}
 
 		return sb.toString();
 	}
 
+	private static final class FreeRange
+	{
+		/** Start of the free ID range. Inclusive. */
+		int start;
+		/** End of the free ID range. Exclusive. */
+		int end;
+
+		FreeRange ( int start, int end )
+		{
+			this.start = start;
+			this.end = end;
+		}
+
+		@Override
+		public String toString ()
+		{
+			return super.toString() + " START: " + start + " - END: " + end;
+		}
+	}
 }
