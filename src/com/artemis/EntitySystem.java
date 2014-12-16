@@ -38,7 +38,7 @@ public abstract class EntitySystem extends EntityObserver
 		this.index = ClassIndexer.getIndexFor( this.getClass(), EntitySystem.class );
 		this.bitIterator = new MutableBitIterator();
 
-		this.aspect = aspect;
+		this.aspect = aspect.isEmpty() ? null : aspect;
 
 		// Fetch entity amount per system.
 		int actSize = DAConstants.APPROX_ENTITIES_PER_SYSTEM;
@@ -186,6 +186,15 @@ public abstract class EntitySystem extends EntityObserver
 
 	private final void removeAll ( final ImmutableBag<Entity> entities )
 	{
+		if ( aspect == null )
+		{
+			// Basically, a void entity system.
+			return;
+		}
+
+		// Fetch bits of active entities.
+		final OpenBitSet acBits = activeBits;
+
 		final Entity[] array = ((Bag<Entity>) entities).data();
 		final int size = entities.size();
 
@@ -193,7 +202,7 @@ public abstract class EntitySystem extends EntityObserver
 		{
 			final Entity e = array[i];
 
-			if ( activeBits.get( e.id ) )
+			if ( acBits.get( e.id ) )
 			{
 				removeFromSystem( e );
 			}
@@ -217,6 +226,16 @@ public abstract class EntitySystem extends EntityObserver
 	 */
 	private final void checkAll ( final ImmutableBag<Entity> entities )
 	{
+		final Aspect asp = aspect;
+		if ( asp == null )
+		{
+			// Basically, a void entity system.
+			return;
+		}
+
+		// Fetch bits of active entities.
+		final OpenBitSet acBits = activeBits;
+
 		final Entity[] array = ((Bag<Entity>) entities).data();
 		final int size = entities.size();
 
@@ -224,9 +243,9 @@ public abstract class EntitySystem extends EntityObserver
 		{
 			final Entity e = array[i];
 			// Second bit for 'contains'.
-			int flags = activeBits.getBit( e.id ) << 1;
+			int flags = acBits.getBit( e.id ) << 1;
 			// First bit for 'interesting'.
-			flags |= aspect.isInteresting( e ) ? 0b1 : 0b0;
+			flags |= asp.isInteresting( e ) ? 0b1 : 0b0;
 
 			switch (flags)
 			{

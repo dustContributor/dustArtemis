@@ -113,6 +113,18 @@ public final class Aspect
 	}
 
 	/**
+	 * Returns 'true' if this Aspect can't be interested in an Entity, 'false'
+	 * otherwise.
+	 * 
+	 * @return 'true' if this Aspect can't be interested in an Entity, 'false'
+	 *         otherwise.
+	 */
+	public final boolean isEmpty ()
+	{
+		return !hasSome;
+	}
+
+	/**
 	 * Builder class to configure and create Aspects from it.
 	 * 
 	 * @author dustContributor
@@ -189,7 +201,7 @@ public final class Aspect
 		/**
 		 * Builds an Aspect based on how this Builder was configured.
 		 * 
-		 * @return new Aspect based on this Builder configuration.
+		 * @return Aspect based on this Builder configuration.
 		 */
 		public final Aspect build ()
 		{
