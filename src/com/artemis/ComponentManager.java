@@ -21,9 +21,11 @@ final class ComponentManager
 	/** Mutable iterator for component bits. */
 	private final FixedBitIterator bitIterator = new FixedBitIterator();
 	/** Bits holding which type of components are pooled. */
-	private final FixedBitSet pooledComponentBits = FixedBitSet.newBitSetByWords( DAConstants.COMPONENT_BITS_WORD_COUNT );
+	private final FixedBitSet pooledComponentBits = FixedBitSet
+			.newBitSetByWords( DAConstants.COMPONENT_BITS_WORD_COUNT );
 	/** Temp bit set to do some operations. */
-	private final FixedBitSet tmpBits = FixedBitSet.newBitSetByWords( DAConstants.COMPONENT_BITS_WORD_COUNT );
+	private final FixedBitSet tmpBits = FixedBitSet
+			.newBitSetByWords( DAConstants.COMPONENT_BITS_WORD_COUNT );
 	/** Component bags by type index. */
 	private ComponentMapper<Component>[] componentsByType;
 	/** Component pools by type index. */
@@ -150,23 +152,27 @@ final class ComponentManager
 		final SimplePool<Component>[] pools = poolsByType;
 		final FixedBitIterator mbi = bitIterator;
 		final FixedBitSet tmp = tmpBits;
+		final FixedBitSet pcb = pooledComponentBits;
+
+		mbi.setBits( tmp );
 
 		for ( int i = size; i-- > 0; )
 		{
-			final FixedBitSet cmpBits = ents[i].componentBits;
 			final int eid = ents[i].id;
 
-			tmp.clear();
-			tmp.or( pooledComponentBits );
-			tmp.and( cmpBits );
-			mbi.setBits( tmp );
+			tmp.copyFrom( pcb );
+			tmp.and( ents[i].componentBits );
+			mbi.reset();
 
 			for ( int j = mbi.nextSetBit(); j >= 0; j = mbi.nextSetBit() )
 			{
 				pools[j].store( cmpBags[j].removeUnsafe( eid ) );
 			}
+		}
 
-			cmpBits.andNot( tmp );
+		for ( int i = size; i-- > 0; )
+		{
+			ents[i].componentBits.andNot( pcb );
 		}
 	}
 
@@ -177,10 +183,9 @@ final class ComponentManager
 
 		for ( int i = size; i-- > 0; )
 		{
-			final FixedBitSet cmpBits = ents[i].componentBits;
 			final int eid = ents[i].id;
 
-			mbi.setBits( cmpBits );
+			mbi.setBits( ents[i].componentBits );
 
 			for ( int j = mbi.nextSetBit(); j >= 0; j = mbi.nextSetBit() )
 			{
