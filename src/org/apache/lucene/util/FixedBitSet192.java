@@ -185,6 +185,24 @@ public class FixedBitSet192 extends FixedBitSet128
 	}
 
 	@Override
+	public void copyFrom ( FixedBitSet bits )
+	{
+		bits.copyTo( this );
+	}
+
+	public final void copyFrom ( FixedBitSet192 bits )
+	{
+		super.copyFrom( bits );
+		this.word2 = bits.word2;
+	}
+
+	@Override
+	protected final void copyTo ( FixedBitSet192 bits )
+	{
+		bits.copyFrom( this );
+	}
+
+	@Override
 	public long getWord ( int index )
 	{
 		switch (index)

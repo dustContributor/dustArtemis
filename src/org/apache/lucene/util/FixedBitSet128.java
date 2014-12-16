@@ -175,6 +175,24 @@ public class FixedBitSet128 extends FixedBitSet64
 	}
 
 	@Override
+	public void copyFrom ( FixedBitSet bits )
+	{
+		bits.copyTo( this );
+	}
+
+	public final void copyFrom ( FixedBitSet128 bits )
+	{
+		super.copyFrom( bits );
+		this.word1 = bits.word1;
+	}
+
+	@Override
+	protected final void copyTo ( FixedBitSet128 bits )
+	{
+		bits.copyFrom( this );
+	}
+
+	@Override
 	public void clear ()
 	{
 		super.clear();

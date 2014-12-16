@@ -244,6 +244,41 @@ public class FixedBitSet64 extends FixedBitSet
 	}
 
 	@Override
+	public void copyFrom ( FixedBitSet bits )
+	{
+		bits.copyTo( this );
+	}
+
+	public final void copyFrom ( FixedBitSet64 bits )
+	{
+		this.word0 = bits.word0;
+	}
+
+	@Override
+	protected final void copyTo ( FixedBitSet64 bits )
+	{
+		bits.copyFrom( this );
+	}
+
+	@Override
+	protected void copyTo ( FixedBitSet128 bits )
+	{
+		bits.copyFrom( this );
+	}
+
+	@Override
+	protected void copyTo ( FixedBitSet192 bits )
+	{
+		bits.copyFrom( this );
+	}
+
+	@Override
+	protected void copyTo ( FixedBitSet256 bits )
+	{
+		bits.copyFrom( this );
+	}
+
+	@Override
 	public long getWord ( int index )
 	{
 		return word0;

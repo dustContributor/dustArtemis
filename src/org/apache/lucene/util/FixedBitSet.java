@@ -70,6 +70,16 @@ public abstract class FixedBitSet
 
 	protected abstract boolean isIntersectionEqualTo ( FixedBitSet256 bits );
 
+	public abstract void copyFrom ( FixedBitSet bits );
+
+	protected abstract void copyTo ( FixedBitSet64 bits );
+
+	protected abstract void copyTo ( FixedBitSet128 bits );
+
+	protected abstract void copyTo ( FixedBitSet192 bits );
+
+	protected abstract void copyTo ( FixedBitSet256 bits );
+
 	public abstract void clear ();
 
 	public abstract int cardinality ();
