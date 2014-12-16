@@ -81,35 +81,27 @@ class AbstractBag<T> extends ImmutableBag<T>
 	}
 
 	/**
+	 * Resizes the backing array so its length matches the current size of the
+	 * bag.
+	 */
+	public void trim ()
+	{
+		resize( size );
+	}
+
+	/**
 	 * Resizes the Bag so it can contain the index provided.
 	 * 
 	 * @param index that is expected the Bag can contain.
 	 */
 	public void ensureCapacity ( final int index )
 	{
-		if ( index >= data.length )
+		final int dataLen = data.length;
+
+		if ( index >= dataLen )
 		{
-			resize( getCapacityFor( index ) );
+			resize( getCapacityFor( index, dataLen ) );
 		}
-	}
-
-	/**
-	 * It finds the next capacity according to the grow strategy that could
-	 * contain the supplied index.
-	 * 
-	 * @param index that needs to be contained.
-	 * @return proper capacity given by the grow strategy.
-	 */
-	private int getCapacityFor ( final int index )
-	{
-		int newSize = nextCapacity( data.length );
-
-		while ( index >= newSize )
-		{
-			newSize = nextCapacity( newSize );
-		}
-
-		return newSize;
 	}
 
 	/**

@@ -19,10 +19,10 @@ import com.artemis.DAConstants;
 public abstract class ImmutableBag<T>
 {
 	public final Class<T> type;
-	
+
 	protected T[] data;
 	protected int size;
-	
+
 	/**
 	 * Constructs an empty Bag with an initial capacity of
 	 * {@value #DEFAULT_CAPACITY}. The backing array type will be Object.
@@ -36,14 +36,12 @@ public abstract class ImmutableBag<T>
 	/**
 	 * Constructs an empty Bag with the specified initial capacity.
 	 * 
-	 * <p>
-	 * NOTE: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY}, the
-	 * Bag will be created with a capacity of {@value #MINIMUM_WORKING_CAPACITY}
-	 * instead. The backing array type will be Object.
-	 * </p>
+	 * <p> NOTE: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY},
+	 * the Bag will be created with a capacity of
+	 * {@value #MINIMUM_WORKING_CAPACITY} instead. The backing array type will
+	 * be Object. </p>
 	 * 
-	 * @param capacity
-	 *            of the Bag
+	 * @param capacity of the Bag
 	 */
 	@SuppressWarnings ( "unchecked" )
 	public ImmutableBag ( final int capacity )
@@ -56,8 +54,7 @@ public abstract class ImmutableBag<T>
 	 * {@value #DEFAULT_CAPACITY}. Uses Array.newInstance() to instantiate a
 	 * backing array of the proper type.
 	 * 
-	 * @param type
-	 *            of the backing array.
+	 * @param type of the backing array.
 	 */
 	public ImmutableBag ( final Class<T> type )
 	{
@@ -67,27 +64,24 @@ public abstract class ImmutableBag<T>
 	/**
 	 * Constructs an empty Bag with the defined initial capacity.
 	 * 
-	 * <p>
-	 * NOTE: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY}, the
-	 * Bag will be created with a capacity of {@value #MINIMUM_WORKING_CAPACITY}
-	 * instead. Uses Array.newInstance() to instantiate a backing array of the
-	 * proper type.
-	 * </p>
+	 * <p> NOTE: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY},
+	 * the Bag will be created with a capacity of
+	 * {@value #MINIMUM_WORKING_CAPACITY} instead. Uses Array.newInstance() to
+	 * instantiate a backing array of the proper type. </p>
 	 * 
-	 * @param type
-	 *            of the backing array.
+	 * @param type of the backing array.
 	 * 
-	 * @param capacity
-	 *            of the Bag.
+	 * @param capacity of the Bag.
 	 */
 	@SuppressWarnings ( "unchecked" )
 	public ImmutableBag ( final Class<T> type, final int capacity )
 	{
-		final int newCap = (capacity > MINIMUM_WORKING_CAPACITY) ? capacity : MINIMUM_WORKING_CAPACITY;
+		final int newCap = (capacity > MINIMUM_WORKING_CAPACITY) ? capacity
+				: MINIMUM_WORKING_CAPACITY;
 		this.data = (T[]) Array.newInstance( type, newCap );
 		this.type = type;
 	}
-	
+
 	/**
 	 * Returns the number of items in this bag.
 	 * 
@@ -127,7 +121,7 @@ public abstract class ImmutableBag<T>
 	public int contains ( final T item )
 	{
 		final int iSize = size;
-		
+
 		for ( int i = 0; i < iSize; ++i )
 		{
 			if ( data[i] == item )
@@ -144,15 +138,14 @@ public abstract class ImmutableBag<T>
 	/**
 	 * Check if the bag contains this item applying the criteria supplied..
 	 * 
-	 * @param criteria
-	 *            to be used to find an item.
+	 * @param criteria to be used to find an item.
 	 * @return the index of the item that met the criteria, -1 if none of such
 	 *         items were found.
 	 */
 	public int contains ( final Predicate<T> criteria )
 	{
 		final int iSize = size;
-		
+
 		for ( int i = 0; i < iSize; ++i )
 		{
 			if ( criteria.test( data[i] ) )
@@ -165,38 +158,36 @@ public abstract class ImmutableBag<T>
 		// Item not found.
 		return -1;
 	}
-	
+
 	/**
 	 * Iterates over the items of this Bag applying the criteria supplied.
 	 * 
-	 * @param criteria
-	 *            to be used to find an item.
-	 * @return the item that met the criteria or null if none of such
-	 *         items were found.
+	 * @param criteria to be used to find an item.
+	 * @return the item that met the criteria or null if none of such items were
+	 *         found.
 	 */
 	public T find ( final Predicate<T> criteria )
 	{
 		final int index = contains( criteria );
-		
-		if ( index > - 1 )
+
+		if ( index > -1 )
 		{
 			return data[index];
 		}
-		
+
 		return null;
 	}
-	
+
 	/**
 	 * Iterates over each element of this bag and applying the supplied
 	 * operation.
 	 * 
-	 * @param operation
-	 *            to be performed on each element of this bag.
+	 * @param operation to be performed on each element of this bag.
 	 */
 	public void forEach ( final Consumer<T> operation )
 	{
 		final int iSize = size;
-		
+
 		for ( int i = 0; i < iSize; ++i )
 		{
 			operation.accept( data[i] );
@@ -206,8 +197,7 @@ public abstract class ImmutableBag<T>
 	/**
 	 * Returns the item at the specified position in Bag.
 	 * 
-	 * @param index
-	 *            of the item to return
+	 * @param index of the item to return
 	 * @return item at the specified position in bag
 	 */
 	public T get ( final int index )
@@ -223,12 +213,9 @@ public abstract class ImmutableBag<T>
 	/**
 	 * Returns the item at the specified position in Bag.
 	 * 
-	 * <p>
-	 * <b>UNSAFE: Avoids doing any bounds check.</b>
-	 * </p>
+	 * <p> <b>UNSAFE: Avoids doing any bounds check.</b> </p>
 	 * 
-	 * @param index
-	 *            of the item to return
+	 * @param index of the item to return
 	 * @return item at the specified position in bag
 	 */
 	public T getUnsafe ( final int index )
@@ -236,13 +223,11 @@ public abstract class ImmutableBag<T>
 		return data[index];
 	}
 
-
 	/**
 	 * Checks if the index is within the capacity of the Bag (ie, if its bigger
 	 * or equal than 0 and less than the length of the backing array).
 	 * 
-	 * @param index
-	 *            that needs to be checked.
+	 * @param index that needs to be checked.
 	 * @return <code>true</code> if the index is within the bounds of the Bag,
 	 *         <code>false</code> otherwise.
 	 */
@@ -250,13 +235,12 @@ public abstract class ImmutableBag<T>
 	{
 		return (index > -1 && index < data.length);
 	}
-	
+
 	/**
-	 * Checks if the index is within the size of the Bag (ie, if its bigger
-	 * or equal than 0 and less than the size of the bag).
+	 * Checks if the index is within the size of the Bag (ie, if its bigger or
+	 * equal than 0 and less than the size of the bag).
 	 * 
-	 * @param index
-	 *            that needs to be checked.
+	 * @param index that needs to be checked.
 	 * @return <code>true</code> if the index is within the size of the Bag,
 	 *         <code>false</code> otherwise.
 	 */
@@ -264,7 +248,7 @@ public abstract class ImmutableBag<T>
 	{
 		return (index > -1 && index < size);
 	}
-	
+
 	/**
 	 * Provides a SIZED, SUBSIZED and IMMUTABLE sequential Stream over this bag.
 	 *
@@ -288,7 +272,7 @@ public abstract class ImmutableBag<T>
 
 		return StreamSupport.stream( split, true ).limit( size );
 	}
-	
+
 	/**
 	 * This value is fetched from
 	 * {@link com.artemis.DAConstants#BAG_DEFAULT_CAPACITY}
@@ -299,7 +283,7 @@ public abstract class ImmutableBag<T>
 	 * {@link com.artemis.DAConstants#BAG_GROW_RATE_THRESHOLD}
 	 */
 	public static final int GROW_RATE_THRESHOLD = DAConstants.BAG_GROW_RATE_THRESHOLD;
-	
+
 	/** Non-configurable value. */
 	public static final int MINIMUM_WORKING_CAPACITY = 4;
 
@@ -312,6 +296,26 @@ public abstract class ImmutableBag<T>
 		}
 
 		return dataLength + (dataLength >> 1);
+	}
+
+	/**
+	 * It finds the next capacity according to the grow strategy that could
+	 * contain the supplied index.
+	 * 
+	 * @param index that needs to be contained.
+	 * @param arrayLength of the current backing array.
+	 * @return proper capacity given by the grow strategy.
+	 */
+	protected static final int getCapacityFor ( final int index, final int arrayLength )
+	{
+		int newSize = arrayLength;
+
+		while ( index >= newSize )
+		{
+			newSize = nextCapacity( newSize );
+		}
+
+		return newSize;
 	}
 
 }
