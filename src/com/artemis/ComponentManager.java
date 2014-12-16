@@ -46,17 +46,26 @@ final class ComponentManager
 		final Class<? extends Component> type = component.getClass();
 		final int cmpIndex = indexFor( type );
 
-		initIfAbsent( cmpIndex, type ).set( e.id, component );
-
-		e.componentBits.set( cmpIndex );
+		addComponent( e, component, type, cmpIndex );
 	}
 
 	void addPooledComponent ( final Entity e, final Class<? extends Component> type )
 	{
 		final int cmpIndex = indexFor( type );
-		final Component cmp = poolsByType[cmpIndex].get();
 
-		initIfAbsent( cmpIndex, type ).set( e.id, cmp );
+		addComponent( e, poolsByType[cmpIndex].get(), type, cmpIndex );
+	}
+
+	private final void addComponent (
+		final Entity e,
+		final Component component,
+		final Class<? extends Component> type,
+		final int cmpIndex )
+	{
+		final int eid = e.id;
+		final ComponentMapper<Component> cm = initIfAbsent( cmpIndex, type );
+		cm.ensureCapacity( eid );
+		cm.setUnsafe( eid, component );
 
 		e.componentBits.set( cmpIndex );
 	}

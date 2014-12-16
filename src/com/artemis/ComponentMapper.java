@@ -173,33 +173,16 @@ public final class ComponentMapper<T extends Component> extends ImmutableBag<T>
 	/**
 	 * Resizes the mapper so it can contain the index provided.
 	 * 
-	 * @param index that is expected the mapper could contain.
+	 * @param index that is expected the mapper can contain.
 	 */
-	final void ensureCapacity ( final int index )
+	public void ensureCapacity ( final int index )
 	{
-		if ( index >= data.length )
+		final int dataLen = data.length;
+
+		if ( index >= dataLen )
 		{
-			data = Arrays.copyOf( data, getCapacityFor( index ) );
+			data = Arrays.copyOf( data, getCapacityFor( index, dataLen ) );
 		}
-	}
-
-	/**
-	 * It finds the next capacity according to the grow strategy that could
-	 * contain the supplied index.
-	 * 
-	 * @param index that needs to be contained.
-	 * @return proper capacity given by the grow strategy.
-	 */
-	private final int getCapacityFor ( final int index )
-	{
-		int newSize = nextCapacity( data.length );
-
-		while ( index >= newSize )
-		{
-			newSize = nextCapacity( newSize );
-		}
-
-		return newSize;
 	}
 
 }
