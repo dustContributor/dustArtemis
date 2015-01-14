@@ -58,15 +58,13 @@ public final class Aspect
 	}
 
 	/**
-	 * Checks if the Entity is interesting to this aspect.
+	 * Checks if the components bits are interesting to this aspect.
 	 * 
-	 * @param e entity to check
+	 * @param bits to check
 	 * @return 'true' if it's interesting, 'false' otherwise.
 	 */
-	public final boolean isInteresting ( final Entity e )
+	public final boolean isInteresting ( final FixedBitSet bits )
 	{
-		final FixedBitSet bits = e.componentBits;
-
 		// If has none, doesn't processes any entity.
 		return hasSome && checkNone( bits ) && checkOne( bits ) && checkAll( bits );
 	}

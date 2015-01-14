@@ -245,7 +245,7 @@ public abstract class EntitySystem extends EntityObserver
 			// Second bit for 'contains'.
 			int flags = acBits.getBit( e.id ) << 1;
 			// First bit for 'interesting'.
-			flags |= asp.isInteresting( e ) ? 0b1 : 0b0;
+			flags |= asp.isInteresting( e.componentBits ) ? 0b1 : 0b0;
 
 			switch (flags)
 			{
