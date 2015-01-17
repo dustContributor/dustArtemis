@@ -233,7 +233,7 @@ public abstract class EntitySystem extends EntityObserver
 		// Fetch bits of active entities.
 		final OpenBitSet acBits = activeBits;
 
-		final FixedBitSet[] componentBits = world.componentManager().getComponentBits();
+		final FixedBitSet[] componentBits = world.componentManager().getComponentBits().data();
 		final int[] array = ((IntBag) entities).data();
 		final int size = entities.size();
 

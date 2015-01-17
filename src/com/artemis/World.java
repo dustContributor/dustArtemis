@@ -306,7 +306,9 @@ public class World
 	 */
 	public int createEntity ()
 	{
-		return em.createEntityInstance();
+		final int eid = em.createEntityInstance();
+		cm.initBitsIfAbsent( eid );
+		return eid;
 	}
 
 	/**

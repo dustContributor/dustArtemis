@@ -32,7 +32,7 @@ public final class ComponentManager
 	/** Component pools by type index. */
 	private SimplePool<Component>[] poolsByType;
 	/** Component bits for all entities. */
-	private FixedBitSet[] componentBits;
+	private final Bag<FixedBitSet> componentBits;
 
 	@SuppressWarnings ( { "unchecked" } )
 	ComponentManager ()
@@ -42,10 +42,10 @@ public final class ComponentManager
 		// Init all type bags.
 		componentsByType = new ComponentMapper[size];
 		poolsByType = new SimplePool[size];
-		componentBits = new FixedBitSet[DAConstants.APPROX_LIVE_ENTITIES];
+		componentBits = new Bag<>( FixedBitSet.class, DAConstants.APPROX_LIVE_ENTITIES );
 
 		final int wCnt = DAConstants.COMPONENT_BITS_WORD_COUNT;
-		Arrays.setAll( componentBits, ( i ) -> FixedBitSet.newBitSetByWords( wCnt ) );
+		Arrays.setAll( componentBits.data(), ( i ) -> FixedBitSet.newBitSetByWords( wCnt ) );
 	}
 
 	/**
@@ -83,7 +83,7 @@ public final class ComponentManager
 		cm.ensureCapacity( eid );
 		cm.setUnsafe( eid, component );
 
-		componentBits[eid].set( cmpIndex );
+		componentBits.getUnsafe( eid ).set( cmpIndex );
 	}
 
 	@SuppressWarnings ( { "unchecked", "rawtypes" } )
@@ -116,7 +116,7 @@ public final class ComponentManager
 	public void removeComponent ( final int eid, final Class<? extends Component> type )
 	{
 		final int cmpIndex = indexFor( type );
-		final FixedBitSet bits = componentBits[eid];
+		final FixedBitSet bits = componentBits.getUnsafe( eid );
 
 		if ( bits.get( cmpIndex ) )
 		{
@@ -134,7 +134,7 @@ public final class ComponentManager
 	public void removePooledComponent ( final int eid, final Class<? extends Component> type )
 	{
 		final int cmpIndex = indexFor( type );
-		final FixedBitSet bits = componentBits[eid];
+		final FixedBitSet bits = componentBits.getUnsafe( eid );
 
 		if ( bits.get( cmpIndex ) )
 		{
@@ -165,7 +165,7 @@ public final class ComponentManager
 		final ComponentMapper<Component>[] cmpBags = componentsByType;
 		final FixedBitIterator mbi = bitIterator;
 
-		mbi.setBits( componentBits[eid] );
+		mbi.setBits( componentBits.getUnsafe( eid ) );
 
 		for ( int i = mbi.nextSetBit(); i >= 0; i = mbi.nextSetBit() )
 		{
@@ -195,17 +195,12 @@ public final class ComponentManager
 
 	void initBitsIfAbsent ( final int eid )
 	{
-		final int bSize = componentBits.length;
+		componentBits.ensureCapacity( eid );
 
-		if ( eid >= bSize )
+		if ( componentBits.getUnsafe( eid ) == null )
 		{
 			final int wCnt = DAConstants.COMPONENT_BITS_WORD_COUNT;
-			componentBits = Arrays.copyOf( componentBits, eid );
-
-			if ( componentBits[eid] == null )
-			{
-				componentBits[eid] = FixedBitSet.newBitSetByWords( wCnt );
-			}
+			componentBits.setUnsafe( eid, FixedBitSet.newBitSetByWords( wCnt ) );
 		}
 	}
 
@@ -213,6 +208,7 @@ public final class ComponentManager
 	{
 		final ComponentMapper<Component>[] cmpBags = componentsByType;
 		final SimplePool<Component>[] pools = poolsByType;
+		final FixedBitSet[] bits = componentBits.data();
 		final FixedBitIterator mbi = bitIterator;
 		final FixedBitSet tmp = tmpBits;
 		final FixedBitSet pcb = pooledComponentBits;
@@ -224,7 +220,7 @@ public final class ComponentManager
 			final int eid = ents[i];
 
 			tmp.copyFrom( pcb );
-			tmp.and( componentBits[eid] );
+			tmp.and( bits[eid] );
 			mbi.reset();
 
 			for ( int j = mbi.nextSetBit(); j >= 0; j = mbi.nextSetBit() )
@@ -235,20 +231,21 @@ public final class ComponentManager
 
 		for ( int i = size; i-- > 0; )
 		{
-			componentBits[ents[i]].andNot( pcb );
+			bits[ents[i]].andNot( pcb );
 		}
 	}
 
 	private final void clearComponents ( final int[] ents, final int size )
 	{
 		final ComponentMapper<Component>[] cmpBags = componentsByType;
+		final FixedBitSet[] bits = componentBits.data();
 		final FixedBitIterator mbi = bitIterator;
 
 		for ( int i = size; i-- > 0; )
 		{
 			final int eid = ents[i];
 
-			mbi.setBits( componentBits[eid] );
+			mbi.setBits( bits[eid] );
 
 			for ( int j = mbi.nextSetBit(); j >= 0; j = mbi.nextSetBit() )
 			{
@@ -259,13 +256,15 @@ public final class ComponentManager
 
 	private final void clearComponentBits ( final int[] ents, final int size )
 	{
+		final FixedBitSet[] bits = componentBits.data();
+		
 		for ( int i = size; i-- > 0; )
 		{
-			componentBits[ents[i]].clear();
+			bits[ents[i]].clear();
 		}
 	}
 
-	final FixedBitSet[] getComponentBits ()
+	final Bag<FixedBitSet> getComponentBits ()
 	{
 		return componentBits;
 	}
