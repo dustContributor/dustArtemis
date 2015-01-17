@@ -2,15 +2,15 @@ package com.artemis;
 
 import org.apache.lucene.util.OpenBitSet;
 
-import com.artemis.utils.Bag;
 import com.artemis.utils.IdAllocator;
-import com.artemis.utils.ImmutableBag;
+import com.artemis.utils.ImmutableIntBag;
+import com.artemis.utils.IntBag;
 
 /**
  * @author Arni Arent
  */
 @SuppressWarnings ( "hiding" )
-public class EntityManager extends EntityObserver
+public final class EntityManager extends EntityObserver
 {
 	/** Bit set with the 'disabled' status of all entities. */
 	private final OpenBitSet disabled;
@@ -22,27 +22,24 @@ public class EntityManager extends EntityObserver
 	private long deletedCount;
 
 	/** Store for allocating entity IDs. */
-	final IdAllocator idStore;
+	private final IdAllocator idStore;
 	/** Bag of all the entities. */
-	final Bag<Entity> entities;
+	final IntBag entities;
 
 	EntityManager ()
 	{
 		// Fetch approximate live entities.
 		int eSize = DAConstants.APPROX_LIVE_ENTITIES;
 
-		this.entities = new Bag<>( Entity.class, eSize );
+		this.entities = new IntBag( eSize );
 		this.disabled = new OpenBitSet( eSize );
 		this.idStore = new IdAllocator();
 	}
 
-	public Entity createEntityInstance ()
+	int createEntityInstance ()
 	{
-		return newEntityInstance( idStore.alloc() );
-	}
+		final int eid = idStore.alloc();
 
-	final Entity newEntityInstance ( final int eid )
-	{
 		++createdCount;
 		/*
 		 * Guarantee 'entities' and 'disabled' can hold the Entity. This way we
@@ -51,63 +48,63 @@ public class EntityManager extends EntityObserver
 		entities.ensureCapacity( eid + 1 );
 		disabled.ensureCapacity( eid + 1 );
 
-		return new Entity( world, eid );
+		return eid;
 	}
 
 	@Override
-	public void added ( final ImmutableBag<Entity> entities )
+	public void added ( final ImmutableIntBag entities )
 	{
 		final int eSize = entities.size();
-		final Entity[] eArray = ((Bag<Entity>) entities).data();
-		final Entity[] meArray = this.entities.data();
+		final int[] eArray = ((IntBag) entities).data();
+		final int[] meArray = this.entities.data();
 
 		activeCount += eSize;
 		addedCount += eSize;
 
 		for ( int i = eSize; i-- > 0; )
 		{
-			final Entity e = eArray[i];
-			meArray[e.id] = e;
+			final int eid = eArray[i];
+			meArray[eid] = eid;
 		}
 	}
 
 	@Override
-	public void enabled ( final ImmutableBag<Entity> entities )
+	public void enabled ( final ImmutableIntBag entities )
 	{
-		final Entity[] array = ((Bag<Entity>) entities).data();
+		final int[] array = ((IntBag) entities).data();
 
 		for ( int i = entities.size(); i-- > 0; )
 		{
-			disabled.fastClear( array[i].id );
+			disabled.fastClear( array[i] );
 		}
 	}
 
 	@Override
-	public void disabled ( final ImmutableBag<Entity> entities )
+	public void disabled ( final ImmutableIntBag entities )
 	{
-		final Entity[] array = ((Bag<Entity>) entities).data();
+		final int[] array = ((IntBag) entities).data();
 
 		for ( int i = entities.size(); i-- > 0; )
 		{
-			disabled.fastSet( array[i].id );
+			disabled.fastSet( array[i] );
 		}
 	}
 
 	@Override
-	public void deleted ( final ImmutableBag<Entity> entities )
+	public void deleted ( final ImmutableIntBag entities )
 	{
 		final int eSize = entities.size();
-		final Entity[] eArray = ((Bag<Entity>) entities).data();
-		final Entity[] meArray = this.entities.data();
+		final int[] eArray = ((IntBag) entities).data();
+		final int[] meArray = this.entities.data();
 
 		activeCount -= eSize;
 		deletedCount += eSize;
 
 		for ( int i = eSize; i-- > 0; )
 		{
-			final int eid = eArray[i].id;
+			final int eid = eArray[i];
 
-			meArray[eid] = null;
+			meArray[eid] = -1;
 			disabled.fastClear( eid );
 			idStore.free( eid );
 		}
@@ -122,11 +119,11 @@ public class EntityManager extends EntityObserver
 	 */
 	public boolean isActive ( final int entityId )
 	{
-		return entities.getUnsafe( entityId ) != null;
+		return entities.getUnsafe( entityId ) > -1;
 	}
 
 	/**
-	 * Check if the specified entityId is enabled.
+	 * Check if the specified entity is enabled.
 	 * 
 	 * @param entityId of the entity that will be checked.
 	 * @return true if the entity is enabled, false if it is disabled.
@@ -134,17 +131,6 @@ public class EntityManager extends EntityObserver
 	public boolean isEnabled ( final int entityId )
 	{
 		return !disabled.fastGet( entityId );
-	}
-
-	/**
-	 * Get a entity with this id.
-	 * 
-	 * @param entityId of the entity to retrieve.
-	 * @return the retrieved entity.
-	 */
-	public Entity getEntity ( final int entityId )
-	{
-		return entities.getUnsafe( entityId );
 	}
 
 	/**

@@ -10,7 +10,8 @@ import org.apache.lucene.util.FixedBitSet;
 import com.artemis.utils.Bag;
 import com.artemis.utils.ClassIndexer;
 import com.artemis.utils.FixedBitIterator;
-import com.artemis.utils.ImmutableBag;
+import com.artemis.utils.ImmutableIntBag;
+import com.artemis.utils.IntBag;
 import com.artemis.utils.SimplePool;
 
 /**
@@ -30,6 +31,8 @@ final class ComponentManager
 	private ComponentMapper<Component>[] componentsByType;
 	/** Component pools by type index. */
 	private SimplePool<Component>[] poolsByType;
+	/** Component bits for all entities. */
+	private FixedBitSet[] componentBits;
 
 	@SuppressWarnings ( { "unchecked" } )
 	ComponentManager ()
@@ -39,35 +42,48 @@ final class ComponentManager
 		// Init all type bags.
 		componentsByType = new ComponentMapper[size];
 		poolsByType = new SimplePool[size];
+		componentBits = new FixedBitSet[DAConstants.APPROX_LIVE_ENTITIES];
+
+		final int wCnt = DAConstants.COMPONENT_BITS_WORD_COUNT;
+		Arrays.setAll( componentBits, ( i ) -> FixedBitSet.newBitSetByWords( wCnt ) );
 	}
 
-	void addComponent ( final Entity e, final Component component )
+	/**
+	 * Add a component to an entity.
+	 * 
+	 * @param eid id of the entity to add the component to.
+	 * @param component to add to the entity
+	 */
+	public void addComponent ( final int eid, final Component component )
 	{
 		final Class<? extends Component> type = component.getClass();
 		final int cmpIndex = indexFor( type );
-
-		addComponent( e, component, type, cmpIndex );
+		addComponent( eid, component, type, cmpIndex );
 	}
 
-	void addPooledComponent ( final Entity e, final Class<? extends Component> type )
+	/**
+	 * Add a pooled component to an entity.
+	 * 
+	 * @param eid id of the entity to add the component to.
+	 * @param type of component to add to the entity
+	 */
+	public void addPooledComponent ( final int eid, final Class<? extends Component> type )
 	{
 		final int cmpIndex = indexFor( type );
-
-		addComponent( e, poolsByType[cmpIndex].get(), type, cmpIndex );
+		addComponent( eid, poolsByType[cmpIndex].get(), type, cmpIndex );
 	}
 
 	private final void addComponent (
-		final Entity e,
+		final int eid,
 		final Component component,
 		final Class<? extends Component> type,
 		final int cmpIndex )
 	{
-		final int eid = e.id;
 		final ComponentMapper<Component> cm = initIfAbsent( cmpIndex, type );
 		cm.ensureCapacity( eid );
 		cm.setUnsafe( eid, component );
 
-		e.componentBits.set( cmpIndex );
+		componentBits[eid].set( cmpIndex );
 	}
 
 	@SuppressWarnings ( { "unchecked", "rawtypes" } )
@@ -91,43 +107,65 @@ final class ComponentManager
 		pooledComponentBits.set( cmpIndex );
 	}
 
-	void removeComponent ( final Entity e, final Class<? extends Component> type )
+	/**
+	 * Remove component by its type.
+	 * 
+	 * @param eid id of the entity to remove the component from.
+	 * @param type of the component to be removed.
+	 */
+	public void removeComponent ( final int eid, final Class<? extends Component> type )
 	{
 		final int cmpIndex = indexFor( type );
-		final FixedBitSet componentBits = e.componentBits;
+		final FixedBitSet bits = componentBits[eid];
 
-		if ( componentBits.get( cmpIndex ) )
+		if ( bits.get( cmpIndex ) )
 		{
-			componentsByType[cmpIndex].removeUnsafe( e.id );
-			componentBits.clear( cmpIndex );
+			componentsByType[cmpIndex].removeUnsafe( eid );
+			bits.clear( cmpIndex );
 		}
 	}
 
-	void removePooledComponent ( final Entity e, final Class<? extends Component> type )
+	/**
+	 * Remove pooled component by its type.
+	 * 
+	 * @param eid id of the entity to remove the component from.
+	 * @param type of the component to be removed.
+	 */
+	public void removePooledComponent ( final int eid, final Class<? extends Component> type )
 	{
 		final int cmpIndex = indexFor( type );
-		final FixedBitSet componentBits = e.componentBits;
+		final FixedBitSet bits = componentBits[eid];
 
-		if ( componentBits.get( cmpIndex ) )
+		if ( bits.get( cmpIndex ) )
 		{
-			final Component c = componentsByType[cmpIndex].removeUnsafe( e.id );
-			componentBits.clear( cmpIndex );
+			final Component c = componentsByType[cmpIndex].removeUnsafe( eid );
+			bits.clear( cmpIndex );
 			poolsByType[cmpIndex].store( c );
 		}
 	}
 
-	Component getComponent ( final Entity e, final Class<? extends Component> type )
+	/**
+	 * Slower retrieval of components from an entity. The recommended way to
+	 * retrieve components from an entity is using the ComponentMapper. Is fine
+	 * to use e.g. when creating new entities and setting data in components.
+	 * 
+	 * @param <T> the expected component type.
+	 * @param eid id of the entity to retrieve the component from.
+	 * @param type the expected return component type.
+	 * @return component that matches, or null if none is found.
+	 */
+	@SuppressWarnings ( "unchecked" )
+	public <T extends Component> T getComponent ( final int eid, final Class<T> type )
 	{
-		return initIfAbsent( indexFor( type ), type ).get( e.id );
+		return (T) initIfAbsent( indexFor( type ), type ).get( eid );
 	}
 
-	Bag<Component> getComponentsFor ( final Entity e, final Bag<Component> fillBag )
+	public Bag<Component> getComponentsFor ( final int eid, final Bag<Component> fillBag )
 	{
 		final ComponentMapper<Component>[] cmpBags = componentsByType;
 		final FixedBitIterator mbi = bitIterator;
-		final int eid = e.id;
 
-		mbi.setBits( e.componentBits );
+		mbi.setBits( componentBits[eid] );
 
 		for ( int i = mbi.nextSetBit(); i >= 0; i = mbi.nextSetBit() )
 		{
@@ -143,9 +181,9 @@ final class ComponentManager
 		return (ComponentMapper<T>) initIfAbsent( indexFor( type ), type );
 	}
 
-	void clean ( final ImmutableBag<Entity> deleted )
+	void clean ( final ImmutableIntBag deleted )
 	{
-		final Entity[] ents = ((Bag<Entity>) deleted).data();
+		final int[] ents = ((IntBag) deleted).data();
 		final int size = deleted.size();
 
 		clearPooledComponents( ents, size );
@@ -155,7 +193,23 @@ final class ComponentManager
 		clearComponentBits( ents, size );
 	}
 
-	private final void clearPooledComponents ( final Entity[] ents, final int size )
+	void initBitsIfAbsent ( final int eid )
+	{
+		final int bSize = componentBits.length;
+
+		if ( eid >= bSize )
+		{
+			final int wCnt = DAConstants.COMPONENT_BITS_WORD_COUNT;
+			componentBits = Arrays.copyOf( componentBits, eid );
+
+			if ( componentBits[eid] == null )
+			{
+				componentBits[eid] = FixedBitSet.newBitSetByWords( wCnt );
+			}
+		}
+	}
+
+	private final void clearPooledComponents ( final int[] ents, final int size )
 	{
 		final ComponentMapper<Component>[] cmpBags = componentsByType;
 		final SimplePool<Component>[] pools = poolsByType;
@@ -167,10 +221,10 @@ final class ComponentManager
 
 		for ( int i = size; i-- > 0; )
 		{
-			final int eid = ents[i].id;
+			final int eid = ents[i];
 
 			tmp.copyFrom( pcb );
-			tmp.and( ents[i].componentBits );
+			tmp.and( componentBits[eid] );
 			mbi.reset();
 
 			for ( int j = mbi.nextSetBit(); j >= 0; j = mbi.nextSetBit() )
@@ -181,20 +235,20 @@ final class ComponentManager
 
 		for ( int i = size; i-- > 0; )
 		{
-			ents[i].componentBits.andNot( pcb );
+			componentBits[ents[i]].andNot( pcb );
 		}
 	}
 
-	private final void clearComponents ( final Entity[] ents, final int size )
+	private final void clearComponents ( final int[] ents, final int size )
 	{
 		final ComponentMapper<Component>[] cmpBags = componentsByType;
 		final FixedBitIterator mbi = bitIterator;
 
 		for ( int i = size; i-- > 0; )
 		{
-			final int eid = ents[i].id;
+			final int eid = ents[i];
 
-			mbi.setBits( ents[i].componentBits );
+			mbi.setBits( componentBits[eid] );
 
 			for ( int j = mbi.nextSetBit(); j >= 0; j = mbi.nextSetBit() )
 			{
@@ -203,12 +257,17 @@ final class ComponentManager
 		}
 	}
 
-	private static final void clearComponentBits ( final Entity[] ents, final int size )
+	private final void clearComponentBits ( final int[] ents, final int size )
 	{
 		for ( int i = size; i-- > 0; )
 		{
-			ents[i].componentBits.clear();
+			componentBits[ents[i]].clear();
 		}
+	}
+
+	final FixedBitSet[] getComponentBits ()
+	{
+		return componentBits;
 	}
 
 	/**

@@ -2,10 +2,9 @@ package com.artemis.managers;
 
 import java.util.HashMap;
 
-import com.artemis.Entity;
 import com.artemis.EntityObserver;
-import com.artemis.utils.Bag;
-import com.artemis.utils.ImmutableBag;
+import com.artemis.utils.ImmutableIntBag;
+import com.artemis.utils.IntBag;
 
 /**
  * You may sometimes want to specify to which player an entity belongs to.
@@ -17,8 +16,8 @@ import com.artemis.utils.ImmutableBag;
  */
 public class PlayerManager extends EntityObserver
 {
-	private final HashMap<Entity, String> playerByEntity;
-	private final HashMap<String, Bag<Entity>> entitiesByPlayer;
+	private final HashMap<Integer, String> playerByEntity;
+	private final HashMap<String, IntBag> entitiesByPlayer;
 
 	public PlayerManager ()
 	{
@@ -26,52 +25,52 @@ public class PlayerManager extends EntityObserver
 		entitiesByPlayer = new HashMap<>();
 	}
 
-	public void setPlayer ( final Entity e, final String player )
+	public void setPlayer ( final int eid, final String player )
 	{
-		playerByEntity.put( e, player );
-		Bag<Entity> entities = entitiesByPlayer.get( player );
+		playerByEntity.put( Integer.valueOf( eid ), player );
+		IntBag entities = entitiesByPlayer.get( player );
 		if ( entities == null )
 		{
-			entities = new Bag<>( Entity.class );
+			entities = new IntBag();
 			entitiesByPlayer.put( player, entities );
 		}
-		entities.add( e );
+		entities.add( eid );
 	}
 
-	public ImmutableBag<Entity> getEntitiesOfPlayer ( final String player )
+	public ImmutableIntBag getEntitiesOfPlayer ( final String player )
 	{
-		Bag<Entity> entities = entitiesByPlayer.get( player );
+		IntBag entities = entitiesByPlayer.get( player );
 		if ( entities == null )
 		{
-			entities = new Bag<>( Entity.class );
+			entities = new IntBag();
 		}
 		return entities;
 	}
 
-	public void removeFromPlayer ( final Entity e )
+	public void removeFromPlayer ( final int eid )
 	{
-		final String player = playerByEntity.get( e );
+		final String player = playerByEntity.get( Integer.valueOf( eid ) );
 		if ( player != null )
 		{
-			final Bag<Entity> entities = entitiesByPlayer.get( player );
+			final IntBag entities = entitiesByPlayer.get( player );
 			if ( entities != null )
 			{
-				entities.remove( e );
+				entities.remove( eid );
 			}
 		}
 	}
 
-	public String getPlayer ( final Entity e )
+	public String getPlayer ( final int eid )
 	{
-		return playerByEntity.get( e );
+		return playerByEntity.get( Integer.valueOf( eid ) );
 	}
-	
+
 	@Override
-	public void deleted ( final ImmutableBag<Entity> entities )
+	public void deleted ( final ImmutableIntBag entities )
 	{
-		final Entity[] array = ((Bag<Entity>) entities).data();
+		final int[] array = ((IntBag) entities).data();
 		final int size = entities.size();
-		
+
 		for ( int i = 0; i < size; ++i )
 		{
 			removeFromPlayer( array[i] );

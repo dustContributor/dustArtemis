@@ -1,10 +1,11 @@
 package com.artemis;
 
+import org.apache.lucene.util.FixedBitSet;
 import org.apache.lucene.util.OpenBitSet;
 
-import com.artemis.utils.Bag;
 import com.artemis.utils.ClassIndexer;
-import com.artemis.utils.ImmutableBag;
+import com.artemis.utils.ImmutableIntBag;
+import com.artemis.utils.IntBag;
 import com.artemis.utils.MutableBitIterator;
 
 /**
@@ -20,7 +21,7 @@ public abstract class EntitySystem extends EntityObserver
 	private final int index;
 	private final Aspect aspect;
 
-	private final Bag<Entity> actives;
+	private final IntBag actives;
 
 	private final OpenBitSet activeBits;
 	private final MutableBitIterator bitIterator;
@@ -43,7 +44,7 @@ public abstract class EntitySystem extends EntityObserver
 		// Fetch entity amount per system.
 		int actSize = DAConstants.APPROX_ENTITIES_PER_SYSTEM;
 
-		this.actives = new Bag<>( Entity.class, actSize );
+		this.actives = new IntBag( actSize );
 		this.activeBits = new OpenBitSet( actSize );
 
 		this.setActive( false );
@@ -81,8 +82,8 @@ public abstract class EntitySystem extends EntityObserver
 		final MutableBitIterator mbi = bitIterator;
 		mbi.setBits( activeBits.getBits() );
 
-		final Entity[] actEnts = actives.data();
-		final Entity[] ents = world.getEntityManager().entities.data();
+		final int[] actEnts = actives.data();
+		final int[] ents = world.entityManager().entities.data();
 
 		// Fetch min modified entity ID.
 		final int minId = minModifiedId;
@@ -116,15 +117,15 @@ public abstract class EntitySystem extends EntityObserver
 	 * 
 	 * @param entities the entities this system contains.
 	 */
-	protected abstract void processEntities ( ImmutableBag<Entity> entities );
+	protected abstract void processEntities ( ImmutableIntBag entities );
 
 	/**
 	 * Called if the system has received a entity it is interested in, e.g.
 	 * created or a component was added to it.
 	 * 
-	 * @param e the entity that was added to this system.
+	 * @param eid the entity that was added to this system.
 	 */
-	protected void inserted ( final Entity e )
+	protected void inserted ( final int eid )
 	{
 		// Empty method.
 	}
@@ -133,58 +134,54 @@ public abstract class EntitySystem extends EntityObserver
 	 * Called if a entity was removed from this system, e.g. deleted or had one
 	 * of it's components removed.
 	 * 
-	 * @param e the entity that was removed from this system.
+	 * @param eid the entity that was removed from this system.
 	 */
-	protected void removed ( final Entity e )
+	protected void removed ( final int eid )
 	{
 		// Empty method.
 	}
 
-	private final void removeFromSystem ( final Entity e )
+	private final void removeFromSystem ( final int eid )
 	{
-		final int eid = e.id;
-
 		minModifiedId = Math.min( minModifiedId, eid );
 
 		activeBits.fastClear( eid );
-		removed( e );
+		removed( eid );
 	}
 
-	private final void insertToSystem ( final Entity e )
+	private final void insertToSystem ( final int eid )
 	{
-		final int eid = e.id;
-
 		minModifiedId = Math.min( minModifiedId, eid );
 
 		activeBits.set( eid );
-		inserted( e );
+		inserted( eid );
 	}
 
 	@Override
-	public void added ( final ImmutableBag<Entity> entities )
+	public void added ( final ImmutableIntBag entities )
 	{
 		checkAll( entities );
 	}
 
 	@Override
-	public void changed ( final ImmutableBag<Entity> entities )
+	public void changed ( final ImmutableIntBag entities )
 	{
 		checkAll( entities );
 	}
 
 	@Override
-	public void deleted ( final ImmutableBag<Entity> entities )
+	public void deleted ( final ImmutableIntBag entities )
 	{
 		removeAll( entities );
 	}
 
 	@Override
-	public void disabled ( final ImmutableBag<Entity> entities )
+	public void disabled ( final ImmutableIntBag entities )
 	{
 		removeAll( entities );
 	}
 
-	private final void removeAll ( final ImmutableBag<Entity> entities )
+	private final void removeAll ( final ImmutableIntBag entities )
 	{
 		if ( aspect == null )
 		{
@@ -195,22 +192,22 @@ public abstract class EntitySystem extends EntityObserver
 		// Fetch bits of active entities.
 		final OpenBitSet acBits = activeBits;
 
-		final Entity[] array = ((Bag<Entity>) entities).data();
+		final int[] array = ((IntBag) entities).data();
 		final int size = entities.size();
 
 		for ( int i = 0; i < size; ++i )
 		{
-			final Entity e = array[i];
+			final int eid = array[i];
 
-			if ( acBits.get( e.id ) )
+			if ( acBits.get( eid ) )
 			{
-				removeFromSystem( e );
+				removeFromSystem( eid );
 			}
 		}
 	}
 
 	@Override
-	public void enabled ( final ImmutableBag<Entity> entities )
+	public void enabled ( final ImmutableIntBag entities )
 	{
 		checkAll( entities );
 	}
@@ -224,7 +221,7 @@ public abstract class EntitySystem extends EntityObserver
 	 * 
 	 * @param e entities to check.
 	 */
-	private final void checkAll ( final ImmutableBag<Entity> entities )
+	private final void checkAll ( final ImmutableIntBag entities )
 	{
 		final Aspect asp = aspect;
 		if ( asp == null )
@@ -236,29 +233,30 @@ public abstract class EntitySystem extends EntityObserver
 		// Fetch bits of active entities.
 		final OpenBitSet acBits = activeBits;
 
-		final Entity[] array = ((Bag<Entity>) entities).data();
+		final FixedBitSet[] componentBits = world.componentManager().getComponentBits();
+		final int[] array = ((IntBag) entities).data();
 		final int size = entities.size();
 
 		for ( int i = 0; i < size; ++i )
 		{
-			final Entity e = array[i];
+			final int eid = array[i];
 			// Second bit for 'contains'.
-			int flags = acBits.getBit( e.id ) << 1;
+			int flags = acBits.getBit( eid ) << 1;
 			// First bit for 'interesting'.
-			flags |= asp.isInteresting( e.componentBits ) ? 0b1 : 0b0;
+			flags |= asp.isInteresting( componentBits[eid] ) ? 0b1 : 0b0;
 
 			switch (flags)
 			{
 			// Interesting and system doesn't contains.
 				case 0b01:
 				{
-					insertToSystem( e );
+					insertToSystem( eid );
 					continue;
 				}
 				// Not interesting and system does contains.
 				case 0b10:
 				{
-					removeFromSystem( e );
+					removeFromSystem( eid );
 					continue;
 				}
 				// Otherwise do nothing.
@@ -273,7 +271,7 @@ public abstract class EntitySystem extends EntityObserver
 		return index;
 	}
 
-	public ImmutableBag<Entity> getActives ()
+	public ImmutableIntBag getActives ()
 	{
 		return actives;
 	}
