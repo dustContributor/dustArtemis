@@ -89,7 +89,7 @@ public class World
 	 * 
 	 * @return component manager.
 	 */
-	protected ComponentManager componentManager ()
+	public ComponentManager componentManager ()
 	{
 		return cm;
 	}
