@@ -17,7 +17,7 @@ import com.artemis.utils.SimplePool;
 /**
  * @author Arni Arent
  */
-final class ComponentManager
+public final class ComponentManager
 {
 	/** Mutable iterator for component bits. */
 	private final FixedBitIterator bitIterator = new FixedBitIterator();
