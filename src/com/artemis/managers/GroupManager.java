@@ -2,10 +2,11 @@ package com.artemis.managers;
 
 import java.util.HashMap;
 
-import com.artemis.Entity;
 import com.artemis.EntityObserver;
 import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
+import com.artemis.utils.ImmutableIntBag;
+import com.artemis.utils.IntBag;
 
 /**
  * If you need to group your entities together, e.g. tanks going into "units"
@@ -19,8 +20,8 @@ import com.artemis.utils.ImmutableBag;
  */
 public class GroupManager extends EntityObserver
 {
-	private final HashMap<String, Bag<Entity>> entitiesByGroup;
-	private final HashMap<Entity, Bag<String>> groupsByEntity;
+	private final HashMap<String, IntBag> entitiesByGroup;
+	private final HashMap<Integer, Bag<String>> groupsByEntity;
 
 	public GroupManager ()
 	{
@@ -31,26 +32,24 @@ public class GroupManager extends EntityObserver
 	/**
 	 * Set the group of the entity.
 	 * 
-	 * @param group
-	 *            group to add the entity into.
-	 * @param e
-	 *            entity to add into the group.
+	 * @param group group to add the entity into.
+	 * @param eid entity to add into the group.
 	 */
-	public void add ( final Entity e, final String group )
+	public void add ( final int eid, final String group )
 	{
-		Bag<Entity> entities = entitiesByGroup.get( group );
+		IntBag entities = entitiesByGroup.get( group );
 		if ( entities == null )
 		{
-			entities = new Bag<>( Entity.class );
+			entities = new IntBag();
 			entitiesByGroup.put( group, entities );
 		}
-		entities.add( e );
+		entities.add( eid );
 
-		Bag<String> groups = groupsByEntity.get( e );
+		Bag<String> groups = groupsByEntity.get( Integer.valueOf( eid ) );
 		if ( groups == null )
 		{
 			groups = new Bag<>( String.class );
-			groupsByEntity.put( e, groups );
+			groupsByEntity.put( Integer.valueOf( eid ), groups );
 		}
 		groups.add( group );
 	}
@@ -58,18 +57,18 @@ public class GroupManager extends EntityObserver
 	/**
 	 * Remove the entity from the specified group.
 	 * 
-	 * @param e entity to be removed.
+	 * @param eid entity to be removed.
 	 * @param group where the entity will be removed from.
 	 */
-	public void remove ( final Entity e, final String group )
+	public void remove ( final int eid, final String group )
 	{
-		final Bag<Entity> entities = entitiesByGroup.get( group );
+		final IntBag entities = entitiesByGroup.get( group );
 		if ( entities != null )
 		{
-			entities.remove( e );
+			entities.remove( eid );
 		}
 
-		final Bag<String> groups = groupsByEntity.get( e );
+		final Bag<String> groups = groupsByEntity.get( Integer.valueOf( eid ) );
 		if ( groups != null )
 		{
 			groups.remove( group );
@@ -78,9 +77,9 @@ public class GroupManager extends EntityObserver
 		}
 	}
 
-	public void removeFromAllGroups ( final Entity e )
+	public void removeFromAllGroups ( final int eid )
 	{
-		final Bag<String> groups = groupsByEntity.get( e );
+		final Bag<String> groups = groupsByEntity.get( Integer.valueOf( eid ) );
 
 		if ( groups != null )
 		{
@@ -89,70 +88,65 @@ public class GroupManager extends EntityObserver
 
 			for ( int i = 0; i < size; ++i )
 			{
-				final Bag<Entity> entities = entitiesByGroup.get( grpArray[i] );
+				final IntBag entities = entitiesByGroup.get( grpArray[i] );
 
 				if ( entities != null )
 				{
-					entities.remove( e );
+					entities.remove( eid );
 				}
 			}
 
-			groupsByEntity.remove( e );
+			groupsByEntity.remove( Integer.valueOf( eid ) );
 		}
 	}
 
 	/**
 	 * Get all entities that belong to the provided group.
 	 * 
-	 * @param group
-	 *            name of the group.
+	 * @param group name of the group.
 	 * @return read-only bag of entities belonging to the group.
 	 */
-	public ImmutableBag<Entity> getEntities ( final String group )
+	public ImmutableIntBag getEntities ( final String group )
 	{
-		Bag<Entity> entities = entitiesByGroup.get( group );
+		IntBag entities = entitiesByGroup.get( group );
 		if ( entities == null )
 		{
-			entities = new Bag<>( Entity.class );
+			entities = new IntBag();
 			entitiesByGroup.put( group, entities );
 		}
 		return entities;
 	}
 
 	/**
-	 * @param e
-	 *            entity
+	 * @param eid entity
 	 * @return the groups the entity belongs to, null if none.
 	 */
-	public ImmutableBag<String> getGroups ( final Entity e )
+	public ImmutableBag<String> getGroups ( final int eid )
 	{
-		return groupsByEntity.get( e );
+		return groupsByEntity.get( Integer.valueOf( eid ) );
 	}
 
 	/**
 	 * Checks if the entity belongs to any group.
 	 * 
-	 * @param e
-	 *            the entity to check.
+	 * @param eid the entity to check.
 	 * @return true if it is in any group, false if none.
 	 */
-	public boolean isInAnyGroup ( final Entity e )
+	public boolean isInAnyGroup ( final int eid )
 	{
-		return getGroups( e ) != null;
+		return getGroups( eid ) != null;
 	}
 
 	/**
 	 * Check if the entity is in the supplied group.
 	 * 
-	 * @param group
-	 *            the group to check in.
-	 * @param e
-	 *            the entity to check for.
+	 * @param group the group to check in.
+	 * @param eid the entity to check for.
 	 * @return true if the entity is in the supplied group, false if not.
 	 */
-	public boolean isInGroup ( final Entity e, final String group )
+	public boolean isInGroup ( final int eid, final String group )
 	{
-		final Bag<String> groups = groupsByEntity.get( e );
+		final Bag<String> groups = groupsByEntity.get( Integer.valueOf( eid ) );
 
 		if ( groups != null )
 		{
@@ -170,13 +164,13 @@ public class GroupManager extends EntityObserver
 
 		return false;
 	}
-	
+
 	@Override
-	public void deleted ( final ImmutableBag<Entity> entities )
+	public void deleted ( final ImmutableIntBag entities )
 	{
-		final Entity[] array = ((Bag<Entity>) entities).data();
+		final int[] array = ((IntBag) entities).data();
 		final int size = entities.size();
-		
+
 		for ( int i = 0; i < size; ++i )
 		{
 			removeFromAllGroups( array[i] );

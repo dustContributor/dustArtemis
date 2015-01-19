@@ -42,52 +42,14 @@ public final class ComponentMapper<T extends Component> extends ImmutableBag<T>
 	}
 
 	/**
-	 * Fast and safe retrieval of a component for this entity. If the entity
-	 * does not have this component then null is returned.
-	 * 
-	 * @param entity that could have the component.
-	 * @return the instance of the component
-	 */
-	public final T get ( final Entity entity )
-	{
-		return get( entity.id );
-	}
-
-	/**
-	 * Fast but unsafe retrieval of a component for this entity. In most
-	 * scenarios you already know the entity possesses this component.
-	 * 
-	 * <p> <b>UNSAFE: Avoids doing any bounds check. Could throw an
-	 * ArrayIndexOutOfBoundsExeption. </b> </p>
-	 * 
-	 * @param entity that should have the component.
-	 * @return the instance of the component
-	 */
-	public final T getUnsafe ( final Entity entity )
-	{
-		return getUnsafe( entity.id );
-	}
-
-	/**
 	 * Checks if the entity has this type of component.
 	 * 
-	 * @param entity that could have the component.
+	 * @param eid entity id of the entity that could have the component.
 	 * @return true if the entity has this component type, false if it doesn't.
 	 */
-	public final boolean has ( final Entity entity )
+	public final boolean has ( final int eid )
 	{
-		return has( entity.id );
-	}
-
-	/**
-	 * Checks if the entity has this type of component.
-	 * 
-	 * @param entityID of the entity that could have the component.
-	 * @return true if the entity has this component type, false if it doesn't.
-	 */
-	public final boolean has ( final int entityID )
-	{
-		return get( entityID ) != null;
+		return get( eid ) != null;
 	}
 
 	/**

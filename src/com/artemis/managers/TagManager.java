@@ -4,10 +4,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.artemis.Entity;
 import com.artemis.EntityObserver;
-import com.artemis.utils.Bag;
-import com.artemis.utils.ImmutableBag;
+import com.artemis.utils.ImmutableIntBag;
+import com.artemis.utils.IntBag;
 
 /**
  * If you need to tag any entity, use this. A typical usage would be to tag
@@ -16,10 +15,10 @@ import com.artemis.utils.ImmutableBag;
  * @author Arni Arent
  *
  */
-public class TagManager  extends EntityObserver
+public class TagManager extends EntityObserver
 {
-	private final Map<String, Entity> entitiesByTag;
-	private final Map<Entity, String> tagsByEntity;
+	private final Map<String, Integer> entitiesByTag;
+	private final Map<Integer, String> tagsByEntity;
 
 	public TagManager ()
 	{
@@ -27,10 +26,10 @@ public class TagManager  extends EntityObserver
 		tagsByEntity = new HashMap<>();
 	}
 
-	public void register ( final String tag, final Entity e )
+	public void register ( final String tag, final int eid )
 	{
-		entitiesByTag.put( tag, e );
-		tagsByEntity.put( e, tag );
+		entitiesByTag.put( tag, Integer.valueOf( eid ) );
+		tagsByEntity.put( Integer.valueOf( eid ), tag );
 	}
 
 	public void unregister ( final String tag )
@@ -43,26 +42,26 @@ public class TagManager  extends EntityObserver
 		return entitiesByTag.containsKey( tag );
 	}
 
-	public Entity getEntity ( final String tag )
+	public int getEntity ( final String tag )
 	{
-		return entitiesByTag.get( tag );
+		return entitiesByTag.get( tag ).intValue();
 	}
 
 	public Collection<String> getRegisteredTags ()
 	{
 		return tagsByEntity.values();
 	}
-	
+
 	@Override
-	public void deleted ( final ImmutableBag<Entity> entities )
+	public void deleted ( final ImmutableIntBag entities )
 	{
-		final Entity[] array = ((Bag<Entity>) entities).data();
+		final int[] array = ((IntBag) entities).data();
 		final int size = entities.size();
-		
+
 		for ( int i = 0; i < size; ++i )
 		{
-			final String removedTag = tagsByEntity.remove( array[i] );
-			
+			final String removedTag = tagsByEntity.remove( Integer.valueOf( array[i] ) );
+
 			if ( removedTag != null )
 			{
 				entitiesByTag.remove( removedTag );

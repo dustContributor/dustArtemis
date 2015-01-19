@@ -6,6 +6,7 @@ import java.util.function.Supplier;
 
 import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
+import com.artemis.utils.IntBag;
 
 /**
  * The primary instance for the framework. It contains all the managers.
@@ -25,11 +26,11 @@ public class World
 
 	public float delta;
 
-	private final Bag<Entity> added;
-	private final Bag<Entity> changed;
-	private final Bag<Entity> deleted;
-	private final Bag<Entity> enabled;
-	private final Bag<Entity> disabled;
+	private final IntBag added;
+	private final IntBag changed;
+	private final IntBag deleted;
+	private final IntBag enabled;
+	private final IntBag disabled;
 
 	private final HashMap<Class<EntityObserver>, EntityObserver> observerMap;
 	private final Bag<EntityObserver> observers;
@@ -39,17 +40,15 @@ public class World
 		observerMap = new HashMap<>();
 		observers = new Bag<>( EntityObserver.class );
 
-		added = new Bag<>( Entity.class );
-		changed = new Bag<>( Entity.class );
-		deleted = new Bag<>( Entity.class );
-		enabled = new Bag<>( Entity.class );
-		disabled = new Bag<>( Entity.class );
+		added = new IntBag();
+		changed = new IntBag();
+		deleted = new IntBag();
+		enabled = new IntBag();
+		disabled = new IntBag();
 
 		cm = new ComponentManager();
+		em = new EntityManager();
 
-		boolean poolEnts = DAConstants.POOL_ENTITIES;
-
-		em = poolEnts ? new PooledEntityManager() : new EntityManager();
 		setObserver( em );
 	}
 
@@ -80,7 +79,7 @@ public class World
 	 * 
 	 * @return entity manager.
 	 */
-	public EntityManager getEntityManager ()
+	public EntityManager entityManager ()
 	{
 		return em;
 	}
@@ -90,7 +89,7 @@ public class World
 	 * 
 	 * @return component manager.
 	 */
-	protected ComponentManager getComponentManager ()
+	public ComponentManager componentManager ()
 	{
 		return cm;
 	}
@@ -212,16 +211,23 @@ public class World
 	/**
 	 * Adds a entity to this world.
 	 * 
-	 * @param e entity
+	 * @param eid entity id.
 	 */
-	public void addEntity ( final Entity e )
+	public void addEntity ( final int eid )
 	{
-		added.add( e );
+		added.add( eid );
 	}
 
-	public boolean isAdded ( final Entity e )
+	/**
+	 * Checks if the entity has been added to the world since the last
+	 * {@link #process()} call.
+	 * 
+	 * @param eid entity id to look for.
+	 * @return true if it was added recently, false otherwise.
+	 */
+	public boolean isAdded ( final int eid )
 	{
-		return added.contains( e ) > -1;
+		return added.contains( eid ) > -1;
 	}
 
 	/**
@@ -229,75 +235,80 @@ public class World
 	 * adding a component to an entity after it's been added to the world, then
 	 * you need to invoke this method.
 	 * 
-	 * @param e entity
+	 * @param eid entity id.
 	 */
-	public void changedEntity ( final Entity e )
+	public void changedEntity ( final int eid )
 	{
-		changed.add( e );
+		changed.add( eid );
 	}
 
-	public boolean isChanged ( final Entity e )
+	/**
+	 * Checks if the entity has been changed in the world since the last
+	 * {@link #process()} call.
+	 * 
+	 * @param eid entity id to look for.
+	 * @return true if it was changed recently, false otherwise.
+	 */
+	public boolean isChanged ( final int eid )
 	{
-		return changed.contains( e ) > -1;
+		return changed.contains( eid ) > -1;
 	}
 
 	/**
 	 * Delete the entity from the world.
 	 * 
-	 * @param e entity
+	 * @param eid entity id.
 	 */
-	public void deleteEntity ( final Entity e )
+	public void deleteEntity ( final int eid )
 	{
-		deleted.add( e );
+		deleted.add( eid );
 	}
 
-	public boolean isDeleted ( final Entity e )
+	/**
+	 * Checks if the entity has been deleted in the world since the last
+	 * {@link #process()} call.
+	 * 
+	 * @param eid entity id to look for.
+	 * @return true if it was deleted recently, false otherwise.
+	 */
+	public boolean isDeleted ( final int eid )
 	{
-		return deleted.contains( e ) > -1;
+		return deleted.contains( eid ) > -1;
 	}
 
 	/**
 	 * (Re)enable the entity in the world, after it having being disabled. Won't
 	 * do anything unless it was already disabled.
 	 * 
-	 * @param e entity to be enabled.
+	 * @param eid entity id.
 	 */
-	public void enable ( final Entity e )
+	public void enable ( final int eid )
 	{
-		enabled.add( e );
+		enabled.add( eid );
 	}
 
 	/**
 	 * Disable the entity from being processed. Won't delete it, it will
 	 * continue to exist but won't get processed.
 	 * 
-	 * @param e entity to be disabled.
+	 * @param eid entity id.
 	 */
-	public void disable ( final Entity e )
+	public void disable ( final int eid )
 	{
-		disabled.add( e );
+		disabled.add( eid );
 	}
 
 	/**
 	 * Create and return a new or reused entity instance. Will NOT add the
-	 * entity to the world, use World.addEntity(Entity) for that.
+	 * entity to the world, use World.addEntity(eid) for that.
 	 * 
 	 * @return entity
 	 */
-	public Entity createEntity ()
+	public int createEntity ()
 	{
-		return em.createEntityInstance();
-	}
-
-	/**
-	 * Get a entity having the specified id.
-	 * 
-	 * @param entityId of the entity that will be retrieved.
-	 * @return entity
-	 */
-	public Entity getEntity ( final int entityId )
-	{
-		return em.getEntity( entityId );
+		final int eid = em.createEntityInstance();
+		cm.initBitsIfAbsent( eid );
+		return eid;
 	}
 
 	/**

@@ -1,6 +1,6 @@
 package com.artemis;
 
-import com.artemis.utils.ImmutableBag;
+import com.artemis.utils.ImmutableIntBag;
 
 /**
  * @author Arni Arent
@@ -27,27 +27,27 @@ public abstract class EntityObserver
 		// Empty by default.
 	}
 
-	public void added ( ImmutableBag<Entity> entities )
+	public void added ( ImmutableIntBag entities )
 	{
 		// Empty by default.
 	}
 
-	public void changed ( ImmutableBag<Entity> entities )
+	public void changed ( ImmutableIntBag entities )
 	{
 		// Empty by default.
 	}
 
-	public void deleted ( ImmutableBag<Entity> entities )
+	public void deleted ( ImmutableIntBag entities )
 	{
 		// Empty by default.
 	}
 
-	public void enabled ( ImmutableBag<Entity> entities )
+	public void enabled ( ImmutableIntBag entities )
 	{
 		// Empty by default.
 	}
 
-	public void disabled ( ImmutableBag<Entity> entities )
+	public void disabled ( ImmutableIntBag entities )
 	{
 		// Empty by default.
 	}
