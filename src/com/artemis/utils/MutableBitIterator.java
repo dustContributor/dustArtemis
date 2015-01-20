@@ -23,7 +23,7 @@ public final class MutableBitIterator
 
 	private int wordi;
 	private int offset;
-	
+
 	public MutableBitIterator ()
 	{
 		// Empty.
@@ -33,11 +33,21 @@ public final class MutableBitIterator
 	{
 		this.setBits( bits );
 	}
-	
+
 	public void setBits ( long[] bits )
 	{
 		this.bits = bits;
 		reset();
+	}
+
+	public void startingFrom ( int index )
+	{
+		long msk = -1L << (index & 63);
+		// Computing starting word index and offset.
+		wordi = index / 64;
+		offset = wordi * 64;
+		// Masking unwanted bits from that word.
+		word = bits[wordi] & msk;
 	}
 
 	/**
