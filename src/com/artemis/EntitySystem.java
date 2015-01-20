@@ -141,26 +141,10 @@ public abstract class EntitySystem extends EntityObserver
 		// Empty method.
 	}
 
-	private final void removeFromSystem ( final int eid )
-	{
-		minModifiedId = Math.min( minModifiedId, eid );
-
-		activeBits.fastClear( eid );
-		removed( eid );
-	}
-
-	private final void insertToSystem ( final int eid )
-	{
-		minModifiedId = Math.min( minModifiedId, eid );
-
-		activeBits.set( eid );
-		inserted( eid );
-	}
-
 	@Override
 	public void added ( final ImmutableIntBag entities )
 	{
-		checkAll( entities );
+		addAll( entities );
 	}
 
 	@Override
@@ -179,6 +163,28 @@ public abstract class EntitySystem extends EntityObserver
 	public void disabled ( final ImmutableIntBag entities )
 	{
 		removeAll( entities );
+	}
+
+	@Override
+	public void enabled ( final ImmutableIntBag entities )
+	{
+		addAll( entities );
+	}
+
+	private final void removeFromSystem ( final int eid )
+	{
+		minModifiedId = Math.min( minModifiedId, eid );
+
+		activeBits.fastClear( eid );
+		removed( eid );
+	}
+
+	private final void insertToSystem ( final int eid )
+	{
+		minModifiedId = Math.min( minModifiedId, eid );
+
+		activeBits.set( eid );
+		inserted( eid );
 	}
 
 	private final void removeAll ( final ImmutableIntBag entities )
@@ -206,10 +212,28 @@ public abstract class EntitySystem extends EntityObserver
 		}
 	}
 
-	@Override
-	public void enabled ( final ImmutableIntBag entities )
+	private final void addAll ( final ImmutableIntBag entities )
 	{
-		checkAll( entities );
+		final Aspect asp = aspect;
+		if ( asp == null )
+		{
+			// Basically, a void entity system.
+			return;
+		}
+
+		final FixedBitSet[] componentBits = world.componentManager().getComponentBits().data();
+		final int[] array = ((IntBag) entities).data();
+		final int size = entities.size();
+
+		for ( int i = 0; i < size; ++i )
+		{
+			final int eid = array[i];
+
+			if ( asp.isInteresting( componentBits[eid] ) )
+			{
+				insertToSystem( eid );
+			}
+		}
 	}
 
 	/**
@@ -219,7 +243,7 @@ public abstract class EntitySystem extends EntityObserver
 	 * Removes entity from system if its not interesting and it has been added
 	 * before.
 	 * 
-	 * @param e entities to check.
+	 * @param entities to check.
 	 */
 	private final void checkAll ( final ImmutableIntBag entities )
 	{
