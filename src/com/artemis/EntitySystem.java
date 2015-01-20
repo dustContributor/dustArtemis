@@ -1,5 +1,7 @@
 package com.artemis;
 
+import java.util.Arrays;
+
 import org.apache.lucene.util.FixedBitSet;
 import org.apache.lucene.util.OpenBitSet;
 
@@ -75,31 +77,29 @@ public abstract class EntitySystem extends EntityObserver
 
 	private final void rebuildEntityList ()
 	{
-		final int nSize = activeBits.cardinality();
-		actives.ensureCapacity( nSize );
-		actives.setSize( nSize );
+		final int newSize = activeBits.cardinality();
+		final int oldSize = actives.size();
+		actives.setSize( newSize );
+		actives.ensureCapacity( newSize );
+
+		final int[] ids = actives.data();
 
 		final MutableBitIterator mbi = bitIterator;
 		mbi.setBits( activeBits.getBits() );
+		mbi.startingFrom( minModifiedId );
 
-		final int[] actEnts = actives.data();
-		final int[] ents = world.entityManager().entities.data();
+		int j = Arrays.binarySearch( ids, 0, oldSize, minModifiedId );
 
-		// Fetch min modified entity ID.
-		final int minId = minModifiedId;
-
-		int i;
-		int j = 0;
-
-		// Basically, try to start counting from the lowest ID modified.
-		while ( (i = mbi.nextSetBit()) < minId && i >= 0 )
+		if ( j < 0 )
 		{
-			++j;
+			// Entity ID isn't on the list yet.
+			j = -j - 1;
 		}
-		// From the found position, copy all the entity references in the array.
-		for ( ; i >= 0; i = mbi.nextSetBit(), ++j )
+
+		// From the found position, rebuild the entity ID list.
+		for ( int i = mbi.nextSetBit(); i >= 0; i = mbi.nextSetBit(), ++j )
 		{
-			actEnts[j] = ents[i];
+			ids[j] = i;
 		}
 	}
 
