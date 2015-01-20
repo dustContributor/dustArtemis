@@ -299,15 +299,15 @@ public class World
 	}
 
 	/**
-	 * Create and return a new or reused entity instance. Will NOT add the
-	 * entity to the world, use World.addEntity(eid) for that.
+	 * Create and return a new entity. Will NOT add the entity to the world, use
+	 * {@link World#addEntity(int)} for that.
 	 * 
 	 * @return entity
 	 */
 	public int createEntity ()
 	{
 		final int eid = em.createEntityInstance();
-		cm.initBitsIfAbsent( eid );
+		cm.registerEntity( eid );
 		return eid;
 	}
 

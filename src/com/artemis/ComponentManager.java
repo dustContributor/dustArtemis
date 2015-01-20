@@ -193,14 +193,15 @@ public final class ComponentManager
 		clearComponentBits( ents, size );
 	}
 
-	void initBitsIfAbsent ( final int eid )
+	void registerEntity ( final int eid )
 	{
 		componentBits.ensureCapacity( eid );
+		final FixedBitSet[] bits = componentBits.data();
 
-		if ( componentBits.getUnsafe( eid ) == null )
+		if ( bits[eid] == null )
 		{
 			final int wCnt = DAConstants.COMPONENT_BITS_WORD_COUNT;
-			componentBits.setUnsafe( eid, FixedBitSet.newBitSetByWords( wCnt ) );
+			bits[eid] = FixedBitSet.newBitSetByWords( wCnt );
 		}
 	}
 
