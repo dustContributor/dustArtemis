@@ -47,6 +47,8 @@ public final class EntityManager extends EntityObserver
 		 */
 		entities.ensureCapacity( eid + 1 );
 		disabled.ensureCapacity( eid + 1 );
+		// Track allocated ID.
+		entities.fastSet( eid );
 
 		return eid;
 	}
@@ -55,15 +57,9 @@ public final class EntityManager extends EntityObserver
 	public void added ( final ImmutableIntBag entities )
 	{
 		final int eSize = entities.size();
-		final int[] eArray = ((IntBag) entities).data();
 
 		activeCount += eSize;
 		addedCount += eSize;
-
-		for ( int i = eSize; i-- > 0; )
-		{
-			this.entities.fastSet( eArray[i] );
-		}
 	}
 
 	@Override
