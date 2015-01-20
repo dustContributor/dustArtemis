@@ -12,9 +12,6 @@ import com.artemis.utils.IntBag;
 @SuppressWarnings ( "hiding" )
 public final class EntityManager extends EntityObserver
 {
-	/** Bit set with the 'disabled' status of all entities. */
-	private final OpenBitSet disabled;
-
 	/* Various counters of entity state in this manager. */
 	private long activeCount;
 	private long addedCount;
@@ -23,15 +20,18 @@ public final class EntityManager extends EntityObserver
 
 	/** Store for allocating entity IDs. */
 	private final IdAllocator idStore;
-	/** Bag of all the entities. */
-	final IntBag entities;
+
+	/** Bit set of all the alive entity IDs */
+	private final OpenBitSet entities;
+	/** Bit set with the 'disabled' status of all entities. */
+	private final OpenBitSet disabled;
 
 	EntityManager ()
 	{
 		// Fetch approximate live entities.
 		int eSize = DAConstants.APPROX_LIVE_ENTITIES;
 
-		this.entities = new IntBag( eSize );
+		this.entities = new OpenBitSet( eSize );
 		this.disabled = new OpenBitSet( eSize );
 		this.idStore = new IdAllocator();
 	}
@@ -56,15 +56,13 @@ public final class EntityManager extends EntityObserver
 	{
 		final int eSize = entities.size();
 		final int[] eArray = ((IntBag) entities).data();
-		final int[] meArray = this.entities.data();
 
 		activeCount += eSize;
 		addedCount += eSize;
 
 		for ( int i = eSize; i-- > 0; )
 		{
-			final int eid = eArray[i];
-			meArray[eid] = eid;
+			this.entities.fastSet( eArray[i] );
 		}
 	}
 
@@ -95,7 +93,6 @@ public final class EntityManager extends EntityObserver
 	{
 		final int eSize = entities.size();
 		final int[] eArray = ((IntBag) entities).data();
-		final int[] meArray = this.entities.data();
 
 		activeCount -= eSize;
 		deletedCount += eSize;
@@ -104,10 +101,24 @@ public final class EntityManager extends EntityObserver
 		{
 			final int eid = eArray[i];
 
-			meArray[eid] = -1;
+			this.entities.fastClear( eid );
 			disabled.fastClear( eid );
 			idStore.free( eid );
 		}
+	}
+
+	/**
+	 * Returns the destination bag with all the current alive entities that
+	 * exist.
+	 * 
+	 * @param dest bag to hold the values.
+	 * @return the bag passed as parameter holding all the entities that are
+	 *         alive.
+	 */
+	public IntBag getAllActiveEntities ( final IntBag dest )
+	{
+		entities.forEachSetBit( dest::add );
+		return dest;
 	}
 
 	/**
@@ -119,7 +130,7 @@ public final class EntityManager extends EntityObserver
 	 */
 	public boolean isActive ( final int entityId )
 	{
-		return entities.getUnsafe( entityId ) > -1;
+		return entities.fastGet( entityId );
 	}
 
 	/**
