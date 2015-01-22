@@ -82,17 +82,12 @@ public final class DAConstants
 	public static final int COMPONENT_BITS_WORD_COUNT;
 	/** Approximate amount of mappers per system. */
 	public static final int APPROX_MAPPERS_PER_SYSTEM;
-	/** Defines if World instances pool entities or not. */
-	public static final boolean POOL_ENTITIES;
-	/** Defines max entities that can be retained in the entity pool. */
-	public static final int MAX_POOLED_ENTITIES;
 
 	static
 	{
 		final Properties props = loadCfgFile();
 
 		int itmp = 0;
-		boolean btmp = false;
 
 		itmp = getIntOrDefault( props, "BAG_DEFAULT_CAPACITY", 16 );
 		BAG_DEFAULT_CAPACITY = Math.max( itmp, 4 );
@@ -113,12 +108,6 @@ public final class DAConstants
 
 		itmp = getIntOrDefault( props, "APPROX_MAPPERS_PER_SYSTEM", 8 );
 		APPROX_MAPPERS_PER_SYSTEM = Math.max( itmp, 4 );
-
-		btmp = getBoolOrDefault( props, "POOL_ENTITIES", true );
-		POOL_ENTITIES = btmp;
-
-		itmp = getIntOrDefault( props, "MAX_POOLED_ENTITIES", Integer.MAX_VALUE );
-		MAX_POOLED_ENTITIES = Math.max( itmp, 16 );
 	}
 
 	/**
