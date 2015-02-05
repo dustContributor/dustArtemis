@@ -52,13 +52,39 @@ public final class ComponentManager
 	 * Add a component to an entity.
 	 * 
 	 * @param eid id of the entity to add the component to.
-	 * @param component to add to the entity
+	 * @param component to add to the entity.
 	 */
 	public void addComponent ( final int eid, final Component component )
 	{
 		final Class<? extends Component> type = component.getClass();
 		final int cmpIndex = indexFor( type );
-		addComponent( eid, component, type, cmpIndex );
+		final ComponentMapper<Component> cm = initIfAbsent( cmpIndex, type );
+		cm.ensureCapacity( eid );
+		cm.setUnsafe( eid, component );
+
+		componentBits.getUnsafe( eid ).set( cmpIndex );
+	}
+
+	/**
+	 * Faster way to add a pooled component to an entity if you already have the
+	 * related mapper at hand.
+	 * 
+	 * It adds the passed component instance to the entity.
+	 * 
+	 * @param eid id of the entity to add the component to.
+	 * @param component component to add to the entity.
+	 * @param mapper of the type of the component that will be added to the
+	 *            entity.
+	 */
+	public <T extends Component> void addComponent (
+		final int eid,
+		final T component,
+		final ComponentMapper<T> mapper )
+	{
+		final int cmpIndex = mapper.typeIndex;
+		mapper.ensureCapacity( eid );
+		mapper.setUnsafe( eid, component );
+		componentBits.getUnsafe( eid ).set( cmpIndex );
 	}
 
 	/**
@@ -70,19 +96,31 @@ public final class ComponentManager
 	public void addPooledComponent ( final int eid, final Class<? extends Component> type )
 	{
 		final int cmpIndex = indexFor( type );
-		addComponent( eid, poolsByType[cmpIndex].get(), type, cmpIndex );
-	}
-
-	private final void addComponent (
-		final int eid,
-		final Component component,
-		final Class<? extends Component> type,
-		final int cmpIndex )
-	{
 		final ComponentMapper<Component> cm = initIfAbsent( cmpIndex, type );
 		cm.ensureCapacity( eid );
-		cm.setUnsafe( eid, component );
+		cm.setUnsafe( eid, poolsByType[cmpIndex].get() );
 
+		componentBits.getUnsafe( eid ).set( cmpIndex );
+	}
+
+	/**
+	 * Faster way to add a pooled component to an entity if you already have the
+	 * related mapper at hand.
+	 * 
+	 * It retrieves an existing component of a pool and adds it to an entity.
+	 * 
+	 * @param eid id of the entity to add the component to.
+	 * @param mapper of the type of the component that will be added to the
+	 *            entity.
+	 */
+	@SuppressWarnings ( "unchecked" )
+	public <T extends Component> void addPooledComponent (
+		final int eid,
+		final ComponentMapper<T> mapper )
+	{
+		final int cmpIndex = mapper.typeIndex;
+		mapper.ensureCapacity( eid );
+		mapper.setUnsafe( eid, (T) poolsByType[cmpIndex].get() );
 		componentBits.getUnsafe( eid ).set( cmpIndex );
 	}
 
@@ -92,7 +130,7 @@ public final class ComponentManager
 		final Supplier<T> supplier,
 		Consumer<T> resetter )
 	{
-		resetter = (resetter != null) ? resetter : ( a ) -> {
+		resetter = (resetter != null) ? resetter : ( r ) -> {
 		};
 
 		final int cmpIndex = indexFor( type );
@@ -126,6 +164,28 @@ public final class ComponentManager
 	}
 
 	/**
+	 * Faster way to remove a component of an entity if you already have the
+	 * related mapper at hand.
+	 * 
+	 * Remove component by its type.
+	 * 
+	 * @param eid id of the entity to remove the component from.
+	 * @param mapper related to the type of component that will be removed of
+	 *            the entity.
+	 */
+	public void removeComponent ( final int eid, final ComponentMapper<? extends Component> mapper )
+	{
+		final int cmpIndex = mapper.typeIndex;
+		final FixedBitSet bits = componentBits.getUnsafe( eid );
+
+		if ( bits.get( cmpIndex ) )
+		{
+			mapper.removeUnsafe( eid );
+			bits.clear( cmpIndex );
+		}
+	}
+
+	/**
 	 * Remove pooled component by its type.
 	 * 
 	 * @param eid id of the entity to remove the component from.
@@ -139,6 +199,31 @@ public final class ComponentManager
 		if ( bits.get( cmpIndex ) )
 		{
 			final Component c = componentsByType[cmpIndex].removeUnsafe( eid );
+			bits.clear( cmpIndex );
+			poolsByType[cmpIndex].store( c );
+		}
+	}
+
+	/**
+	 * Faster way to remove a pooled component of an entity if you already have
+	 * the related mapper at hand. It stores the component back into the pool.
+	 * 
+	 * Remove component by its type.
+	 * 
+	 * @param eid id of the entity to remove the component from.
+	 * @param mapper related to the type of component that will be removed of
+	 *            the entity.
+	 */
+	public void removePooledComponent (
+		final int eid,
+		final ComponentMapper<? extends Component> mapper )
+	{
+		final int cmpIndex = mapper.typeIndex;
+		final FixedBitSet bits = componentBits.getUnsafe( eid );
+
+		if ( bits.get( cmpIndex ) )
+		{
+			final Component c = mapper.removeUnsafe( eid );
 			bits.clear( cmpIndex );
 			poolsByType[cmpIndex].store( c );
 		}
@@ -258,7 +343,7 @@ public final class ComponentManager
 	private final void clearComponentBits ( final int[] ents, final int size )
 	{
 		final FixedBitSet[] bits = componentBits.data();
-		
+
 		for ( int i = size; i-- > 0; )
 		{
 			bits[ents[i]].clear();
@@ -276,28 +361,29 @@ public final class ComponentManager
 	 * 
 	 * It also initializes the mapper if it isn't present.
 	 * 
-	 * @param cmpIndex component index to check if it has a component bag
+	 * @param typeIndex component type index to check if it has a component bag
 	 *            initialized.
 	 * @return Component bag for the given component index.
 	 */
 	@SuppressWarnings ( { "rawtypes", "unchecked" } )
 	private final ComponentMapper<Component> initIfAbsent (
-		final int cmpIndex,
+		final int typeIndex,
 		final Class<? extends Component> type )
 	{
 		// If type bag can't hold this component type.
-		if ( cmpIndex >= componentsByType.length )
+		if ( typeIndex >= componentsByType.length )
 		{
-			final int newLen = BitUtil.nextHighestPowerOfTwo( cmpIndex + 1 );
+			final int newLen = BitUtil.nextHighestPowerOfTwo( typeIndex + 1 );
 			componentsByType = Arrays.copyOf( componentsByType, newLen );
 		}
 
-		if ( componentsByType[cmpIndex] == null )
+		if ( componentsByType[typeIndex] == null )
 		{
-			componentsByType[cmpIndex] = new ComponentMapper( type );
+			final int cap = DAConstants.APPROX_LIVE_ENTITIES / 2;
+			componentsByType[typeIndex] = new ComponentMapper( type, typeIndex, cap );
 		}
 
-		return componentsByType[cmpIndex];
+		return componentsByType[typeIndex];
 	}
 
 	private static final int indexFor ( final Class<? extends Component> type )

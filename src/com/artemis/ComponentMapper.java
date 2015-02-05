@@ -14,16 +14,9 @@ import com.artemis.utils.ImmutableBag;
  */
 public final class ComponentMapper<T extends Component> extends ImmutableBag<T>
 {
-	ComponentMapper ()
-	{
-		super();
-	}
-
-	ComponentMapper ( final int capacity )
-	{
-		super( capacity );
-	}
-
+	/** Index of the component type that this mapper uses. */
+	final int typeIndex;
+	
 	/**
 	 * Constructs an empty mapper with an initial capacity of
 	 * {@value #DEFAULT_CAPACITY}. Uses Array.newInstance() to instantiate a
@@ -31,14 +24,16 @@ public final class ComponentMapper<T extends Component> extends ImmutableBag<T>
 	 * 
 	 * @param type of the backing array.
 	 */
-	ComponentMapper ( final Class<T> type )
+	ComponentMapper ( Class<T> type, int typeIndex )
 	{
 		super( type );
+		this.typeIndex = typeIndex;
 	}
 
-	ComponentMapper ( final Class<T> type, final int capacity )
+	ComponentMapper ( Class<T> type, int typeIndex, int capacity )
 	{
 		super( type, capacity );
+		this.typeIndex = typeIndex;
 	}
 
 	/**
