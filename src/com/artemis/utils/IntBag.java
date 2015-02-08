@@ -232,6 +232,39 @@ public class IntBag extends ImmutableIntBag
 	}
 
 	/**
+	 * Erases a range of elements in this Bag, shifting the remaining elements
+	 * to the left, preserving their order.
+	 * 
+	 * @param index from which the elements will start to be erased.
+	 * @param length of the range to be erased.
+	 */
+	public void eraseRange ( final int index, final int length )
+	{
+		if ( isInSize( index ) && isInSize( index + length ) )
+		{
+			eraseRangeUnsafe( index, length );
+		}
+	}
+
+	/**
+	 * Erases a range of elements in this Bag, shifting the remaining elements
+	 * to the left, preserving their order.
+	 * 
+	 * <p> <b>UNSAFE: Avoids doing any bounds check.</b> </p>
+	 * 
+	 * @param index from which the elements will start to be erased.
+	 * @param length of the range to be erased.
+	 */
+	public void eraseRangeUnsafe ( final int index, final int length )
+	{
+		final int[] array = data;
+		final int newSize = size - length;
+		// Shift elements to the left.
+		System.arraycopy( array, index + length, array, index, newSize - index );
+		size = newSize;
+	}
+
+	/**
 	 * Removes the item at the specified position in this Bag. Does this by
 	 * overwriting it was last item then removing last item.
 	 * 
