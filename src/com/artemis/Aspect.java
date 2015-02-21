@@ -123,6 +123,17 @@ public final class Aspect
 	}
 
 	/**
+	 * Factory method that returns a new {@link Builder} instance to build
+	 * {@link Aspect} instances from.
+	 * 
+	 * @return new {@link Builder} instance.
+	 */
+	public static final Aspect.Builder builder ()
+	{
+		return new Aspect.Builder();
+	}
+
+	/**
 	 * Builder class to configure and create Aspects from it.
 	 * 
 	 * @author dustContributor

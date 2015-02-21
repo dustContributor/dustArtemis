@@ -34,7 +34,7 @@ public abstract class EntitySystem extends EntityObserver
 	 * Creates an entity system that uses the specified aspect as a matcher
 	 * against entities.
 	 * 
-	 * @param aspect to match against entities
+	 * @param aspect to match against entities.
 	 */
 	public EntitySystem ( final Aspect aspect )
 	{
@@ -50,6 +50,18 @@ public abstract class EntitySystem extends EntityObserver
 		this.activeBits = new OpenBitSet( actSize );
 
 		this.setActive( false );
+	}
+
+	/**
+	 * Creates an entity system that builds an {@link Aspect} instance using the
+	 * passed {@link Aspect.Builder}, and uses that Aspect as a matcher against
+	 * entities.
+	 * 
+	 * @param builder to create an {@link Aspect} to match against entities.
+	 */
+	public EntitySystem ( final Aspect.Builder builder )
+	{
+		this( builder.build() );
 	}
 
 	/**
