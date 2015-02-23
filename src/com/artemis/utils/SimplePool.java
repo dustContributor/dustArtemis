@@ -21,7 +21,12 @@ public final class SimplePool<T>
 		if ( store.size() > 0 )
 		{
 			final T cmp = store.removeLastUnsafe();
-			resetter.accept( cmp );
+
+			if ( resetter != null )
+			{
+				resetter.accept( cmp );
+			}
+
 			return cmp;
 		}
 

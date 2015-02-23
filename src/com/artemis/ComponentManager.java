@@ -128,11 +128,8 @@ public final class ComponentManager
 	<T extends Component> void registerPoolable (
 		final Class<T> type,
 		final Supplier<T> supplier,
-		Consumer<T> resetter )
+		final Consumer<T> resetter )
 	{
-		resetter = (resetter != null) ? resetter : ( r ) -> {
-		};
-
 		final int cmpIndex = indexFor( type );
 
 		if ( cmpIndex >= poolsByType.length )
