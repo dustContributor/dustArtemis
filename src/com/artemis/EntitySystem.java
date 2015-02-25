@@ -101,12 +101,8 @@ public abstract class EntitySystem extends EntityObserver
 		mbi.startingFrom( minModifiedId );
 
 		int j = Arrays.binarySearch( ids, 0, oldSize, minModifiedId );
-
-		if ( j < 0 )
-		{
-			// Entity ID isn't on the list yet.
-			j = -j - 1;
-		}
+		// Fix index if Entity ID isn't on the list yet.
+		j = Math.max( j, -j - 1 );
 
 		// From the found position, rebuild the entity ID list.
 		for ( int i = mbi.nextSetBit(); i >= 0; i = mbi.nextSetBit(), ++j )
