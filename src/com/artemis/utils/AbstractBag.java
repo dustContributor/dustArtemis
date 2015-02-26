@@ -2,7 +2,7 @@ package com.artemis.utils;
 
 import java.util.Arrays;
 
-class AbstractBag<T> extends ImmutableBag<T>
+abstract class AbstractBag<T> extends ImmutableBag<T>
 {
 	/**
 	 * Constructs an empty Bag with an initial capacity of
