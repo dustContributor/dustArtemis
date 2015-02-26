@@ -110,7 +110,14 @@ class AbstractBag<T> extends ImmutableBag<T>
 	public void clear ()
 	{
 		// Nulls all items.
-		Arrays.fill( data, null );
+		final T[] dst = data;
+		final int limit = dst.length;
+
+		dst[0] = null;
+		for ( int i = 1; i < limit; i += i )
+		{
+			System.arraycopy( dst, 0, dst, i, ((limit - i) < i) ? (limit - i) : i );
+		}
 		size = 0;
 	}
 
