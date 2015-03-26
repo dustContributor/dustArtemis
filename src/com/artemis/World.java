@@ -328,11 +328,11 @@ public class World
 
 	private final void clearAllBags ()
 	{
-		added.clear();
-		changed.clear();
-		disabled.clear();
-		enabled.clear();
-		deleted.clear();
+		added.setSize( 0 );
+		changed.setSize( 0 );
+		disabled.setSize( 0 );
+		enabled.setSize( 0 );
+		deleted.setSize( 0 );
 	}
 
 	@SuppressWarnings ( "hiding" )
