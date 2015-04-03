@@ -2,6 +2,8 @@ package com.artemis.utils;
 
 import static java.lang.Integer.MAX_VALUE;
 
+import java.util.Arrays;
+
 /**
  * Integer id allocator. It manages integer IDs in a given range. Retrieve IDs
  * with {@link #alloc()} method, and free them with the {@link #free(int)}
@@ -12,7 +14,8 @@ import static java.lang.Integer.MAX_VALUE;
 public final class IdAllocator
 {
 	/** List of ranges of free ID numbers. */
-	private final IntBag freeRanges;
+	private int[] freeRanges;
+	private int freeRangesSize;
 
 	/**
 	 * Creates an IdAllocator that will manage IDs in the interval [0,
@@ -34,8 +37,10 @@ public final class IdAllocator
 	 */
 	public IdAllocator ( int rangeStart, int rangeEnd )
 	{
-		this.freeRanges = new IntBag( 16 );
-		insertFreeRange( 0, rangeStart, rangeEnd );
+		this.freeRanges = new int[32];
+		this.freeRanges[0] = rangeStart;
+		this.freeRanges[1] = rangeEnd;
+		this.freeRangesSize = 2;
 	}
 
 	/**
@@ -46,7 +51,7 @@ public final class IdAllocator
 	 */
 	public final int alloc ()
 	{
-		final int[] fRanges = freeRanges.data;
+		final int[] fRanges = freeRanges;
 		// Free range's start will be new ID.
 		final int id = fRanges[0]++;
 
@@ -54,7 +59,10 @@ public final class IdAllocator
 		// remove it from the list.
 		if ( fRanges[0] >= fRanges[1] )
 		{
-			freeRanges.eraseRangeUnsafe( 0, 2 );
+			final int newSize = freeRangesSize - 2;
+			// Shift left overwriting range.
+			System.arraycopy( fRanges, 2, fRanges, 0, newSize );
+			freeRangesSize = newSize;
 		}
 		/*
 		 * We're going to assume that you didn't ran out of IDs (ie, that
@@ -74,8 +82,8 @@ public final class IdAllocator
 		 * We're going to assume you're not freeing an ID thats outside of this
 		 * IdAllocator's initial range.
 		 */
-		final int frSize = freeRanges.size();
-		final int[] fRanges = freeRanges.data();
+		final int frSize = freeRangesSize;
+		final int[] fRanges = freeRanges;
 
 		for ( int i = 0; i < frSize; i += 2 )
 		{
@@ -97,7 +105,9 @@ public final class IdAllocator
 							// Extend left range limit to right range limit.
 							fRanges[i - 1] = fRanges[i + 1];
 							// Remove right range.
-							freeRanges.eraseRangeUnsafe( i, 2 );
+							final int newSize = frSize - 2;
+							System.arraycopy( fRanges, i + 2, fRanges, i, newSize - i );
+							freeRangesSize = newSize;
 						}
 					}
 					return;
@@ -117,41 +127,48 @@ public final class IdAllocator
 				 * No adjacent free range was found for given ID, make a new
 				 * one.
 				 */
-				insertFreeRange( i, id, id + 1 );
+				final int newSize = frSize + 2;
+				// Ensure capacity.
+				if ( newSize >= fRanges.length )
+				{
+					freeRanges = Arrays.copyOf( fRanges, fRanges.length << 1 );
+				}
+				// Set new size.
+				freeRangesSize = newSize;
+				// Fetch possibly reallocated array.
+				final int[] nfRanges = freeRanges;
+				// Shift to the right.
+				System.arraycopy( nfRanges, i, nfRanges, i + 2, newSize - i );
+				// Store free range.
+				nfRanges[i] = id;
+				nfRanges[i + 1] = id + 1;
 				return;
 			}
 		}
 
 	}
 
-	private final void insertFreeRange ( final int index, final int start, final int end )
-	{
-		final int newSize = freeRanges.size() + 2;
-		freeRanges.ensureCapacity( newSize );
-		freeRanges.setSize( newSize );
-		final int[] fRanges = freeRanges.data();
-		// Shift to the right.
-		System.arraycopy( fRanges, index, fRanges, index + 2, newSize - index );
-		// Store free range.
-		fRanges[index] = start;
-		fRanges[index + 1] = end;
-	}
-
 	@Override
 	public final String toString ()
 	{
-		StringBuilder sb = new StringBuilder( 512 );
+		final StringBuilder sb = new StringBuilder( 512 );
 		sb.append( "ID ALLOCATOR: " );
 		sb.append( super.toString() );
 		sb.append( System.lineSeparator() );
-		sb.append( "FREE RANGES: " );
+		sb.append( " - FREE RANGES - " );
 
-		int[] fRanges = freeRanges.data();
+		final int frSize = freeRangesSize;
+		final int[] fRanges = freeRanges;
 
-		for ( int i = 0; i < freeRanges.size(); ++i )
+		for ( int i = 0; i < frSize; ++i )
 		{
 			sb.append( System.lineSeparator() );
-			sb.append( "START: " + fRanges[i] + " - END: " + fRanges[i + 1] );
+			sb.append( "RANGE: " );
+			sb.append( i );
+			sb.append( " - START: " );
+			sb.append( fRanges[i] );
+			sb.append( " - END: " );
+			sb.append( fRanges[i + 1] );
 		}
 
 		return sb.toString();
