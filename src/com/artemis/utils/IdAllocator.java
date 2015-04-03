@@ -37,7 +37,7 @@ public final class IdAllocator
 	 */
 	public IdAllocator ( int rangeStart, int rangeEnd )
 	{
-		this.freeRanges = new int[32];
+		this.freeRanges = new int[256];
 		this.freeRanges[0] = rangeStart;
 		this.freeRanges[1] = rangeEnd;
 		this.freeRangesSize = 2;
@@ -155,16 +155,19 @@ public final class IdAllocator
 		sb.append( "ID ALLOCATOR: " );
 		sb.append( super.toString() );
 		sb.append( System.lineSeparator() );
-		sb.append( " - FREE RANGES - " );
+		sb.append( "BACKING ARRAY SIZE: " );
+		sb.append( freeRanges.length );
+		sb.append( System.lineSeparator() );
+		sb.append( " - FREE RANGES LIST - " );
 
 		final int frSize = freeRangesSize;
 		final int[] fRanges = freeRanges;
 
-		for ( int i = 0; i < frSize; ++i )
+		for ( int i = 0; i < frSize; i += 2 )
 		{
 			sb.append( System.lineSeparator() );
 			sb.append( "RANGE: " );
-			sb.append( i );
+			sb.append( i / 2 );
 			sb.append( " - START: " );
 			sb.append( fRanges[i] );
 			sb.append( " - END: " );
