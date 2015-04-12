@@ -32,20 +32,19 @@ public final class ComponentManager
 	/** Component pools by type index. */
 	private SimplePool<Component>[] poolsByType;
 	/** Component bits for all entities. */
-	private final Bag<FixedBitSet> componentBits;
+	private FixedBitSet[] componentBits;
 
 	@SuppressWarnings ( { "unchecked" } )
 	ComponentManager ()
 	{
-		// Fetch component types.
-		int size = DAConstants.COMPONENT_TYPES_COUNT;
 		// Init all type bags.
-		componentsByType = new ComponentMapper[size];
-		poolsByType = new SimplePool[size];
-		componentBits = new Bag<>( FixedBitSet.class, DAConstants.APPROX_LIVE_ENTITIES );
+		componentsByType = new ComponentMapper[DAConstants.COMPONENT_TYPES_COUNT];
+		poolsByType = new SimplePool[DAConstants.COMPONENT_TYPES_COUNT];
+		componentBits = new FixedBitSet[DAConstants.APPROX_LIVE_ENTITIES];
 
+		// Init bitsets for all entities.
 		final int wCnt = DAConstants.COMPONENT_BITS_WORD_COUNT;
-		Arrays.setAll( componentBits.data(), ( i ) -> FixedBitSet.newBitSetByWords( wCnt ) );
+		Arrays.setAll( componentBits, ( i ) -> FixedBitSet.newBitSetByWords( wCnt ) );
 	}
 
 	/**
@@ -62,7 +61,7 @@ public final class ComponentManager
 		cm.ensureCapacity( eid );
 		cm.setUnsafe( eid, component );
 
-		componentBits.getUnsafe( eid ).set( cmpIndex );
+		componentBits[eid].set( cmpIndex );
 	}
 
 	/**
@@ -84,7 +83,7 @@ public final class ComponentManager
 		final int cmpIndex = mapper.typeIndex;
 		mapper.ensureCapacity( eid );
 		mapper.setUnsafe( eid, component );
-		componentBits.getUnsafe( eid ).set( cmpIndex );
+		componentBits[eid].set( cmpIndex );
 	}
 
 	/**
@@ -100,7 +99,7 @@ public final class ComponentManager
 		cm.ensureCapacity( eid );
 		cm.setUnsafe( eid, poolsByType[cmpIndex].get() );
 
-		componentBits.getUnsafe( eid ).set( cmpIndex );
+		componentBits[eid].set( cmpIndex );
 	}
 
 	/**
@@ -121,7 +120,7 @@ public final class ComponentManager
 		final int cmpIndex = mapper.typeIndex;
 		mapper.ensureCapacity( eid );
 		mapper.setUnsafe( eid, (T) poolsByType[cmpIndex].get() );
-		componentBits.getUnsafe( eid ).set( cmpIndex );
+		componentBits[eid].set( cmpIndex );
 	}
 
 	@SuppressWarnings ( { "unchecked", "rawtypes" } )
@@ -151,7 +150,7 @@ public final class ComponentManager
 	public void removeComponent ( final int eid, final Class<? extends Component> type )
 	{
 		final int cmpIndex = indexFor( type );
-		final FixedBitSet bits = componentBits.getUnsafe( eid );
+		final FixedBitSet bits = componentBits[eid];
 
 		if ( bits.get( cmpIndex ) )
 		{
@@ -173,7 +172,7 @@ public final class ComponentManager
 	public void removeComponent ( final int eid, final ComponentMapper<? extends Component> mapper )
 	{
 		final int cmpIndex = mapper.typeIndex;
-		final FixedBitSet bits = componentBits.getUnsafe( eid );
+		final FixedBitSet bits = componentBits[eid];
 
 		if ( bits.get( cmpIndex ) )
 		{
@@ -191,7 +190,7 @@ public final class ComponentManager
 	public void removePooledComponent ( final int eid, final Class<? extends Component> type )
 	{
 		final int cmpIndex = indexFor( type );
-		final FixedBitSet bits = componentBits.getUnsafe( eid );
+		final FixedBitSet bits = componentBits[eid];
 
 		if ( bits.get( cmpIndex ) )
 		{
@@ -216,7 +215,7 @@ public final class ComponentManager
 		final ComponentMapper<? extends Component> mapper )
 	{
 		final int cmpIndex = mapper.typeIndex;
-		final FixedBitSet bits = componentBits.getUnsafe( eid );
+		final FixedBitSet bits = componentBits[eid];
 
 		if ( bits.get( cmpIndex ) )
 		{
@@ -247,7 +246,7 @@ public final class ComponentManager
 		final ComponentMapper<Component>[] cmpBags = componentsByType;
 		final FixedBitIterator mbi = bitIterator;
 
-		mbi.setBits( componentBits.getUnsafe( eid ) );
+		mbi.setBits( componentBits[eid] );
 
 		for ( int i = mbi.nextSetBit(); i >= 0; i = mbi.nextSetBit() )
 		{
@@ -271,8 +270,13 @@ public final class ComponentManager
 
 	void registerEntity ( final int eid )
 	{
-		componentBits.ensureCapacity( eid );
-		final FixedBitSet[] bits = componentBits.data();
+		if ( eid >= componentBits.length )
+		{
+			final int newLen = BitUtil.nextHighestPowerOfTwo( eid + 1 );
+			componentBits = Arrays.copyOf( componentBits, newLen );
+		}
+
+		final FixedBitSet[] bits = componentBits;
 
 		if ( bits[eid] == null )
 		{
@@ -281,11 +285,11 @@ public final class ComponentManager
 		}
 	}
 
-	private final void clearComponents ( final int[] ents, final int size )
+	private void clearComponents ( final int[] ents, final int size )
 	{
 		final ComponentMapper<Component>[] cmpBags = componentsByType;
 		final SimplePool<Component>[] pools = poolsByType;
-		final FixedBitSet[] bits = componentBits.data();
+		final FixedBitSet[] bits = componentBits;
 		final FixedBitIterator mbi = bitIterator;
 		final FixedBitSet tmp = tmpBits;
 		final FixedBitSet pcb = pooledComponentBits;
@@ -324,7 +328,7 @@ public final class ComponentManager
 		}
 	}
 
-	final Bag<FixedBitSet> getComponentBits ()
+	FixedBitSet[] componentBits ()
 	{
 		return componentBits;
 	}
@@ -340,7 +344,7 @@ public final class ComponentManager
 	 * @return Component bag for the given component index.
 	 */
 	@SuppressWarnings ( { "rawtypes", "unchecked" } )
-	private final ComponentMapper<Component> initIfAbsent (
+	private ComponentMapper<Component> initIfAbsent (
 		final int typeIndex,
 		final Class<? extends Component> type )
 	{
@@ -351,13 +355,15 @@ public final class ComponentManager
 			componentsByType = Arrays.copyOf( componentsByType, newLen );
 		}
 
-		if ( componentsByType[typeIndex] == null )
+		final ComponentMapper<Component>[] mappers = componentsByType;
+
+		if ( mappers[typeIndex] == null )
 		{
 			final int cap = DAConstants.APPROX_LIVE_ENTITIES / 2;
-			componentsByType[typeIndex] = new ComponentMapper( type, typeIndex, cap );
+			mappers[typeIndex] = new ComponentMapper( type, typeIndex, cap );
 		}
 
-		return componentsByType[typeIndex];
+		return mappers[typeIndex];
 	}
 
 	private static final int indexFor ( final Class<? extends Component> type )

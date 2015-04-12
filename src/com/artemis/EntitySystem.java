@@ -229,7 +229,7 @@ public abstract class EntitySystem extends EntityObserver
 			return;
 		}
 
-		final FixedBitSet[] componentBits = world.componentManager().getComponentBits().data();
+		final FixedBitSet[] cmpBits = world.componentManager().componentBits();
 		final int[] array = ((IntBag) entities).data();
 		final int size = entities.size();
 
@@ -237,7 +237,7 @@ public abstract class EntitySystem extends EntityObserver
 		{
 			final int eid = array[i];
 
-			if ( asp.isInteresting( componentBits[eid] ) )
+			if ( asp.isInteresting( cmpBits[eid] ) )
 			{
 				insertToSystem( eid );
 			}
@@ -265,7 +265,7 @@ public abstract class EntitySystem extends EntityObserver
 		// Fetch bits of active entities.
 		final OpenBitSet acBits = activeBits;
 
-		final FixedBitSet[] componentBits = world.componentManager().getComponentBits().data();
+		final FixedBitSet[] cmpBits = world.componentManager().componentBits();
 		final int[] array = ((IntBag) entities).data();
 		final int size = entities.size();
 
@@ -275,7 +275,7 @@ public abstract class EntitySystem extends EntityObserver
 			// Second bit for 'contains'.
 			int flags = acBits.getBit( eid ) << 1;
 			// First bit for 'interesting'.
-			flags |= asp.isInteresting( componentBits[eid] ) ? 0b1 : 0b0;
+			flags |= asp.isInteresting( cmpBits[eid] ) ? 0b1 : 0b0;
 
 			switch (flags)
 			{
