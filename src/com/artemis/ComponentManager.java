@@ -265,14 +265,8 @@ public final class ComponentManager
 
 	void clean ( final ImmutableIntBag deleted )
 	{
-		final int[] ents = ((IntBag) deleted).data();
-		final int size = deleted.size();
-
-		clearPooledComponents( ents, size );
-		// Now clear all components that aren't pooled.
-		clearComponents( ents, size );
-		// Clear all bits from entities.
-		clearComponentBits( ents, size );
+		// Clear all components.
+		clearComponents( ((IntBag) deleted).data(), deleted.size() );
 	}
 
 	void registerEntity ( final int eid )
@@ -287,7 +281,7 @@ public final class ComponentManager
 		}
 	}
 
-	private final void clearPooledComponents ( final int[] ents, final int size )
+	private final void clearComponents ( final int[] ents, final int size )
 	{
 		final ComponentMapper<Component>[] cmpBags = componentsByType;
 		final SimplePool<Component>[] pools = poolsByType;
@@ -296,54 +290,37 @@ public final class ComponentManager
 		final FixedBitSet tmp = tmpBits;
 		final FixedBitSet pcb = pooledComponentBits;
 
-		mbi.setBits( tmp );
-
 		for ( int i = size; i-- > 0; )
 		{
 			final int eid = ents[i];
+			final FixedBitSet ebits = bits[eid];
 
+			// Copy pooled component bits.
 			tmp.copyFrom( pcb );
-			tmp.and( bits[eid] );
-			mbi.reset();
+			// Keep only the ones the entity has.
+			tmp.and( ebits );
+
+			// Now iterate over them and put them in the pools.
+			mbi.setBits( tmp );
 
 			for ( int j = mbi.nextSetBit(); j >= 0; j = mbi.nextSetBit() )
 			{
 				pools[j].store( cmpBags[j].removeUnsafe( eid ) );
 			}
-		}
 
-		for ( int i = size; i-- > 0; )
-		{
-			bits[ents[i]].andNot( pcb );
-		}
-	}
+			// Remove pooled bits from entity.
+			ebits.andNot( pcb );
 
-	private final void clearComponents ( final int[] ents, final int size )
-	{
-		final ComponentMapper<Component>[] cmpBags = componentsByType;
-		final FixedBitSet[] bits = componentBits.data();
-		final FixedBitIterator mbi = bitIterator;
-
-		for ( int i = size; i-- > 0; )
-		{
-			final int eid = ents[i];
-
-			mbi.setBits( bits[eid] );
+			// Now iterate over normal component bits and remove them.
+			mbi.setBits( ebits );
 
 			for ( int j = mbi.nextSetBit(); j >= 0; j = mbi.nextSetBit() )
 			{
 				cmpBags[j].removeUnsafe( eid );
 			}
-		}
-	}
 
-	private final void clearComponentBits ( final int[] ents, final int size )
-	{
-		final FixedBitSet[] bits = componentBits.data();
-
-		for ( int i = size; i-- > 0; )
-		{
-			bits[ents[i]].clear();
+			// Now clear all component bits from the entity.
+			ebits.clear();
 		}
 	}
 
