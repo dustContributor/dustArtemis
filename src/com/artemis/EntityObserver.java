@@ -53,6 +53,15 @@ public abstract class EntityObserver
 	}
 
 	/**
+	 * Processes all entities that were inserted or removed fin this particular
+	 * observer.
+	 */
+	void processModifiedEntities ()
+	{
+		// Empty by default.
+	}
+
+	/**
 	 * Returns the state of this observer
 	 * 
 	 * @return {@code true} if its active and will get processed, {@code false}

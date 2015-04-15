@@ -349,6 +349,7 @@ public class World
 			o.disabled( disabled );
 			o.enabled( enabled );
 			o.deleted( deleted );
+			o.processModifiedEntities();
 		}
 	}
 

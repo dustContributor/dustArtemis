@@ -24,6 +24,8 @@ public abstract class EntitySystem extends EntityObserver
 	private final Aspect aspect;
 
 	private final IntBag actives;
+	private final IntBag inserted;
+	private final IntBag removed;
 
 	private final OpenBitSet activeBits;
 	private final MutableBitIterator bitIterator;
@@ -47,6 +49,8 @@ public abstract class EntitySystem extends EntityObserver
 		int actSize = DAConstants.APPROX_ENTITIES_PER_SYSTEM;
 
 		this.actives = new IntBag( actSize );
+		this.inserted = new IntBag( actSize / 2 );
+		this.removed = new IntBag( actSize / 2 );
 		this.activeBits = new OpenBitSet( actSize );
 
 		this.setActive( false );
@@ -128,23 +132,23 @@ public abstract class EntitySystem extends EntityObserver
 	protected abstract void processEntities ( ImmutableIntBag entities );
 
 	/**
-	 * Called if the system has received a entity it is interested in, e.g.
-	 * created or a component was added to it.
+	 * Called when the system has received matching entities, e.g. created or a
+	 * component was added to it.
 	 * 
-	 * @param eid the entity that was added to this system.
+	 * @param entities that were inserted into this system.
 	 */
-	protected void inserted ( final int eid )
+	protected void inserted ( final ImmutableIntBag entities )
 	{
 		// Empty method.
 	}
 
 	/**
-	 * Called if a entity was removed from this system, e.g. deleted or had one
-	 * of it's components removed.
+	 * Called when entities are removed from this system, e.g. deleted or had
+	 * one of it's components removed.
 	 * 
-	 * @param eid the entity that was removed from this system.
+	 * @param entities that were removed from this system.
 	 */
-	protected void removed ( final int eid )
+	protected void removed ( final ImmutableIntBag entities )
 	{
 		// Empty method.
 	}
@@ -179,20 +183,35 @@ public abstract class EntitySystem extends EntityObserver
 		addAll( entities );
 	}
 
-	private final void removeFromSystem ( final int eid )
+	@Override
+	final void processModifiedEntities ()
 	{
-		minModifiedId = Math.min( minModifiedId, eid );
+		final int[] removs = removed.data();
 
-		activeBits.fastClear( eid );
-		removed( eid );
-	}
+		int minId = Integer.MAX_VALUE;
 
-	private final void insertToSystem ( final int eid )
-	{
-		minModifiedId = Math.min( minModifiedId, eid );
+		for ( int i = removed.size(); i-- > 0; )
+		{
+			final int eid = removs[i];
+			minId = Math.min( minId, eid );
+		}
 
-		activeBits.set( eid );
-		inserted( eid );
+		final int[] insrts = inserted.data();
+
+		for ( int i = inserted.size(); i-- > 0; )
+		{
+			final int eid = insrts[i];
+			minId = Math.min( minId, eid );
+		}
+
+		// Let the system process the events.
+		inserted( inserted );
+		removed( removed );
+		// Clear the containers.
+		inserted.setSize( 0 );
+		removed.setSize( 0 );
+		// Store the minimum ID found.
+		minModifiedId = minId;
 	}
 
 	private final void removeAll ( final ImmutableIntBag entities )
@@ -205,7 +224,7 @@ public abstract class EntitySystem extends EntityObserver
 
 		// Fetch bits of active entities.
 		final OpenBitSet acBits = activeBits;
-
+		final IntBag removs = removed;
 		final int[] array = ((IntBag) entities).data();
 		final int size = entities.size();
 
@@ -215,7 +234,8 @@ public abstract class EntitySystem extends EntityObserver
 
 			if ( acBits.get( eid ) )
 			{
-				removeFromSystem( eid );
+				removs.add( eid );
+				acBits.fastClear( eid );
 			}
 		}
 	}
@@ -225,10 +245,12 @@ public abstract class EntitySystem extends EntityObserver
 		final Aspect asp = aspect;
 		if ( asp == null )
 		{
-			// Basically, a void entity system.
+			// This is a void entity system.
 			return;
 		}
 
+		final OpenBitSet acBits = activeBits;
+		final IntBag insrts = inserted;
 		final FixedBitSet[] cmpBits = world.componentManager().componentBits();
 		final int[] array = ((IntBag) entities).data();
 		final int size = entities.size();
@@ -239,7 +261,8 @@ public abstract class EntitySystem extends EntityObserver
 
 			if ( asp.isInteresting( cmpBits[eid] ) )
 			{
-				insertToSystem( eid );
+				insrts.add( eid );
+				acBits.set( eid );
 			}
 		}
 	}
@@ -258,13 +281,14 @@ public abstract class EntitySystem extends EntityObserver
 		final Aspect asp = aspect;
 		if ( asp == null )
 		{
-			// Basically, a void entity system.
+			// This is a void entity system.
 			return;
 		}
 
 		// Fetch bits of active entities.
 		final OpenBitSet acBits = activeBits;
-
+		final IntBag insrts = inserted;
+		final IntBag removs = removed;
 		final FixedBitSet[] cmpBits = world.componentManager().componentBits();
 		final int[] array = ((IntBag) entities).data();
 		final int size = entities.size();
@@ -279,20 +303,22 @@ public abstract class EntitySystem extends EntityObserver
 
 			switch (flags)
 			{
-			// Interesting and system doesn't contains.
 				case 0b01:
 				{
-					insertToSystem( eid );
+					// Interesting and system doesn't contains. Insert.
+					insrts.add( eid );
+					acBits.set( eid );
 					continue;
 				}
-				// Not interesting and system does contains.
 				case 0b10:
 				{
-					removeFromSystem( eid );
+					// Not interesting and system does contains. Remove.
+					removs.add( eid );
+					acBits.fastClear( eid );
 					continue;
 				}
-				// Otherwise do nothing.
 				default:
+					// Otherwise do nothing.
 					continue;
 			}
 		}
