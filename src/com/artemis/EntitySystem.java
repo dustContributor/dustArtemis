@@ -43,7 +43,7 @@ public abstract class EntitySystem extends EntityObserver
 		this.index = ClassIndexer.getIndexFor( this.getClass(), EntitySystem.class );
 		this.bitIterator = new MutableBitIterator();
 
-		this.aspect = aspect.isEmpty() ? null : aspect;
+		this.aspect = (aspect == null) ? null : (aspect.isEmpty() ? null : aspect);
 
 		// Fetch entity amount per system.
 		int actSize = DAConstants.APPROX_ENTITIES_PER_SYSTEM;
