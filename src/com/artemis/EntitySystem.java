@@ -30,8 +30,6 @@ public abstract class EntitySystem extends EntityObserver
 	private final OpenBitSet activeBits;
 	private final MutableBitIterator bitIterator;
 
-	private int minModifiedId = Integer.MAX_VALUE;
-
 	/**
 	 * Creates an entity system that uses the specified aspect as a matcher
 	 * against entities.
@@ -41,17 +39,28 @@ public abstract class EntitySystem extends EntityObserver
 	public EntitySystem ( final Aspect aspect )
 	{
 		this.index = ClassIndexer.getIndexFor( this.getClass(), EntitySystem.class );
-		this.bitIterator = new MutableBitIterator();
 
-		this.aspect = (aspect == null) ? null : (aspect.isEmpty() ? null : aspect);
-
-		// Fetch entity amount per system.
-		int actSize = DAConstants.APPROX_ENTITIES_PER_SYSTEM;
-
-		this.actives = new IntBag( actSize );
-		this.inserted = new IntBag( actSize / 2 );
-		this.removed = new IntBag( actSize / 2 );
-		this.activeBits = new OpenBitSet( actSize );
+		if ( aspect == null || aspect.isEmpty() )
+		{
+			// Void systems don't need these.
+			this.aspect = null;
+			this.actives = null;
+			this.inserted = null;
+			this.removed = null;
+			this.activeBits = null;
+			this.bitIterator = null;
+		}
+		else
+		{
+			// Fetch entity amount per system.
+			int actSize = DAConstants.APPROX_ENTITIES_PER_SYSTEM;
+			this.aspect = aspect;
+			this.actives = new IntBag( actSize );
+			this.inserted = new IntBag( actSize / 2 );
+			this.removed = new IntBag( actSize / 2 );
+			this.activeBits = new OpenBitSet( actSize );
+			this.bitIterator = new MutableBitIterator();
+		}
 
 		this.setActive( false );
 	}
@@ -79,19 +88,12 @@ public abstract class EntitySystem extends EntityObserver
 	@Override
 	public final void process ()
 	{
-		if ( minModifiedId < Integer.MAX_VALUE )
-		{
-			rebuildEntityList();
-			// Reset min modified entity ID.
-			minModifiedId = Integer.MAX_VALUE;
-		}
-
 		begin();
 		processEntities( actives );
 		end();
 	}
 
-	private final void rebuildEntityList ()
+	private final void rebuildEntityList ( final int startId )
 	{
 		final int newSize = activeBits.cardinality();
 		final int oldSize = actives.size();
@@ -102,9 +104,9 @@ public abstract class EntitySystem extends EntityObserver
 
 		final MutableBitIterator mbi = bitIterator;
 		mbi.setBits( activeBits.getBits() );
-		mbi.startingFrom( minModifiedId );
+		mbi.startingFrom( startId );
 
-		int j = Arrays.binarySearch( ids, 0, oldSize, minModifiedId );
+		int j = Arrays.binarySearch( ids, 0, oldSize, startId );
 		// Fix index if Entity ID isn't on the list yet.
 		j = Math.max( j, -j - 1 );
 
@@ -186,6 +188,12 @@ public abstract class EntitySystem extends EntityObserver
 	@Override
 	final void processModifiedEntities ()
 	{
+		if ( aspect == null )
+		{
+			// Basically, a void entity system.
+			return;
+		}
+
 		final int[] removs = removed.data();
 
 		int minId = Integer.MAX_VALUE;
@@ -210,8 +218,11 @@ public abstract class EntitySystem extends EntityObserver
 		// Clear the containers.
 		inserted.setSize( 0 );
 		removed.setSize( 0 );
-		// Store the minimum ID found.
-		minModifiedId = minId;
+
+		if ( minId < Integer.MAX_VALUE )
+		{
+			rebuildEntityList( minId );
+		}
 	}
 
 	private final void removeAll ( final ImmutableIntBag entities )
