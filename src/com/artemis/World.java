@@ -1,6 +1,6 @@
 package com.artemis;
 
-import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -32,12 +32,12 @@ public class World
 	private final IntBag enabled;
 	private final IntBag disabled;
 
-	private final HashMap<Class<EntityObserver>, EntityObserver> observerMap;
+	private final IdentityHashMap<Class<EntityObserver>, EntityObserver> observerMap;
 	private final Bag<EntityObserver> observers;
 
 	public World ()
 	{
-		observerMap = new HashMap<>();
+		observerMap = new IdentityHashMap<>();
 		observers = new Bag<>( EntityObserver.class );
 
 		added = new IntBag();
@@ -335,7 +335,6 @@ public class World
 		deleted.setSize( 0 );
 	}
 
-	@SuppressWarnings ( "hiding" )
 	private final <T extends EntityObserver> void notifyObservers ( final Bag<T> observers )
 	{
 		final int size = observers.size();
