@@ -318,4 +318,24 @@ public abstract class ImmutableBag<T>
 		return newSize;
 	}
 
+	/**
+	 * Fills the passed array with the passed value up to the specified limit.
+	 * Doesn't does bound checks.
+	 * 
+	 * @param value to set in the array.
+	 * @param dest array to fill with the value.
+	 * @param limit up to which the value will be set in the array.
+	 * @return the passed array.
+	 */
+	protected static final <T> T[] fillWith ( final T value, final T[] dest, final int limit )
+	{
+		// Sets all elements to the specified value.
+		dest[0] = value;
+		for ( int i = 1; i < limit; i += i )
+		{
+			System.arraycopy( dest, 0, dest, i, ((limit - i) < i) ? (limit - i) : i );
+		}
+		return dest;
+	}
+
 }

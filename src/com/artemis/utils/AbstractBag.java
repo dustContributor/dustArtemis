@@ -105,29 +105,33 @@ abstract class AbstractBag<T> extends ImmutableBag<T>
 	}
 
 	/**
-	 * Removes all the items from this bag.
+	 * Removes all the items from this bag. This versions erases up to the
+	 * {@link #size()} of the Bag.
 	 */
 	public void clear ()
 	{
-		// Nulls all items.
-		final T[] dst = data;
-		final int limit = dst.length;
-
-		dst[0] = null;
-		for ( int i = 1; i < limit; i += i )
-		{
-			System.arraycopy( dst, 0, dst, i, ((limit - i) < i) ? (limit - i) : i );
-		}
+		fillWith( null, data, size );
 		size = 0;
 	}
 
-	public T[] data ()
+	/**
+	 * Removes all the items from this bag. This version erases up to the
+	 * {@link #capacity()} of the Bag.
+	 */
+	public void totalClear ()
+	{
+		fillWith( null, data, data.length );
+		size = 0;
+	}
+
+	public final T[] data ()
 	{
 		return this.data;
 	}
 
-	public void setSize ( final int size )
+	public final void setSize ( final int size )
 	{
 		this.size = size;
 	}
+
 }
