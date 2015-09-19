@@ -15,8 +15,8 @@ import com.artemis.utils.Bag;
  * just plain initializes any ComponentMapper it comes across in each observer.
  * 
  * Looking for annotations was quite a bit slower, so changing it for direct
- * type comparison, making it iterate over all the observers inside the method and
- * making it so it collects the fields before initializing them, it made the
+ * type comparison, making it iterate over all the observers inside the method
+ * and making it so it collects the fields before initializing them, it made the
  * whole initialization process faster.
  * 
  * @author dustContributor
@@ -30,8 +30,8 @@ final class MapperImplementor
 	}
 
 	/**
-	 * For each of the EntityObservers provided in the Bag, they will get a proper
-	 * instance for each of their ComponentMapper fields.
+	 * For each of the EntityObservers provided in the Bag, they will get a
+	 * proper instance for each of their ComponentMapper fields.
 	 * 
 	 * @param observers that you need initialized.
 	 * @param world where the components come from.
@@ -39,10 +39,8 @@ final class MapperImplementor
 	static final void initFor ( final Bag<? extends EntityObserver> observers, final World world )
 	{
 		final EntityObserver[] arObservers = observers.data();
-
 		// Fetch mapper amount per observer.
-		int fbSize = DAConstants.APPROX_MAPPERS_PER_SYSTEM;
-
+		final int fbSize = DAConstants.APPROX_MAPPERS_PER_SYSTEM;
 		// If correctly set, this bag won't need to grow.
 		final Bag<Field> fieldBag = new Bag<>( Field.class, fbSize );
 
@@ -51,30 +49,34 @@ final class MapperImplementor
 		{
 			final EntityObserver observer = arObservers[s];
 			/*
-			 * Iterating over superclasses until reaching EntityObserver (or as a
-			 * safety check, unti reaching Object). This allows using
+			 * Iterating over superclasses until reaching EntityObserver (or as
+			 * a safety check, until reaching Object). This allows using
 			 * EntityObserver class hierarchies inheriting mapper fields.
 			 * Otherwise mappers would only get assigned to the mappers declared
 			 * in the downmost EntityObserver subclass in the hierarchy.
 			 */
-			for ( 	Class<?> clazz = observer.getClass(); 
-					clazz != EntityObserver.class && clazz != Object.class; 
-					clazz = clazz.getSuperclass() )
+			for ( Class<?> clazz = observer.getClass(); clazz != EntityObserver.class
+					&& clazz != Object.class; clazz = clazz.getSuperclass() )
 			{
-				// Collect all the fields that are of ComponentMapper class in this observer class.
+				/*
+				 * Collect all the fields that are of ComponentMapper class in
+				 * this observer class.
+				 */
 				collectMapperFields( clazz.getDeclaredFields(), fieldBag );
 			}
-			
-			// Initialize all the collected mappers in this observer for the supplied World.
+			/*
+			 * Initialize all the collected mappers in this observer for the
+			 * supplied World.
+			 */
 			initMapperFields( fieldBag, observer, world );
-			
 			// Clear the field bag for the next observer.
-			fieldBag.clear();
+			fieldBag.setSize( 0 );
 		}
 	}
-	
+
 	/**
-	 * Collects all the fields that are of ComponentMapper class into the supplied bag.
+	 * Collects all the fields that are of ComponentMapper class into the
+	 * supplied bag.
 	 * 
 	 * @param fields to be checked.
 	 * @param fieldBag where the mappers will be collected.
@@ -92,7 +94,7 @@ final class MapperImplementor
 			}
 		}
 	}
-	
+
 	/**
 	 * Initializes all ComponentMapper fields in the bag.
 	 * 
@@ -101,17 +103,21 @@ final class MapperImplementor
 	 * @param world where to pull the ComponentMappers from.
 	 */
 	@SuppressWarnings ( "unchecked" )
-	private static final void initMapperFields ( final Bag<Field> fieldBag, final EntityObserver observer, final World world )
+	private static final void initMapperFields (
+		final Bag<Field> fieldBag,
+		final EntityObserver observer,
+		final World world )
 	{
 		final Field[] fields = fieldBag.data();
-		
+
 		// Now for each of those ComponentMapper fields in the observer:
 		for ( int f = fieldBag.size(); f-- > 0; )
 		{
 			final Field field = fields[f];
-			
+
 			final ParameterizedType genericType = (ParameterizedType) field.getGenericType();
-			final Class<? extends Component> componentType = (Class<? extends Component>) genericType.getActualTypeArguments()[0];
+			final Class<? extends Component> componentType =
+					(Class<? extends Component>) genericType.getActualTypeArguments()[0];
 			final ComponentMapper<? extends Component> mapper = world.getMapper( componentType );
 
 			// Set accessible through Reflection.
@@ -123,11 +129,15 @@ final class MapperImplementor
 			}
 			catch ( IllegalArgumentException | IllegalAccessException e )
 			{
-				throw new RuntimeException( "Error while setting component mappers", e );
+				throw new RuntimeException(
+						"[dustArtemis] Error while injecting the component mappers.", e );
 			}
 			finally
 			{
-				// Return the field to its initial state regardless of successful assignment or not.
+				/*
+				 * Return the field to its initial state regardless of
+				 * successful assignment or not.
+				 */
 				field.setAccessible( false );
 			}
 		}
