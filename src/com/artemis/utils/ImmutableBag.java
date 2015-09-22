@@ -1,8 +1,8 @@
 package com.artemis.utils;
 
 import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Spliterator;
-import java.util.Spliterators;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -13,6 +13,7 @@ import com.artemis.DAConstants;
 /**
  * 
  * @author Arni Arent
+ * @author dustContributor
  *
  * @param <T> type of the elements this ImmutableBag holds.
  */
@@ -250,27 +251,27 @@ public abstract class ImmutableBag<T>
 	}
 
 	/**
-	 * Provides a SIZED, SUBSIZED and IMMUTABLE sequential Stream over this bag.
+	 * Provides a {@link Spliterator#SIZED}, {@link Spliterator#SUBSIZED},
+	 * {@link Spliterator#ORDERED} and {@link Spliterator#IMMUTABLE}
+	 * {@link java.util.stream.Stream} over this bag.
 	 *
-	 * @return Stream representing this bag.
+	 * @return {@link Stream} representing this bag.
 	 */
 	public Stream<T> stream ()
 	{
-		final Spliterator<T> split = Spliterators.spliterator( data, Spliterator.IMMUTABLE );
-
-		return StreamSupport.stream( split, false ).limit( size );
+		return StreamSupport.stream( Arrays.spliterator( data, 0, size ), false );
 	}
 
 	/**
-	 * Provides a SIZED, SUBSIZED and IMMUTABLE parallel Stream over this bag.
+	 * Provides a {@link Spliterator#SIZED}, {@link Spliterator#SUBSIZED},
+	 * {@link Spliterator#ORDERED} and {@link Spliterator#IMMUTABLE}
+	 * <b>parallel</b> {@link java.util.stream.Stream} over this bag.
 	 *
-	 * @return Stream representing this bag.
+	 * @return parallel {@link Stream} representing this bag.
 	 */
 	public Stream<T> parallelStream ()
 	{
-		final Spliterator<T> split = Spliterators.spliterator( data, Spliterator.IMMUTABLE );
-
-		return StreamSupport.stream( split, true ).limit( size );
+		return StreamSupport.stream( Arrays.spliterator( data, 0, size ), true );
 	}
 
 	/**
