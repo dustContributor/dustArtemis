@@ -19,8 +19,6 @@ import com.artemis.DAConstants;
  */
 public abstract class ImmutableBag<T>
 {
-	public final Class<T> type;
-
 	protected T[] data;
 	protected int size;
 
@@ -80,7 +78,6 @@ public abstract class ImmutableBag<T>
 		final int newCap = (capacity > MINIMUM_WORKING_CAPACITY) ? capacity
 				: MINIMUM_WORKING_CAPACITY;
 		this.data = (T[]) Array.newInstance( type, newCap );
-		this.type = type;
 	}
 
 	/**
