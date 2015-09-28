@@ -28,10 +28,12 @@ import com.artemis.utils.ClassIndexer;
 public final class Aspect
 {
 	/**
-	 * This empty Aspect instance can be used if you want a system that
-	 * processes no entities, but still gets invoked. Typical usages is when you
-	 * need to create special purpose systems for debug rendering, like
-	 * rendering FPS, how many entities are active in the world, etc.
+	 * If you need an entity system that doesn't process any entities but still
+	 * needs to be run, consider extending {@link EntityObserver} directly
+	 * instead of passing {@link #EMPTY_ASPECT} to {@link EntitySystem}'s
+	 * constructor. Typical usages of such systems are when you need to create
+	 * special purpose systems for debug rendering, like rendering FPS, how many
+	 * entities are active in the world, etc.
 	 */
 	public static final Aspect EMPTY_ASPECT = new Builder().build();
 
