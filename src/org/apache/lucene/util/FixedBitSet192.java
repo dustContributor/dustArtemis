@@ -224,6 +224,13 @@ public class FixedBitSet192 extends FixedBitSet128
 	}
 
 	@Override
+	public void fill ()
+	{
+		super.fill();
+		word2 = -1L;
+	}
+
+	@Override
 	public int capacity ()
 	{
 		return 192;

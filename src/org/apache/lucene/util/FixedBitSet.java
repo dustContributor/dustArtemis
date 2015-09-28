@@ -80,7 +80,15 @@ public abstract class FixedBitSet
 
 	protected abstract void copyTo ( FixedBitSet256 bits );
 
+	/**
+	 * Sets all bit values to {@literal false}.
+	 */
 	public abstract void clear ();
+
+	/**
+	 * Sets all bit values to {@literal true}.
+	 */
+	public abstract void fill ();
 
 	public abstract int cardinality ();
 
