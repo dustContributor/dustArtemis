@@ -130,9 +130,57 @@ public final class Aspect
 	 * 
 	 * @return new {@link Builder} instance.
 	 */
-	public static final Aspect.Builder builder ()
+	public static final Builder builder ()
 	{
 		return new Aspect.Builder();
+	}
+
+	/**
+	 * Factory method that returns a new {@link Builder} instance to build
+	 * {@link Aspect} instances from. Works as if {@link Builder#all(Class...)}
+	 * was called on the {@link Builder}.
+	 * 
+	 * @see Builder#all(Class...)
+	 * 
+	 * @param types required for an entity to be accepted.
+	 * @return new Builder instance.
+	 */
+	@SafeVarargs
+	public static final Builder all ( final Class<? extends Component>... types )
+	{
+		return builder().all( types );
+	}
+
+	/**
+	 * Factory method that returns a new {@link Builder} instance to build
+	 * {@link Aspect} instances from. Works as if
+	 * {@link Builder#exclude(Class...)} was called on the {@link Builder}.
+	 * 
+	 * @see Builder#exclude(Class...)
+	 * 
+	 * @param types avoided for an entity to be accepted.
+	 * @return new {@link Builder} instance.
+	 */
+	@SafeVarargs
+	public static final Builder exclude ( final Class<? extends Component>... types )
+	{
+		return builder().exclude( types );
+	}
+
+	/**
+	 * Factory method that returns a new {@link Builder} instance to build
+	 * {@link Aspect} instances from. Works as if {@link Builder#one(Class...)}
+	 * was called on the {@link Builder}.
+	 * 
+	 * @see Builder#one(Class...)
+	 * 
+	 * @param types any of the types the entity must possess.
+	 * @return new {@link Builder} instance.
+	 */
+	@SafeVarargs
+	public static final Builder one ( final Class<? extends Component>... types )
+	{
+		return builder().one( types );
 	}
 
 	/**
@@ -156,11 +204,11 @@ public final class Aspect
 		}
 
 		/**
-		 * Returns a Builder where an entity must possess all of the specified
-		 * component types.
+		 * Returns a {@link Builder} where an entity must possess all of the
+		 * specified component types.
 		 * 
 		 * @param types a required component types.
-		 * @return this Builder instance.
+		 * @return this {@link Builder} instance.
 		 */
 		@SafeVarargs
 		public final Builder all ( final Class<? extends Component>... types )
@@ -175,7 +223,7 @@ public final class Aspect
 		 * specified exclusion component types.
 		 * 
 		 * @param types component types to exclude.
-		 * @return this Builder instance.
+		 * @return this {@link Builder} instance.
 		 */
 		@SafeVarargs
 		public final Builder exclude ( final Class<? extends Component>... types )
@@ -185,11 +233,11 @@ public final class Aspect
 		}
 
 		/**
-		 * Returns an Builder where an entity must possess any of the specified
-		 * component types.
+		 * Returns an {@link Builder} where an entity must possess any of the
+		 * specified component types.
 		 * 
 		 * @param types any of the types the entity must possess.
-		 * @return this Builder instance.
+		 * @return this {@link Builder} instance.
 		 */
 		@SafeVarargs
 		public final Builder one ( final Class<? extends Component>... types )
@@ -210,9 +258,9 @@ public final class Aspect
 		}
 
 		/**
-		 * Builds an Aspect based on how this Builder was configured.
+		 * Builds an Aspect based on how this {@link Builder} was configured.
 		 * 
-		 * @return Aspect based on this Builder configuration.
+		 * @return Aspect based on this {@link Builder} configuration.
 		 */
 		public final Aspect build ()
 		{
