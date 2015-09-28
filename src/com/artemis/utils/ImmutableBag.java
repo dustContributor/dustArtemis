@@ -4,6 +4,7 @@ import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Spliterator;
 import java.util.function.Consumer;
+import java.util.function.ObjIntConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -178,7 +179,7 @@ public abstract class ImmutableBag<T>
 
 	/**
 	 * Iterates over each element of this bag and applying the supplied
-	 * operation.
+	 * operation on each element.
 	 * 
 	 * @param operation to be performed on each element of this bag.
 	 */
@@ -189,6 +190,23 @@ public abstract class ImmutableBag<T>
 		for ( int i = 0; i < iSize; ++i )
 		{
 			operation.accept( data[i] );
+		}
+	}
+
+	/**
+	 * Iterates over each element of this bag and applying the supplied
+	 * operation on each element while passing the index of the element being
+	 * operated on.
+	 * 
+	 * @param operation to be performed on each element of this bag.
+	 */
+	public void forEach ( final ObjIntConsumer<T> operation )
+	{
+		final int iSize = size;
+
+		for ( int i = 0; i < iSize; ++i )
+		{
+			operation.accept( data[i], i );
 		}
 	}
 
