@@ -31,6 +31,18 @@ public abstract class EntitySystem extends EntityObserver
 	private final MutableBitIterator bitIterator;
 
 	/**
+	 * Creates an entity system that builds an {@link Aspect} instance using the
+	 * passed {@link Aspect.Builder}, and uses that Aspect as a matcher against
+	 * entities.
+	 * 
+	 * @param builder to create an {@link Aspect} to match against entities.
+	 */
+	public EntitySystem ( final Aspect.Builder builder )
+	{
+		this( builder.build() );
+	}
+
+	/**
 	 * Creates an entity system that uses the specified aspect as a matcher
 	 * against entities.
 	 * 
@@ -66,18 +78,6 @@ public abstract class EntitySystem extends EntityObserver
 	}
 
 	/**
-	 * Creates an entity system that builds an {@link Aspect} instance using the
-	 * passed {@link Aspect.Builder}, and uses that Aspect as a matcher against
-	 * entities.
-	 * 
-	 * @param builder to create an {@link Aspect} to match against entities.
-	 */
-	public EntitySystem ( final Aspect.Builder builder )
-	{
-		this( builder.build() );
-	}
-
-	/**
 	 * Called before processing of entities begins.
 	 */
 	protected void begin ()
@@ -91,30 +91,6 @@ public abstract class EntitySystem extends EntityObserver
 		begin();
 		processEntities( actives );
 		end();
-	}
-
-	private final void rebuildEntityList ( final int startId )
-	{
-		final int newSize = activeBits.cardinality();
-		final int oldSize = actives.size();
-		actives.setSize( newSize );
-		actives.ensureCapacity( newSize );
-
-		final int[] ids = actives.data();
-
-		final MutableBitIterator mbi = bitIterator;
-		mbi.setBits( activeBits.getBits() );
-		mbi.startingFrom( startId );
-
-		int j = Arrays.binarySearch( ids, 0, oldSize, startId );
-		// Fix index if Entity ID isn't on the list yet.
-		j = Math.max( j, -j - 1 );
-
-		// From the found position, rebuild the entity ID list.
-		for ( int i = mbi.nextSetBit(); i >= 0; i = mbi.nextSetBit(), ++j )
-		{
-			ids[j] = i;
-		}
 	}
 
 	/**
@@ -156,31 +132,31 @@ public abstract class EntitySystem extends EntityObserver
 	}
 
 	@Override
-	public void added ( final ImmutableIntBag entities )
+	public final void added ( final ImmutableIntBag entities )
 	{
 		addAll( entities );
 	}
 
 	@Override
-	public void changed ( final ImmutableIntBag entities )
+	public final void changed ( final ImmutableIntBag entities )
 	{
 		checkAll( entities );
 	}
 
 	@Override
-	public void deleted ( final ImmutableIntBag entities )
+	public final void deleted ( final ImmutableIntBag entities )
 	{
 		removeAll( entities );
 	}
 
 	@Override
-	public void disabled ( final ImmutableIntBag entities )
+	public final void disabled ( final ImmutableIntBag entities )
 	{
 		removeAll( entities );
 	}
 
 	@Override
-	public void enabled ( final ImmutableIntBag entities )
+	public final void enabled ( final ImmutableIntBag entities )
 	{
 		addAll( entities );
 	}
@@ -194,34 +170,58 @@ public abstract class EntitySystem extends EntityObserver
 			return;
 		}
 
-		final int[] removs = removed.data();
-
+		// Use MAX_VALUE as flag for no changes.
 		int minId = Integer.MAX_VALUE;
 
+		final int[] removs = removed.data();
+		// Check changes in removed entities.
 		for ( int i = removed.size(); i-- > 0; )
 		{
-			final int eid = removs[i];
-			minId = Math.min( minId, eid );
+			minId = Math.min( minId, removs[i] );
 		}
 
 		final int[] insrts = inserted.data();
-
+		// Check changes in inserted entities.
 		for ( int i = inserted.size(); i-- > 0; )
 		{
-			final int eid = insrts[i];
-			minId = Math.min( minId, eid );
+			minId = Math.min( minId, insrts[i] );
 		}
 
-		// Let the system process the events.
-		inserted( inserted );
-		removed( removed );
-		// Clear the containers.
-		inserted.setSize( 0 );
-		removed.setSize( 0 );
-
+		// If some entity was actually modified.
 		if ( minId < Integer.MAX_VALUE )
 		{
+			// Let the system process the events.
+			inserted( inserted );
+			removed( removed );
+			// Clear the containers.
+			inserted.setSize( 0 );
+			removed.setSize( 0 );
+			// And rebuild this system's entity list.
 			rebuildEntityList( minId );
+		}
+	}
+
+	private final void rebuildEntityList ( final int startId )
+	{
+		final int newSize = activeBits.cardinality();
+		final int oldSize = actives.size();
+		actives.setSize( newSize );
+		actives.ensureCapacity( newSize );
+
+		final int[] ids = actives.data();
+
+		final MutableBitIterator mbi = bitIterator;
+		mbi.setBits( activeBits.getBits() );
+		mbi.startingFrom( startId );
+
+		int j = Arrays.binarySearch( ids, 0, oldSize, startId );
+		// Fix index if Entity ID isn't on the list yet.
+		j = Math.max( j, -j - 1 );
+
+		// From the found position, rebuild the entity ID list.
+		for ( int i = mbi.nextSetBit(); i >= 0; i = mbi.nextSetBit(), ++j )
+		{
+			ids[j] = i;
 		}
 	}
 
@@ -335,12 +335,12 @@ public abstract class EntitySystem extends EntityObserver
 		}
 	}
 
-	public int getIndex ()
+	public final int index ()
 	{
 		return index;
 	}
 
-	public ImmutableIntBag getActives ()
+	public final ImmutableIntBag actives ()
 	{
 		return actives;
 	}
