@@ -1,27 +1,37 @@
 package com.artemis.utils;
 
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * Collection type a bit like ArrayList but does not preserve the order of its
  * entities, speed-wise it is very good, especially suited for games.
  *
- * <p> dustArtemis: It has been spiced up considerably. It supports Java 8
- * stream() and parallelStream(), allows direct backing array access with
- * data(), uses Array.newInstance() to provide arrays with proper size (to work
- * easily with direct backing array access). Its set(index) method has been
- * fixed, uses a default minimum capacity, implements grow strategies so it
- * doesn't grows madly after a few thousand adds, clearly defines different
- * 'safe' and 'unsafe' methods, and probably more stuff I'm missing.
+ * <p>
+ * dustArtemis: It has been spiced up considerably. It supports Java 8 stream()
+ * and parallelStream(), allows direct backing array access with data(), uses
+ * Array.newInstance() to provide arrays with proper size (to work easily with
+ * direct backing array access). Its set(index) method has been fixed, uses a
+ * default minimum capacity, implements grow strategies so it doesn't grows
+ * madly after a few thousand adds, clearly defines different 'safe' and
+ * 'unsafe' methods, and probably more stuff I'm missing.
  * 
- * <p> Growth is predictable. Before set(index,value) method enlarged the array
+ * <p>
+ * Growth is predictable. Before set(index,value) method enlarged the array
  * depending on the index that was being set, now it follows the grow strategies
- * always. </p>
+ * always.
+ * </p>
  * 
- * <p>These are the grow strategies:</p> <p>capacity*2 when the size is less
- * than {@value #GROW_RATE_THRESHOLD}</p> <p>capacity*1.5 when the size is more
- * or equal than {@value #GROW_RATE_THRESHOLD}</p>
- * 
+ * <p>
+ * These are the grow strategies:
+ * </p>
+ * <p>
+ * capacity*2 when the size is less than {@value #GROW_RATE_THRESHOLD}
+ * </p>
+ * <p>
+ * capacity*1.5 when the size is more or equal than
+ * {@value #GROW_RATE_THRESHOLD}
+ * </p>
  * </p>
  *
  * @author Arni Arent
@@ -43,10 +53,11 @@ public final class Bag<T> extends AbstractBag<T>
 	/**
 	 * Constructs an empty Bag with the specified initial capacity.
 	 * 
-	 * <p> NOTE: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY},
-	 * the Bag will be created with a capacity of
-	 * {@value #MINIMUM_WORKING_CAPACITY} instead. The backing array type will
-	 * be Object. </p>
+	 * <p>
+	 * NOTE: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY}, the
+	 * Bag will be created with a capacity of {@value #MINIMUM_WORKING_CAPACITY}
+	 * instead. The backing array type will be Object.
+	 * </p>
 	 * 
 	 * @param capacity of the Bag
 	 */
@@ -70,10 +81,12 @@ public final class Bag<T> extends AbstractBag<T>
 	/**
 	 * Constructs an empty Bag with the defined initial capacity.
 	 * 
-	 * <p> NOTE: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY},
-	 * the Bag will be created with a capacity of
-	 * {@value #MINIMUM_WORKING_CAPACITY} instead. Uses Array.newInstance() to
-	 * instantiate a backing array of the proper type. </p>
+	 * <p>
+	 * NOTE: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY}, the
+	 * Bag will be created with a capacity of {@value #MINIMUM_WORKING_CAPACITY}
+	 * instead. Uses Array.newInstance() to instantiate a backing array of the
+	 * proper type.
+	 * </p>
 	 * 
 	 * @param type of the backing array.
 	 * 
@@ -101,7 +114,9 @@ public final class Bag<T> extends AbstractBag<T>
 	/**
 	 * Adds the specified item to the end of this bag.
 	 * 
-	 * <p> <b>UNSAFE: Avoids doing any bounds check.</b> </p>
+	 * <p>
+	 * <b>UNSAFE: Avoids doing any bounds check.</b>
+	 * </p>
 	 * 
 	 * @param item to be added to this list
 	 */
@@ -142,7 +157,9 @@ public final class Bag<T> extends AbstractBag<T>
 	/**
 	 * Add items into this bag.
 	 * 
-	 * <p> <b>UNSAFE: Avoids doing any bounds check.</b> </p>
+	 * <p>
+	 * <b>UNSAFE: Avoids doing any bounds check.</b>
+	 * </p>
 	 * 
 	 * @param items to add.
 	 * @param itemsLength of the item array that will be added.
@@ -200,9 +217,41 @@ public final class Bag<T> extends AbstractBag<T>
 	}
 
 	/**
+	 * Tries to get the item at the specified index. If it isn't there, it sets
+	 * it to whatever the supplier provides, then returns that result. Will
+	 * resize the bag as needed.
+	 * 
+	 * @param index of the item.
+	 * @param supplier of items to use if its missing.
+	 * @return item at the index, or null if the index is negative.
+	 */
+	public T getOrSet ( final int index, final Supplier<T> supplier )
+	{
+		T tmp = null;
+		// If its a valid index.
+		if ( index > -1 )
+		{
+			// Resize if needed.
+			ensureCapacity( index );
+			// Now get the element.
+			tmp = getUnsafe( index );
+			// If it isn't there, initialize it.
+			if ( tmp == null )
+			{
+				tmp = supplier.get();
+				setUnsafe( index, tmp );
+			}
+		}
+		// Returns null if index isn't valid.
+		return tmp;
+	}
+
+	/**
 	 * Set item at specified index in the bag.
 	 * 
-	 * <p> <b>UNSAFE: Avoids doing any bounds check.</b> </p>
+	 * <p>
+	 * <b>UNSAFE: Avoids doing any bounds check.</b>
+	 * </p>
 	 * 
 	 * @param index of item
 	 * @param item to be set.
@@ -233,7 +282,9 @@ public final class Bag<T> extends AbstractBag<T>
 	 * Inserts an item into a position of this Bag, shifting any elements
 	 * remaining to the right, preserving their order.
 	 * 
-	 * <p> <b>UNSAFE: Avoids doing any bounds check.</b> </p>
+	 * <p>
+	 * <b>UNSAFE: Avoids doing any bounds check.</b>
+	 * </p>
 	 * 
 	 * @param index to insert the item at.
 	 * @param item to be inserted into the Bag.
@@ -270,7 +321,9 @@ public final class Bag<T> extends AbstractBag<T>
 	 * Erases an element of this Bag, shifting the remaining elements to the
 	 * left, preserving their order.
 	 * 
-	 * <p> <b>UNSAFE: Avoids doing any bounds check.</b> </p>
+	 * <p>
+	 * <b>UNSAFE: Avoids doing any bounds check.</b>
+	 * </p>
 	 * 
 	 * @param index to erase an element at.
 	 * @return the element erased from this Bag.
@@ -313,7 +366,9 @@ public final class Bag<T> extends AbstractBag<T>
 	 * Removes the item at the specified position in this Bag. Does this by
 	 * overwriting it was last item then removing last item.
 	 * 
-	 * <p> <b>UNSAFE: Avoids doing any bounds check.</b> </p>
+	 * <p>
+	 * <b>UNSAFE: Avoids doing any bounds check.</b>
+	 * </p>
 	 * 
 	 * @param index the index of item to be removed
 	 * @return item that was removed from the Bag
@@ -352,7 +407,9 @@ public final class Bag<T> extends AbstractBag<T>
 	/**
 	 * Removes the first value in the bag.
 	 * 
-	 * <p> <b>UNSAFE: Avoids doing any bounds check.</b> </p>
+	 * <p>
+	 * <b>UNSAFE: Avoids doing any bounds check.</b>
+	 * </p>
 	 * 
 	 * @return the first value in the bag.
 	 */
@@ -381,7 +438,9 @@ public final class Bag<T> extends AbstractBag<T>
 	/**
 	 * Removes the last object in the bag.
 	 * 
-	 * <p> <b>UNSAFE: Avoids doing any bounds check.</b> </p>
+	 * <p>
+	 * <b>UNSAFE: Avoids doing any bounds check.</b>
+	 * </p>
 	 * 
 	 * @return the last item in the bag.
 	 */
