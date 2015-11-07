@@ -1,6 +1,7 @@
 package com.artemis;
 
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 import org.apache.lucene.util.FixedBitSet;
 import org.apache.lucene.util.OpenBitSet;
@@ -16,6 +17,7 @@ import com.artemis.utils.MutableBitIterator;
  * that you use the other provided entity system implementations.
  * 
  * @author Arni Arent
+ * @author dustContributor
  * 
  */
 public abstract class EntitySystem extends EntityObserver
@@ -107,7 +109,7 @@ public abstract class EntitySystem extends EntityObserver
 	 * 
 	 * @param entities the entities this system contains.
 	 */
-	protected abstract void processEntities ( ImmutableIntBag entities );
+	protected abstract void processEntities ( final ImmutableIntBag entities );
 
 	/**
 	 * Called when the system has received matching entities, e.g. created or a
@@ -166,39 +168,57 @@ public abstract class EntitySystem extends EntityObserver
 	{
 		if ( aspect == null )
 		{
-			// Basically, a void entity system.
+			// This is a void entity system.
 			return;
 		}
-
-		// Use MAX_VALUE as flag for no changes.
-		int minId = Integer.MAX_VALUE;
-
-		final int[] removs = removed.data();
-		// Check changes in removed entities.
-		for ( int i = removed.size(); i-- > 0; )
-		{
-			minId = Math.min( minId, removs[i] );
-		}
-
-		final int[] insrts = inserted.data();
-		// Check changes in inserted entities.
-		for ( int i = inserted.size(); i-- > 0; )
-		{
-			minId = Math.min( minId, insrts[i] );
-		}
-
-		// If some entity was actually modified.
+		// Now start checking of something actually changed.
+		final int minIdRemoved = processIfModified( removed, this::removed );
+		final int minIdInserted = processIfModified( inserted, this::inserted );
+		// Compute real min modified entity id.
+		final int minId = Math.min( minIdRemoved, minIdInserted );
+		// Using max value as flag for no changes.
 		if ( minId < Integer.MAX_VALUE )
 		{
-			// Let the system process the events.
-			inserted( inserted );
-			removed( removed );
-			// Clear the containers.
-			inserted.setSize( 0 );
-			removed.setSize( 0 );
 			// And rebuild this system's entity list.
 			rebuildEntityList( minId );
 		}
+	}
+
+	/**
+	 * If there is something in the passed entities bag, it will call the
+	 * operation on the bag, clear it, then return the minimum affected entity
+	 * id found.
+	 * 
+	 * @param entities to process.
+	 * @param operation to make on the entities.
+	 * @return minimum affected entity id, or {@link Integer#MAX_VALUE} if there
+	 *         was nothing in the bag.
+	 */
+	private static final int processIfModified (
+		final IntBag entities,
+		final Consumer<IntBag> operation )
+	{
+		// Using max value as flag for no changes.
+		int minId = Integer.MAX_VALUE;
+
+		if ( entities.isEmpty() )
+		{
+			// Nothing to compute.
+			return minId;
+		}
+
+		final int[] data = entities.data();
+		// Check changes in removed entities.
+		for ( int i = entities.size(); i-- > 0; )
+		{
+			minId = Math.min( minId, data[i] );
+		}
+		// Let the system process the events.
+		operation.accept( entities );
+		// Clear the container.
+		entities.setSize( 0 );
+		// Return min entity id that was modified.
+		return minId;
 	}
 
 	private final void rebuildEntityList ( final int startId )
@@ -229,7 +249,7 @@ public abstract class EntitySystem extends EntityObserver
 	{
 		if ( aspect == null )
 		{
-			// Basically, a void entity system.
+			// This is a void entity system.
 			return;
 		}
 
