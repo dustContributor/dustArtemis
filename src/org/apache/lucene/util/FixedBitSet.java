@@ -2,6 +2,17 @@ package org.apache.lucene.util;
 
 public abstract class FixedBitSet
 {
+	private final byte size;
+	private final short capacity;
+
+	protected FixedBitSet ( final int size )
+	{
+		// Max of 255 words.
+		this.size = (byte) size;
+		// 64 bits per word.
+		this.capacity = (short) (size * 64);
+	}
+
 	public abstract boolean get ( int index );
 
 	public abstract int getBit ( int index );
@@ -92,13 +103,29 @@ public abstract class FixedBitSet
 
 	public abstract int cardinality ();
 
-	public abstract int capacity ();
-
-	public abstract int size ();
-
 	public abstract boolean isEmpty ();
 
 	public abstract long getWord ( int index );
+
+	/**
+	 * Returns the word count that this fixed bit set can store.
+	 * 
+	 * @return integer representing the word count of this bit set.
+	 */
+	public final int size ()
+	{
+		return Byte.toUnsignedInt( size );
+	}
+
+	/**
+	 * Returns the amount of bits that this fixed bit set can store.
+	 * 
+	 * @return integer representing the amount of bits this bit set can store.
+	 */
+	public final int capacity ()
+	{
+		return Short.toUnsignedInt( capacity );
+	}
 
 	public static final FixedBitSet newBitSetByWords ( final int words )
 	{

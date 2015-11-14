@@ -6,7 +6,12 @@ public class FixedBitSet64 extends FixedBitSet
 
 	public FixedBitSet64 ()
 	{
-		// Empty.
+		this( 1 );
+	}
+
+	protected FixedBitSet64 ( int size )
+	{
+		super( size );
 	}
 
 	@Override
@@ -294,18 +299,6 @@ public class FixedBitSet64 extends FixedBitSet
 	public void fill ()
 	{
 		word0 = -1L;
-	}
-
-	@Override
-	public int capacity ()
-	{
-		return 64;
-	}
-
-	@Override
-	public int size ()
-	{
-		return 1;
 	}
 
 	@Override

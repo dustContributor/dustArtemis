@@ -6,7 +6,12 @@ public class FixedBitSet256 extends FixedBitSet192
 
 	public FixedBitSet256 ()
 	{
-		// Empty.
+		this( 4 );
+	}
+
+	protected FixedBitSet256 ( int size )
+	{
+		super( size );
 	}
 
 	@Override
@@ -240,18 +245,6 @@ public class FixedBitSet256 extends FixedBitSet192
 	{
 		super.fill();
 		word3 = -1L;
-	}
-
-	@Override
-	public int capacity ()
-	{
-		return 256;
-	}
-
-	@Override
-	public int size ()
-	{
-		return 4;
 	}
 
 	@Override
