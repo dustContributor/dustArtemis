@@ -22,7 +22,7 @@ import java.util.Properties;
  * arrays at application startup when adding components/entities to your World
  * instance. </p> </br>
  * 
- * <br><p> In this regard, {@value #COMPONENT_TYPES_COUNT} is actually a limit.
+ * <br><p> In this regard, {@link #COMPONENT_TYPES_COUNT} is actually a limit.
  * Since the introduction of fixed-size bit sets (which are much more cost
  * efficient), dustArtemis needs to know how many component types there will be
  * around to decide the size of the bit sets that it will use, so have that in
