@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
+import com.artemis.annotations.EntitiesOf;
 import com.artemis.utils.Bag;
+import com.artemis.utils.ImmutableIntBag;
 
 /**
  * Class with static method for initializing {@link ComponentMapper}s and
@@ -39,10 +41,10 @@ final class Injector
 		final Bag<Field> fields = new Bag<>( Field.class, 32 );
 		// Predicates to test if the field is the appropiate one.
 		final List<Predicate<Field>> tests =
-				Arrays.asList( Injector::testForMapper, Injector::testForObserver );
+				Arrays.asList( Injector::testForMapper, Injector::testForObserver, Injector::testForEntitiesOf );
 		// Suppliers for each of the fields that need to be injected.
 		final List<BiFunction<Field, EntityObserver, Object>> suppliers =
-				Arrays.asList( Injector::supplyMapper, Injector::supplyObserver );
+				Arrays.asList( Injector::supplyMapper, Injector::supplyObserver, Injector::supplyEntities );
 
 		// For each of the EntityObservers in observers Bag:
 		for ( int s = observers.size(); s-- > 0; )
@@ -122,6 +124,30 @@ final class Injector
 		return value;
 	}
 
+	private static final Object supplyEntities ( final Field field, final EntityObserver observer )
+	{
+		if ( !field.getType().isAssignableFrom( ImmutableIntBag.class ) )
+		{
+			/*
+			 * Fetch names at runtime so refactoring names wont mess up the
+			 * message.
+			 */
+			final String anName = EntitiesOf.class.getSimpleName();
+			final String listName = ImmutableIntBag.class.getSimpleName();
+			final String tmsg = String.valueOf( observer );
+			final String fmsg = String.valueOf( field );
+			// Compose error message and throw exception.
+			throw new RuntimeException(
+					"[dustArtemis:ERROR] While injecting field: " + fmsg +
+							", in instance: " + tmsg + ". Can only use " + anName +
+							" annotation on " + listName + " fields! " );
+		}
+
+		final EntitiesOf ients = field.getAnnotation( EntitiesOf.class );
+		final Class<? extends EntitySystem> type = ients.value();
+		return observer.world.getObserver( type ).actives();
+	}
+
 	/**
 	 * Tests if the passed field is a {@link ComponentMapper}.
 	 * 
@@ -144,6 +170,11 @@ final class Injector
 		return EntityObserver.class.isAssignableFrom( field.getType() );
 	}
 
+	private static final boolean testForEntitiesOf ( final Field field )
+	{
+		return field.getAnnotation( EntitiesOf.class ) != null;
+	}
+
 	private static final void trySetField ( final Field field, final Object target, final Object value )
 	{
 		// Set accessible through Reflection.
@@ -160,9 +191,9 @@ final class Injector
 			final String fmsg = String.valueOf( field );
 			// Compose error message and throw exception.
 			throw new RuntimeException(
-					"[dustArtemis:ERROR] While injecting instance " + vmsg +
-							" in field " + fmsg +
-							" of instance " + tmsg, e );
+					"[dustArtemis:ERROR] While injecting object: " + vmsg +
+							", in field: " + fmsg +
+							", in instance: " + tmsg, e );
 		}
 		finally
 		{
