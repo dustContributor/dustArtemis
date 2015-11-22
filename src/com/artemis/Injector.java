@@ -21,6 +21,8 @@ import com.artemis.utils.ImmutableIntBag;
  */
 final class Injector
 {
+	private static final String ERROR_TAG = "[dustArtemis:Injector:ERROR]";
+
 	/** Non-instantiable class */
 	private Injector ()
 	{
@@ -113,7 +115,15 @@ final class Injector
 		@SuppressWarnings ( "unchecked" )
 		final Class<? extends Component> componentType =
 				(Class<? extends Component>) genericType.getActualTypeArguments()[0];
-		return observer.world.getMapper( componentType );
+		final ComponentMapper<? extends Component> value = observer.world.getMapper( componentType );
+		// Check for missing mapper.
+		if ( value == null )
+		{
+			final String tname = componentType.getSimpleName();
+			throw new RuntimeException( ERROR_TAG + " Cant find MAPPER for the type " + tname + " to inject!" );
+		}
+		// Everything OK.
+		return value;
 	}
 
 	private static final Object supplyObserver ( final Field field, final EntityObserver observer )
@@ -121,12 +131,23 @@ final class Injector
 		final Class<?> type = field.getType();
 		@SuppressWarnings ( "unchecked" )
 		final EntityObserver value = observer.world.getObserver( (Class<EntityObserver>) type );
+		// Check for missing observer.
+		if ( value == null )
+		{
+			final String tname = type.getSimpleName();
+			throw new RuntimeException( ERROR_TAG + " Cant find OBSERVER of the type " + tname + " to inject!" );
+		}
+		// Everything OK.
 		return value;
 	}
 
 	private static final Object supplyEntities ( final Field field, final EntityObserver observer )
 	{
-		if ( !field.getType().isAssignableFrom( ImmutableIntBag.class ) )
+		/*
+		 * ImmutableIntBag has no superclasses besides Object so just check
+		 * directly.
+		 */
+		if ( !(ImmutableIntBag.class == field.getType()) )
 		{
 			/*
 			 * Fetch names at runtime so refactoring names wont mess up the
@@ -134,18 +155,27 @@ final class Injector
 			 */
 			final String anName = EntitiesOf.class.getSimpleName();
 			final String listName = ImmutableIntBag.class.getSimpleName();
-			final String tmsg = String.valueOf( observer );
-			final String fmsg = String.valueOf( field );
+			final String tmsg = (observer == null) ? "null" : observer.getClass().getSimpleName();
+			final String fmsg = field.toString();
 			// Compose error message and throw exception.
 			throw new RuntimeException(
-					"[dustArtemis:ERROR] While injecting field: " + fmsg +
-							", in instance: " + tmsg + ". Can only use " + anName +
+					ERROR_TAG + " While injecting FIELD: " + fmsg +
+							", in observer: " + tmsg + ". Can only use " + anName +
 							" annotation on " + listName + " fields! " );
 		}
 
 		final EntitiesOf ients = field.getAnnotation( EntitiesOf.class );
 		final Class<? extends EntitySystem> type = ients.value();
-		return observer.world.getObserver( type ).actives();
+		final EntitySystem source = observer.world.getObserver( type );
+		// Check if the entity list source is null.
+		if ( source == null )
+		{
+			final String tname = type.getSimpleName();
+			throw new RuntimeException( ERROR_TAG + " Cant find OBSERVER of the type " + tname
+					+ " to fetch entity list from!" );
+		}
+		// Everything OK.
+		return source.actives();
 	}
 
 	/**
@@ -191,7 +221,7 @@ final class Injector
 			final String fmsg = String.valueOf( field );
 			// Compose error message and throw exception.
 			throw new RuntimeException(
-					"[dustArtemis:ERROR] While injecting object: " + vmsg +
+					ERROR_TAG + " While injecting object: " + vmsg +
 							", in field: " + fmsg +
 							", in instance: " + tmsg, e );
 		}
