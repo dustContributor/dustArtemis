@@ -2,8 +2,6 @@ package com.artemis;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
-import java.util.Arrays;
-import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
@@ -21,8 +19,6 @@ import com.artemis.utils.ImmutableIntBag;
  */
 final class Injector
 {
-	private static final String ERROR_TAG = "[dustArtemis:Injector:ERROR]";
-
 	/** Non-instantiable class */
 	private Injector ()
 	{
@@ -42,11 +38,17 @@ final class Injector
 		// Reasonable field amount.
 		final Bag<Field> fields = new Bag<>( Field.class, 32 );
 		// Predicates to test if the field is the appropiate one.
-		final List<Predicate<Field>> tests =
-				Arrays.asList( Injector::testForMapper, Injector::testForObserver, Injector::testForEntitiesOf );
+		@SuppressWarnings ( { "unchecked" } )
+		final Predicate<Field>[] tests = new Predicate[3];
+		tests[0] = Injector::testForMapper;
+		tests[1] = Injector::testForObserver;
+		tests[2] = Injector::testForEntitiesOf;
 		// Suppliers for each of the fields that need to be injected.
-		final List<BiFunction<Field, EntityObserver, Object>> suppliers =
-				Arrays.asList( Injector::supplyMapper, Injector::supplyObserver, Injector::supplyEntities );
+		@SuppressWarnings ( "unchecked" )
+		final BiFunction<Field, EntityObserver, Object>[] suppliers = new BiFunction[3];
+		suppliers[0] = Injector::supplyMapper;
+		suppliers[1] = Injector::supplyObserver;
+		suppliers[2] = Injector::supplyEntities;
 
 		// For each of the EntityObservers in observers Bag:
 		for ( int s = observers.size(); s-- > 0; )
@@ -84,8 +86,8 @@ final class Injector
 	private static final void initFields (
 		final Bag<Field> fields,
 		final EntityObserver observer,
-		final List<Predicate<Field>> tests,
-		final List<BiFunction<Field, EntityObserver, Object>> suppliers )
+		final Predicate<Field>[] tests,
+		final BiFunction<Field, EntityObserver, Object>[] suppliers )
 	{
 		final Field[] flds = fields.data();
 
@@ -94,14 +96,12 @@ final class Injector
 		{
 			final Field field = flds[f];
 
-			for ( int i = tests.size(); i-- > 0; )
+			for ( int i = tests.length; i-- > 0; )
 			{
-				if ( tests.get( i ).test( field ) )
+				if ( tests[i].test( field ) )
 				{
-					// Fetch the supplier for this test.
-					final BiFunction<Field, EntityObserver, Object> s = suppliers.get( i );
-					// Now try to set the field with the supplied value.
-					trySetField( field, observer, s.apply( field, observer ) );
+					// Try to set the field with the supplied value.
+					trySetField( field, observer, suppliers[i].apply( field, observer ) );
 					// Field already set, jump to the next one.
 					continue;
 				}
@@ -120,7 +120,7 @@ final class Injector
 		if ( value == null )
 		{
 			final String tname = componentType.getSimpleName();
-			throw new RuntimeException( ERROR_TAG + " Cant find MAPPER for the type " + tname + " to inject!" );
+			throw new DustException( Injector.class, "Cant find MAPPER for the type " + tname + " to inject!" );
 		}
 		// Everything OK.
 		return value;
@@ -135,7 +135,7 @@ final class Injector
 		if ( value == null )
 		{
 			final String tname = type.getSimpleName();
-			throw new RuntimeException( ERROR_TAG + " Cant find OBSERVER of the type " + tname + " to inject!" );
+			throw new DustException( Injector.class, "Cant find OBSERVER of the type " + tname + " to inject!" );
 		}
 		// Everything OK.
 		return value;
@@ -158,10 +158,10 @@ final class Injector
 			final String tmsg = (observer == null) ? "null" : observer.getClass().getSimpleName();
 			final String fmsg = field.toString();
 			// Compose error message and throw exception.
-			throw new RuntimeException(
-					ERROR_TAG + " While injecting FIELD: " + fmsg +
+			throw new DustException( Injector.class,
+					"While injecting FIELD: " + fmsg +
 							", in observer: " + tmsg + ". Can only use " + anName +
-							" annotation on " + listName + " fields! " );
+							" annotation on " + listName + " fields!" );
 		}
 
 		final EntitiesOf ients = field.getAnnotation( EntitiesOf.class );
@@ -171,8 +171,9 @@ final class Injector
 		if ( source == null )
 		{
 			final String tname = type.getSimpleName();
-			throw new RuntimeException( ERROR_TAG + " Cant find OBSERVER of the type " + tname
-					+ " to fetch entity list from!" );
+			throw new DustException( Injector.class,
+					"Cant find OBSERVER of the type " + tname
+							+ " to fetch entity list from!" );
 		}
 		// Everything OK.
 		return source.actives();
@@ -200,6 +201,12 @@ final class Injector
 		return EntityObserver.class.isAssignableFrom( field.getType() );
 	}
 
+	/**
+	 * Tests if the passed field possesses the annotation {@link EntitiesOf}.
+	 * 
+	 * @param field to test.
+	 * @return 'true' if it has it, 'false' otherwise.
+	 */
 	private static final boolean testForEntitiesOf ( final Field field )
 	{
 		return field.getAnnotation( EntitiesOf.class ) != null;
@@ -220,8 +227,8 @@ final class Injector
 			final String tmsg = String.valueOf( target );
 			final String fmsg = String.valueOf( field );
 			// Compose error message and throw exception.
-			throw new RuntimeException(
-					ERROR_TAG + " While injecting object: " + vmsg +
+			throw new DustException( Injector.class,
+					"While injecting object: " + vmsg +
 							", in field: " + fmsg +
 							", in instance: " + tmsg, e );
 		}
