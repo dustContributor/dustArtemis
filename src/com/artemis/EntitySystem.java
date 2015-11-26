@@ -224,8 +224,15 @@ public abstract class EntitySystem extends EntityObserver
 		// Fix index if Entity ID isn't on the list yet.
 		j = Math.max( j, -j - 1 );
 
-		// From the found position, rebuild the entity ID list.
-		for ( int i = mbi.nextSetBit(); i >= 0; i = mbi.nextSetBit(), ++j )
+		/*
+		 * From the found position, rebuild the entity ID list.
+		 * 
+		 * NOTE: It seems explicitly checking for j < ids.length helps the JIT a
+		 * bit, j wont ever be bigger than ids.length, but probably the JIT
+		 * can't infer that and checks every loop if it has to raise an out of
+		 * bounds exception.
+		 */
+		for ( int i = mbi.nextSetBit(); i >= 0 && j < ids.length; i = mbi.nextSetBit(), ++j )
 		{
 			ids[j] = i;
 		}
