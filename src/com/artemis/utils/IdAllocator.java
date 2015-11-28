@@ -93,6 +93,10 @@ public final class IdAllocator
 
 			while ( i < max )
 			{
+				/*
+				 * We're rounding down to nearest even with & -2, since thats
+				 * where range's start position is stored.
+				 */
 				final int mid = ((i + max) >> 1) & -2;
 				/*
 				 * Condition is a bit different, we're looking for the free
