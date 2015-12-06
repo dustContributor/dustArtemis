@@ -214,12 +214,16 @@ final class Injector
 
 	private static final void trySetField ( final Field field, final Object target, final Object value )
 	{
-		// Set accessible through Reflection.
+		// Set accessible through reflection.
 		field.setAccessible( true );
 		try
 		{
-			// Assign the passed value.
-			field.set( target, value );
+			// Only modify the field if it hasn't been set already.
+			if ( field.get( target ) == null )
+			{
+				// Assign the passed value.
+				field.set( target, value );
+			}
 		}
 		catch ( IllegalArgumentException | IllegalAccessException e )
 		{
