@@ -22,7 +22,7 @@ import java.util.Properties;
  * arrays at application startup when adding components/entities to your World
  * instance. </p> </br>
  * 
- * <br><p> In this regard, {@value #COMPONENT_TYPES_COUNT} is actually a limit.
+ * <br><p> In this regard, {@link #COMPONENT_TYPES_COUNT} is actually a limit.
  * Since the introduction of fixed-size bit sets (which are much more cost
  * efficient), dustArtemis needs to know how many component types there will be
  * around to decide the size of the bit sets that it will use, so have that in
@@ -80,8 +80,6 @@ public final class DAConstants
 	 * {@value #COMPONENT_TYPES_COUNT}, so you don't have to specify it.
 	 */
 	public static final int COMPONENT_BITS_WORD_COUNT;
-	/** Approximate amount of mappers per system. */
-	public static final int APPROX_MAPPERS_PER_SYSTEM;
 
 	static
 	{
@@ -105,9 +103,6 @@ public final class DAConstants
 		itmp = Math.max( itmp, 16 );
 		COMPONENT_TYPES_COUNT = itmp;
 		COMPONENT_BITS_WORD_COUNT = ((Math.min( itmp, 256 ) - 1) / 64) + 1;
-
-		itmp = getIntOrDefault( props, "APPROX_MAPPERS_PER_SYSTEM", 8 );
-		APPROX_MAPPERS_PER_SYSTEM = Math.max( itmp, 4 );
 	}
 
 	/**

@@ -76,7 +76,7 @@ public final class IdAllocator
 	 * 
 	 * @param id to be freed.
 	 */
-	public final void free ( int id )
+	public final void free ( final int id )
 	{
 		/*
 		 * We're going to assume you're not freeing an ID thats outside of this
@@ -84,68 +84,86 @@ public final class IdAllocator
 		 */
 		final int frSize = freeRangesSize;
 		final int[] fRanges = freeRanges;
+		// Range index.
+		int i = 0;
 
-		for ( int i = 0; i < frSize; i += 2 )
+		// Perform binary search to find the range this id belongs to.
 		{
-			int frStart = fRanges[i];
-			// If ID is to the left.
-			if ( frStart > id )
+			int max = frSize;
+
+			while ( i < max )
 			{
-				// If ID is at free range start.
-				if ( frStart == (id + 1) )
-				{
-					// Set new free range start as ID.
-					fRanges[i] = id;
-					// If it isn't the first range, update range on the left.
-					if ( i != 0 )
-					{
-						// If range on the left ends at ID.
-						if ( fRanges[i - 1] == id )
-						{
-							// Extend left range limit to right range limit.
-							fRanges[i - 1] = fRanges[i + 1];
-							// Remove right range.
-							final int newSize = frSize - 2;
-							System.arraycopy( fRanges, i + 2, fRanges, i, newSize - i );
-							freeRangesSize = newSize;
-						}
-					}
-					return;
-				}
-				// If ID isn't next to free range.
-				if ( i != 0 )
-				{
-					// If left range ends at ID.
-					if ( fRanges[i - 1] == id )
-					{
-						// Extend left range's end and return.
-						fRanges[i - 1] = id + 1;
-						return;
-					}
-				}
 				/*
-				 * No adjacent free range was found for given ID, make a new
-				 * one.
+				 * We're rounding down to nearest even with & -2, since thats
+				 * where range's start position is stored.
 				 */
-				final int newSize = frSize + 2;
-				// Ensure capacity.
-				if ( newSize >= fRanges.length )
+				final int mid = ((i + max) >> 1) & -2;
+				/*
+				 * Condition is a bit different, we're looking for the free
+				 * range start that is strictly less than the id.
+				 */
+				if ( id >= fRanges[mid] )
 				{
-					freeRanges = Arrays.copyOf( fRanges, fRanges.length << 1 );
+					i = mid + 2;
 				}
-				// Set new size.
-				freeRangesSize = newSize;
-				// Fetch possibly reallocated array.
-				final int[] nfRanges = freeRanges;
-				// Shift to the right.
-				System.arraycopy( nfRanges, i, nfRanges, i + 2, newSize - i );
-				// Store free range.
-				nfRanges[i] = id;
-				nfRanges[i + 1] = id + 1;
-				return;
+				else
+				{
+					max = mid;
+				}
 			}
 		}
 
+		final int frStart = fRanges[i];
+		// If ID is at free range start.
+		if ( frStart == (id + 1) )
+		{
+			// Set new free range start as ID.
+			fRanges[i] = id;
+			// If it isn't the first range, update range on the left.
+			if ( i != 0 )
+			{
+				// If range on the left ends at ID.
+				if ( fRanges[i - 1] == id )
+				{
+					// Extend left range limit to right range limit.
+					fRanges[i - 1] = fRanges[i + 1];
+					// Remove right range.
+					final int newSize = frSize - 2;
+					System.arraycopy( fRanges, i + 2, fRanges, i, newSize - i );
+					freeRangesSize = newSize;
+				}
+			}
+			return;
+		}
+		// If ID isn't next to free range.
+		if ( i != 0 )
+		{
+			// If left range ends at ID.
+			if ( fRanges[i - 1] == id )
+			{
+				// Extend left range's end and return.
+				fRanges[i - 1] = id + 1;
+				return;
+			}
+		}
+		/*
+		 * No adjacent free range was found for given ID, make a new one.
+		 */
+		final int newSize = frSize + 2;
+		// Ensure capacity.
+		if ( newSize >= fRanges.length )
+		{
+			freeRanges = Arrays.copyOf( fRanges, fRanges.length << 1 );
+		}
+		// Set new size.
+		freeRangesSize = newSize;
+		// Fetch possibly reallocated array.
+		final int[] nfRanges = freeRanges;
+		// Shift to the right.
+		System.arraycopy( nfRanges, i, nfRanges, i + 2, newSize - i );
+		// Store free range.
+		nfRanges[i] = id;
+		nfRanges[i + 1] = id + 1;
 	}
 
 	@Override

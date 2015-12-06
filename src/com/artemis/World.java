@@ -17,6 +17,7 @@ import com.artemis.utils.IntBag;
  * initialize before game loop.
  * 
  * @author Arni Arent
+ * @author dustContributor
  * 
  */
 public class World
@@ -58,8 +59,11 @@ public class World
 	 */
 	public void initialize ()
 	{
-		// Injecting all ComponentMappers into the observers.
-		MapperImplementor.initFor( observers, this );
+		/*
+		 * Injecting all ComponentMappers and EntityObservers into the
+		 * observers.
+		 */
+		Injector.init( observers );
 
 		// Initialize all observers.
 		{

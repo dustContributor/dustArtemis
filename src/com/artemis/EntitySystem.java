@@ -6,7 +6,6 @@ import java.util.function.Consumer;
 import org.apache.lucene.util.FixedBitSet;
 import org.apache.lucene.util.OpenBitSet;
 
-import com.artemis.utils.ClassIndexer;
 import com.artemis.utils.ImmutableIntBag;
 import com.artemis.utils.IntBag;
 import com.artemis.utils.MutableBitIterator;
@@ -22,7 +21,6 @@ import com.artemis.utils.MutableBitIterator;
  */
 public abstract class EntitySystem extends EntityObserver
 {
-	private final int index;
 	private final Aspect aspect;
 
 	private final IntBag actives;
@@ -52,30 +50,23 @@ public abstract class EntitySystem extends EntityObserver
 	 */
 	public EntitySystem ( final Aspect aspect )
 	{
-		this.index = ClassIndexer.getIndexFor( this.getClass(), EntitySystem.class );
-
 		if ( aspect == null || aspect.isEmpty() )
 		{
-			// Void systems don't need these.
-			this.aspect = null;
-			this.actives = null;
-			this.inserted = null;
-			this.removed = null;
-			this.activeBits = null;
-			this.bitIterator = null;
+			final String cause = (aspect != null) ? "empty" : "null";
+			throw new DustException( this,
+					"Cant pass an Aspect that is " + cause + '!' +
+							" Extend EntityObserver if you want an observer" +
+							" that doesn't processes any entity!" );
 		}
-		else
-		{
-			// Fetch entity amount per system.
-			int actSize = DAConstants.APPROX_ENTITIES_PER_SYSTEM;
-			this.aspect = aspect;
-			this.actives = new IntBag( actSize );
-			this.inserted = new IntBag( actSize / 2 );
-			this.removed = new IntBag( actSize / 2 );
-			this.activeBits = new OpenBitSet( actSize );
-			this.bitIterator = new MutableBitIterator();
-		}
-
+		// Fetch entity amount per system.
+		int actSize = DAConstants.APPROX_ENTITIES_PER_SYSTEM;
+		this.aspect = aspect;
+		this.actives = new IntBag( actSize );
+		this.inserted = new IntBag( actSize / 2 );
+		this.removed = new IntBag( actSize / 2 );
+		this.activeBits = new OpenBitSet( actSize );
+		this.bitIterator = new MutableBitIterator();
+		// Inactive by default.
 		this.setActive( false );
 	}
 
@@ -166,11 +157,6 @@ public abstract class EntitySystem extends EntityObserver
 	@Override
 	final void processModifiedEntities ()
 	{
-		if ( aspect == null )
-		{
-			// This is a void entity system.
-			return;
-		}
 		// Now start checking of something actually changed.
 		final int minIdRemoved = processIfModified( removed, this::removed );
 		final int minIdInserted = processIfModified( inserted, this::inserted );
@@ -238,8 +224,15 @@ public abstract class EntitySystem extends EntityObserver
 		// Fix index if Entity ID isn't on the list yet.
 		j = Math.max( j, -j - 1 );
 
-		// From the found position, rebuild the entity ID list.
-		for ( int i = mbi.nextSetBit(); i >= 0; i = mbi.nextSetBit(), ++j )
+		/*
+		 * From the found position, rebuild the entity ID list.
+		 * 
+		 * NOTE: It seems explicitly checking for j < ids.length helps the JIT a
+		 * bit, j wont ever be bigger than ids.length, but probably the JIT
+		 * can't infer that and checks every loop if it has to raise an out of
+		 * bounds exception.
+		 */
+		for ( int i = mbi.nextSetBit(); i >= 0 && j < ids.length; i = mbi.nextSetBit(), ++j )
 		{
 			ids[j] = i;
 		}
@@ -247,12 +240,6 @@ public abstract class EntitySystem extends EntityObserver
 
 	private final void removeAll ( final ImmutableIntBag entities )
 	{
-		if ( aspect == null )
-		{
-			// This is a void entity system.
-			return;
-		}
-
 		// Fetch bits of active entities.
 		final OpenBitSet acBits = activeBits;
 		final IntBag removs = removed;
@@ -274,12 +261,6 @@ public abstract class EntitySystem extends EntityObserver
 	private final void addAll ( final ImmutableIntBag entities )
 	{
 		final Aspect asp = aspect;
-		if ( asp == null )
-		{
-			// This is a void entity system.
-			return;
-		}
-
 		final OpenBitSet acBits = activeBits;
 		final IntBag insrts = inserted;
 		final FixedBitSet[] cmpBits = world.componentManager().componentBits();
@@ -310,12 +291,6 @@ public abstract class EntitySystem extends EntityObserver
 	private final void checkAll ( final ImmutableIntBag entities )
 	{
 		final Aspect asp = aspect;
-		if ( asp == null )
-		{
-			// This is a void entity system.
-			return;
-		}
-
 		// Fetch bits of active entities.
 		final OpenBitSet acBits = activeBits;
 		final IntBag insrts = inserted;
@@ -353,11 +328,6 @@ public abstract class EntitySystem extends EntityObserver
 					continue;
 			}
 		}
-	}
-
-	public final int index ()
-	{
-		return index;
 	}
 
 	public final ImmutableIntBag actives ()
