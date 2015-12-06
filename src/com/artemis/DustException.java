@@ -39,13 +39,17 @@ final class DustException extends RuntimeException
 
 	private static final String makeMessage ( final String sourceName, final String message )
 	{
-		final StringBuilder sb = new StringBuilder( 128 );
-
+		// Compute size of the message.
+		final int size = ERROR_TAG_START.length() + ERROR_TAG_END.length() +
+				sourceName.length() + message.length();
+		// Initialize message builder.
+		final StringBuilder sb = new StringBuilder( size );
+		// Compose message.
 		sb.append( ERROR_TAG_START );
 		sb.append( sourceName );
 		sb.append( ERROR_TAG_END );
 		sb.append( message );
-
+		// And convert to string.
 		return sb.toString();
 	}
 
