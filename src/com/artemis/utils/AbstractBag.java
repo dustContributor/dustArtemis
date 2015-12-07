@@ -1,12 +1,20 @@
 package com.artemis.utils;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 
+/**
+ * 
+ * @author dustContributor
+ *
+ * @param <T> type of the elements it holds.
+ */
 abstract class AbstractBag<T> extends ImmutableBag<T>
 {
 	/**
 	 * Constructs an empty Bag with an initial capacity of
-	 * {@value #DEFAULT_CAPACITY}. The backing array type will be Object.
+	 * {@link ImmutableBag#DEFAULT_CAPACITY}. The backing array type will be
+	 * Object.
 	 * 
 	 */
 	public AbstractBag ()
@@ -17,10 +25,12 @@ abstract class AbstractBag<T> extends ImmutableBag<T>
 	/**
 	 * Constructs an empty Bag with the specified initial capacity.
 	 * 
-	 * <p> NOTE: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY},
-	 * the Bag will be created with a capacity of
-	 * {@value #MINIMUM_WORKING_CAPACITY} instead. The backing array type will
-	 * be Object. </p>
+	 * <p>
+	 * NOTE: If capacity is less than
+	 * {@link ImmutableBag#MINIMUM_WORKING_CAPACITY}, the Bag will be created
+	 * with a capacity of {@link ImmutableBag#MINIMUM_WORKING_CAPACITY} instead.
+	 * The backing array type will be Object.
+	 * </p>
 	 * 
 	 * @param capacity of the Bag
 	 */
@@ -31,8 +41,8 @@ abstract class AbstractBag<T> extends ImmutableBag<T>
 
 	/**
 	 * Constructs an empty Bag with an initial capacity of
-	 * {@value #DEFAULT_CAPACITY}. Uses Array.newInstance() to instantiate a
-	 * backing array of the proper type.
+	 * {@link ImmutableBag#DEFAULT_CAPACITY}. Uses {@link Array#newInstance } to
+	 * instantiate a backing array of the proper type.
 	 * 
 	 * @param type of the backing array.
 	 */
@@ -42,12 +52,29 @@ abstract class AbstractBag<T> extends ImmutableBag<T>
 	}
 
 	/**
+	 * Constructs an empty Bag with the defined data array as backing storage.
+	 * 
+	 * <p>
+	 * <b>NOTE</b>: Wont do any length/null checks on the passed array.
+	 * </p>
+	 * 
+	 * @param data array to use as backing storage.
+	 */
+	public AbstractBag ( final T[] data )
+	{
+		super( data );
+	}
+
+	/**
 	 * Constructs an empty Bag with the defined initial capacity.
 	 * 
-	 * <p> NOTE: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY},
-	 * the Bag will be created with a capacity of
-	 * {@value #MINIMUM_WORKING_CAPACITY} instead. Uses Array.newInstance() to
-	 * instantiate a backing array of the proper type. </p>
+	 * <p>
+	 * NOTE: If capacity is less than
+	 * {@link ImmutableBag#MINIMUM_WORKING_CAPACITY}, the Bag will be created
+	 * with a capacity of {@link ImmutableBag#MINIMUM_WORKING_CAPACITY} instead.
+	 * Uses Array.newInstance() to instantiate a backing array of the proper
+	 * type.
+	 * </p>
 	 * 
 	 * @param type of the backing array.
 	 * 
@@ -106,7 +133,7 @@ abstract class AbstractBag<T> extends ImmutableBag<T>
 
 	/**
 	 * Removes all the items from this bag. This versions erases up to the
-	 * {@link #size()} of the Bag.
+	 * {@link ImmutableBag#size()} of the Bag.
 	 */
 	public void clear ()
 	{
@@ -116,7 +143,7 @@ abstract class AbstractBag<T> extends ImmutableBag<T>
 
 	/**
 	 * Removes all the items from this bag. This version erases up to the
-	 * {@link #capacity()} of the Bag.
+	 * {@link ImmutableBag#capacity()} of the Bag.
 	 */
 	public void totalClear ()
 	{

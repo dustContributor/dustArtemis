@@ -33,10 +33,11 @@ import java.util.function.Supplier;
  * {@value #GROW_RATE_THRESHOLD}
  * </p>
  * </p>
- *
+ * 
  * @author Arni Arent
+ * @author dustContributor
  *
- * @param <T> type of the items that will be stored in this Bag.
+ * @param <T> type of the elements it holds.
  */
 public final class Bag<T> extends AbstractBag<T>
 {
@@ -109,6 +110,20 @@ public final class Bag<T> extends AbstractBag<T>
 		// if size greater than capacity then increase capacity.
 		ensureCapacity( size );
 		addUnsafe( item );
+	}
+
+	/**
+	 * Constructs an empty Bag with the defined data array as backing storage.
+	 * 
+	 * <p>
+	 * <b>NOTE</b>: Wont do any length/null checks on the passed array.
+	 * </p>
+	 * 
+	 * @param data array to use as backing storage.
+	 */
+	public Bag ( final T[] data )
+	{
+		super( data );
 	}
 
 	/**

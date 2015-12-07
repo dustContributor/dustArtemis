@@ -16,7 +16,7 @@ import com.artemis.DAConstants;
  * @author Arni Arent
  * @author dustContributor
  *
- * @param <T> type of the elements this ImmutableBag holds.
+ * @param <T> type of the elements it holds.
  */
 public abstract class ImmutableBag<T>
 {
@@ -36,10 +36,12 @@ public abstract class ImmutableBag<T>
 	/**
 	 * Constructs an empty Bag with the specified initial capacity.
 	 * 
-	 * <p> NOTE: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY},
+	 * <p>
+	 * <b>NOTE</b>: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY},
 	 * the Bag will be created with a capacity of
 	 * {@value #MINIMUM_WORKING_CAPACITY} instead. The backing array type will
-	 * be Object. </p>
+	 * be Object.
+	 * </p>
 	 * 
 	 * @param capacity of the Bag
 	 */
@@ -64,10 +66,12 @@ public abstract class ImmutableBag<T>
 	/**
 	 * Constructs an empty Bag with the defined initial capacity.
 	 * 
-	 * <p> NOTE: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY},
+	 * <p>
+	 * <b>NOTE</b>: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY},
 	 * the Bag will be created with a capacity of
 	 * {@value #MINIMUM_WORKING_CAPACITY} instead. Uses Array.newInstance() to
-	 * instantiate a backing array of the proper type. </p>
+	 * instantiate a backing array of the proper type.
+	 * </p>
 	 * 
 	 * @param type of the backing array.
 	 * 
@@ -76,9 +80,21 @@ public abstract class ImmutableBag<T>
 	@SuppressWarnings ( "unchecked" )
 	public ImmutableBag ( final Class<T> type, final int capacity )
 	{
-		final int newCap = (capacity > MINIMUM_WORKING_CAPACITY) ? capacity
-				: MINIMUM_WORKING_CAPACITY;
-		this.data = (T[]) Array.newInstance( type, newCap );
+		this( (T[]) Array.newInstance( type, fixInitialCapacity( capacity ) ) );
+	}
+
+	/**
+	 * Constructs an empty Bag with the defined data array as backing storage.
+	 * 
+	 * <p>
+	 * <b>NOTE</b>: Wont do any length/null checks on the passed array.
+	 * </p>
+	 * 
+	 * @param data array to use as backing storage.
+	 */
+	public ImmutableBag ( final T[] data )
+	{
+		this.data = data;
 	}
 
 	/**
@@ -229,7 +245,9 @@ public abstract class ImmutableBag<T>
 	/**
 	 * Returns the item at the specified position in Bag.
 	 * 
-	 * <p> <b>UNSAFE: Avoids doing any bounds check.</b> </p>
+	 * <p>
+	 * <b>UNSAFE: Avoids doing any bounds check.</b>
+	 * </p>
 	 * 
 	 * @param index of the item to return
 	 * @return item at the specified position in bag
@@ -302,6 +320,19 @@ public abstract class ImmutableBag<T>
 
 	/** Non-configurable value. */
 	public static final int MINIMUM_WORKING_CAPACITY = 4;
+
+	/**
+	 * Ensures the capacity parameter is bigger than
+	 * {@link ImmutableBag#MINIMUM_WORKING_CAPACITY}.
+	 * 
+	 * @param capacity to check.
+	 * @return capacity if its valid,
+	 *         {@link ImmutableBag#MINIMUM_WORKING_CAPACITY} otherwise.
+	 */
+	protected static final int fixInitialCapacity ( final int capacity )
+	{
+		return (capacity > MINIMUM_WORKING_CAPACITY) ? capacity : MINIMUM_WORKING_CAPACITY;
+	}
 
 	protected static final int nextCapacity ( final int dataLength )
 	{
