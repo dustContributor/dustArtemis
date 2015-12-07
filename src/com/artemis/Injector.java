@@ -35,8 +35,8 @@ final class Injector
 	static final void init ( final Bag<? extends EntityObserver> observers )
 	{
 		final EntityObserver[] obs = observers.data();
-		// Reasonable field amount.
-		final Bag<Field> fields = new Bag<>( Field.class, 32 );
+		// Reasonable initial field amount.
+		final Bag<Field> fields = new Bag<>( new Field[32] );
 		// Predicates to test if the field is the appropiate one.
 		@SuppressWarnings ( { "unchecked" } )
 		final Predicate<Field>[] tests = new Predicate[3];

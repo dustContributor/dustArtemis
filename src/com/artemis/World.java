@@ -39,7 +39,7 @@ public class World
 	public World ()
 	{
 		observerMap = new IdentityHashMap<>();
-		observers = new Bag<>( EntityObserver.class );
+		observers = new Bag<>( new EntityObserver[ImmutableBag.DEFAULT_CAPACITY] );
 
 		added = new IntBag();
 		changed = new IntBag();

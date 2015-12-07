@@ -48,7 +48,7 @@ public class GroupManager extends EntityObserver
 		Bag<String> groups = groupsByEntity.get( Integer.valueOf( eid ) );
 		if ( groups == null )
 		{
-			groups = new Bag<>( String.class );
+			groups = new Bag<>( new String[ImmutableBag.DEFAULT_CAPACITY] );
 			groupsByEntity.put( Integer.valueOf( eid ), groups );
 		}
 		groups.add( group );

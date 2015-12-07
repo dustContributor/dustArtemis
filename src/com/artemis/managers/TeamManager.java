@@ -43,7 +43,7 @@ public class TeamManager extends EntityObserver
 
 		if ( players == null )
 		{
-			players = new Bag<>( String.class );
+			players = new Bag<>( new String[ImmutableBag.DEFAULT_CAPACITY] );
 			playersByTeam.put( team, players );
 		}
 
