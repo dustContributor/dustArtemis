@@ -26,11 +26,12 @@ import java.util.function.Supplier;
  * These are the grow strategies:
  * </p>
  * <p>
- * capacity*2 when the size is less than {@value #GROW_RATE_THRESHOLD}
+ * capacity*2 when the size is less than
+ * {@link ImmutableBag#GROW_RATE_THRESHOLD}
  * </p>
  * <p>
  * capacity*1.5 when the size is more or equal than
- * {@value #GROW_RATE_THRESHOLD}
+ * {@link ImmutableBag#GROW_RATE_THRESHOLD}
  * </p>
  * </p>
  * 
@@ -43,7 +44,8 @@ public final class Bag<T> extends AbstractBag<T>
 {
 	/**
 	 * Constructs an empty Bag with an initial capacity of
-	 * {@value #DEFAULT_CAPACITY}. The backing array type will be Object.
+	 * {@link ImmutableBag#DEFAULT_CAPACITY}. The backing array type will be
+	 * Object.
 	 * 
 	 */
 	public Bag ()
@@ -55,9 +57,10 @@ public final class Bag<T> extends AbstractBag<T>
 	 * Constructs an empty Bag with the specified initial capacity.
 	 * 
 	 * <p>
-	 * NOTE: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY}, the
-	 * Bag will be created with a capacity of {@value #MINIMUM_WORKING_CAPACITY}
-	 * instead. The backing array type will be Object.
+	 * NOTE: If capacity is less than
+	 * {@link ImmutableBag#MINIMUM_WORKING_CAPACITY}, the Bag will be created
+	 * with a capacity of {@link ImmutableBag#MINIMUM_WORKING_CAPACITY} instead.
+	 * The backing array type will be Object.
 	 * </p>
 	 * 
 	 * @param capacity of the Bag
@@ -69,8 +72,8 @@ public final class Bag<T> extends AbstractBag<T>
 
 	/**
 	 * Constructs an empty Bag with an initial capacity of
-	 * {@value #DEFAULT_CAPACITY}. Uses Array.newInstance() to instantiate a
-	 * backing array of the proper type.
+	 * {@link ImmutableBag#DEFAULT_CAPACITY}. Uses Array.newInstance() to
+	 * instantiate a backing array of the proper type.
 	 * 
 	 * @param type of the backing array.
 	 */
@@ -83,10 +86,11 @@ public final class Bag<T> extends AbstractBag<T>
 	 * Constructs an empty Bag with the defined initial capacity.
 	 * 
 	 * <p>
-	 * NOTE: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY}, the
-	 * Bag will be created with a capacity of {@value #MINIMUM_WORKING_CAPACITY}
-	 * instead. Uses Array.newInstance() to instantiate a backing array of the
-	 * proper type.
+	 * NOTE: If capacity is less than
+	 * {@link ImmutableBag#MINIMUM_WORKING_CAPACITY}, the Bag will be created
+	 * with a capacity of {@link ImmutableBag#MINIMUM_WORKING_CAPACITY} instead.
+	 * Uses Array.newInstance() to instantiate a backing array of the proper
+	 * type.
 	 * </p>
 	 * 
 	 * @param type of the backing array.
