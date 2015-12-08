@@ -218,8 +218,10 @@ public class FixedBitSet128 extends FixedBitSet64
 		{
 			case 0:
 				return word0;
-			default:
+			case 1:
 				return word1;
+			default:
+				return 0L;
 		}
 	}
 

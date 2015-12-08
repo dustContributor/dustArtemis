@@ -228,8 +228,10 @@ public class FixedBitSet256 extends FixedBitSet192
 				return word1;
 			case 2:
 				return word2;
-			default:
+			case 3:
 				return word3;
+			default:
+				return 0L;
 		}
 	}
 
