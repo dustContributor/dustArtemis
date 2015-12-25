@@ -71,7 +71,7 @@ public abstract class EntitySystem extends EntityObserver
 	}
 
 	/**
-	 * Called before processing of entities begins.
+	 * Called before processing of entities begins. Always called.
 	 */
 	protected void begin ()
 	{
@@ -81,13 +81,19 @@ public abstract class EntitySystem extends EntityObserver
 	@Override
 	public final void process ()
 	{
+		// Always called.
 		begin();
-		processEntities( actives );
+		// If there is any entity to process.
+		if ( !actives.isEmpty() )
+		{
+			processEntities( actives );
+		}
+		// Also always called.
 		end();
 	}
 
 	/**
-	 * Called after the processing of entities ends.
+	 * Called after the processing of entities ends. Always called.
 	 */
 	protected void end ()
 	{
@@ -95,15 +101,16 @@ public abstract class EntitySystem extends EntityObserver
 	}
 
 	/**
-	 * Any implementing entity system must implement this method and the logic
-	 * to process the given entities of the system.
+	 * Any implementing entity system must implement this method and the logic to
+	 * process the given entities of the system. Called only if there are entities
+	 * to process.
 	 * 
 	 * @param entities the entities this system contains.
 	 */
 	protected abstract void processEntities ( final ImmutableIntBag entities );
 
 	/**
-	 * Called when the system has received matching entities, e.g. created or a
+	 * Called only if the system received matching entities, e.g. created or a
 	 * component was added to it.
 	 * 
 	 * @param entities that were inserted into this system.
@@ -114,8 +121,8 @@ public abstract class EntitySystem extends EntityObserver
 	}
 
 	/**
-	 * Called when entities are removed from this system, e.g. deleted or had
-	 * one of it's components removed.
+	 * Called only if the system got any entity removed from itself, e.g. entity
+	 * deleted or had one of it's components removed.
 	 * 
 	 * @param entities that were removed from this system.
 	 */
@@ -172,8 +179,8 @@ public abstract class EntitySystem extends EntityObserver
 
 	/**
 	 * If there is something in the passed entities bag, it will call the
-	 * operation on the bag, clear it, then return the minimum affected entity
-	 * id found.
+	 * operation on the bag, clear it, then return the minimum affected entity id
+	 * found.
 	 * 
 	 * @param entities to process.
 	 * @param operation to make on the entities.
@@ -181,8 +188,8 @@ public abstract class EntitySystem extends EntityObserver
 	 *         was nothing in the bag.
 	 */
 	private static final int processIfModified (
-		final IntBag entities,
-		final Consumer<IntBag> operation )
+			final IntBag entities,
+			final Consumer<IntBag> operation )
 	{
 		// Using max value as flag for no changes.
 		int minId = Integer.MAX_VALUE;
@@ -228,9 +235,9 @@ public abstract class EntitySystem extends EntityObserver
 		 * From the found position, rebuild the entity ID list.
 		 * 
 		 * NOTE: It seems explicitly checking for j < ids.length helps the JIT a
-		 * bit, j wont ever be bigger than ids.length, but probably the JIT
-		 * can't infer that and checks every loop if it has to raise an out of
-		 * bounds exception.
+		 * bit, j wont ever be bigger than ids.length, but probably the JIT can't
+		 * infer that and checks every loop if it has to raise an out of bounds
+		 * exception.
 		 */
 		for ( int i = mbi.nextSetBit(); i >= 0 && j < ids.length; i = mbi.nextSetBit(), ++j )
 		{
@@ -280,8 +287,7 @@ public abstract class EntitySystem extends EntityObserver
 	}
 
 	/**
-	 * Adds entity if the system is interested in it and hasn't been added
-	 * before.
+	 * Adds entity if the system is interested in it and hasn't been added before.
 	 * 
 	 * Removes entity from system if its not interesting and it has been added
 	 * before.
@@ -307,7 +313,7 @@ public abstract class EntitySystem extends EntityObserver
 			// First bit for 'interesting'.
 			flags |= asp.isInteresting( cmpBits[eid] ) ? 0b1 : 0b0;
 
-			switch (flags)
+			switch ( flags )
 			{
 				case 0b01:
 				{
