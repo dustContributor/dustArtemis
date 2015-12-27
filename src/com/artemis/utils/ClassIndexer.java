@@ -17,56 +17,56 @@ public final class ClassIndexer
 		// Empty.
 	}
 
-	private static final ConcurrentHashMap<Class<?>, Integer> resolvedMap;
-	private static final ConcurrentHashMap<Class<?>, int[]> counterMap;
-	
+	/** Map of resolved derived class indices. Stores immutable index. */
+	private static final ConcurrentHashMap<Class<?>, Integer> RESOLVED;
+	/** Map of derived class counters. Stores mutable integer counter. */
+	private static final ConcurrentHashMap<Class<?>, int[]> COUNTERS;
+
 	static
 	{
-		final int concurrency = Runtime.getRuntime().availableProcessors() * 2;
-		
-		resolvedMap = new ConcurrentHashMap<>( 32, 0.75f, concurrency );
-		counterMap = new ConcurrentHashMap<>( 16, 0.75f, concurrency );
+		final int concurrency = Runtime.getRuntime().availableProcessors();
+
+		RESOLVED = new ConcurrentHashMap<>( 32, 0.75f, concurrency );
+		COUNTERS = new ConcurrentHashMap<>( 16, 0.75f, concurrency );
 	}
 
 	public static final <T> int getIndexFor ( final Class<? extends T> type, final Class<T> superType )
 	{
-		final Integer i = resolvedMap.get( type );
+		Integer i = RESOLVED.get( type );
 
-		if ( i != null )
+		if ( i == null )
 		{
-			return i.intValue();
+			i = fallbackIndexOf( type, superType );
 		}
-		
-		return fallbackIndexOf( type, superType );
-	}
-	
-	private static final synchronized <T> int fallbackIndexOf ( final Class<? extends T> type, final Class<T> superType )
-	{
-		Integer i = resolvedMap.get( type );
-		
-		if ( i != null )
-		{
-			return i.intValue();
-		}
-		
-		i = Integer.valueOf( nextIndex( superType ) );
-		
-		resolvedMap.put( type, i );
-		
+
 		return i.intValue();
+	}
+
+	private static final synchronized <T> Integer fallbackIndexOf (
+			final Class<? extends T> type,
+			final Class<T> superType )
+	{
+		Integer i = RESOLVED.get( type );
+
+		if ( i == null )
+		{
+			// Fetch index and store the result.
+			final int index = nextIndex( superType );
+			RESOLVED.put( type, i = Integer.valueOf( index ) );
+		}
+
+		return i;
 	}
 
 	private static final int nextIndex ( final Class<?> type )
 	{
-		int[] i = counterMap.get( type );
+		int[] i = COUNTERS.get( type );
 
-		if ( i != null )
+		if ( i == null )
 		{
-			return i[0]++;
+			// Create counter and store it.
+			COUNTERS.put( type, i = new int[1] );
 		}
-
-		i = new int[1];
-		counterMap.put( type, i );
 
 		return i[0]++;
 	}
