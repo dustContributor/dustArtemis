@@ -65,14 +65,12 @@ public class World
 		Injector.init( observers );
 
 		// Initialize all observers.
-		{
-			final EntityObserver[] data = observers.data();
-			final int size = observers.size();
+		final EntityObserver[] data = observers.data();
+		final int size = observers.size();
 
-			for ( int i = 0; i < size; ++i )
-			{
-				data[i].init();
-			}
+		for ( int i = 0; i < size; ++i )
+		{
+			data[i].init();
 		}
 	}
 
@@ -172,11 +170,21 @@ public class World
 		{
 			throw new DustException( this, "Can't pass a null observer!" );
 		}
-
+		// Setup observer state.
 		observer.world = this;
 		observer.setActive( active );
 
-		observerMap.put( (Class<EntityObserver>) observer.getClass(), observer );
+		// Fetch type of the observer to be added.
+		final Class<EntityObserver> type = (Class<EntityObserver>) observer.getClass();
+		// Insert it and retrieve the previous one.
+		final EntityObserver prevObserver = observerMap.put( type, observer );
+
+		if ( prevObserver != null )
+		{
+			// If there was an observer before, remove it from the bag.
+			observers.remove( type::equals );
+		}
+		// Now safely add the observer to the end of the bag.
 		observers.add( observer );
 
 		return observer;
@@ -189,7 +197,7 @@ public class World
 	 * @return observer that was deleted if there was one.
 	 */
 	@SuppressWarnings( "unchecked" )
-	public <T extends EntityObserver> T deleteObserver ( final Class<T> type )
+	public <T extends EntityObserver> T removeObserver ( final Class<T> type )
 	{
 		final EntityObserver obs = observerMap.remove( type );
 		observers.remove( obs );
