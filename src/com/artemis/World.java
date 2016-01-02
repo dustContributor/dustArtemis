@@ -50,7 +50,7 @@ public class World
 		cm = new ComponentManager();
 		em = new EntityManager();
 
-		setObserver( em );
+		addObserver( em );
 	}
 
 	/**
@@ -60,8 +60,7 @@ public class World
 	public void initialize ()
 	{
 		/*
-		 * Injecting all ComponentMappers and EntityObservers into the
-		 * observers.
+		 * Injecting all ComponentMappers and EntityObservers into the observers.
 		 */
 		Injector.init( observers );
 
@@ -104,9 +103,9 @@ public class World
 	 * @param type of the poolable component.
 	 * @param supplier of new component instances.
 	 */
-	public <T extends Component> void registerPoolable ( Class<T> type, Supplier<T> supplier )
+	public <T extends Component> void registerPoolable ( final Class<T> type, final Supplier<T> supplier )
 	{
-		cm.registerPoolable( type, supplier, null );
+		registerPoolable( type, supplier, null );
 	}
 
 	/**
@@ -118,10 +117,20 @@ public class World
 	 * @param resetter of components that will be reused.
 	 */
 	public <T extends Component> void registerPoolable (
-		Class<T> type,
-		Supplier<T> supplier,
-		Consumer<T> resetter )
+			final Class<T> type,
+			final Supplier<T> supplier,
+			final Consumer<T> resetter )
 	{
+		if ( type == null )
+		{
+			throw new DustException( this, "Can't pass a null type!" );
+		}
+
+		if ( supplier == null )
+		{
+			throw new DustException( this, "Can't pass a null supplier!" );
+		}
+
 		cm.registerPoolable( type, supplier, resetter );
 	}
 
@@ -142,9 +151,9 @@ public class World
 	 * @param observer the observer to add.
 	 * @return the added observer.
 	 */
-	public <T extends EntityObserver> T setObserver ( final T observer )
+	public <T extends EntityObserver> T addObserver ( final T observer )
 	{
-		return setObserver( observer, true );
+		return addObserver( observer, true );
 	}
 
 	/**
@@ -153,12 +162,17 @@ public class World
 	 * 
 	 * @param observer the observer to add.
 	 * @param active whether or not this observer will be processed by
-	 *            World.process()
+	 *          World.process()
 	 * @return the added observer.
 	 */
-	@SuppressWarnings ( "unchecked" )
-	public <T extends EntityObserver> T setObserver ( final T observer, final boolean active )
+	@SuppressWarnings( "unchecked" )
+	public <T extends EntityObserver> T addObserver ( final T observer, final boolean active )
 	{
+		if ( observer == null )
+		{
+			throw new DustException( this, "Can't pass a null observer!" );
+		}
+
 		observer.world = this;
 		observer.setActive( active );
 
@@ -169,14 +183,17 @@ public class World
 	}
 
 	/**
-	 * Removed the specified entity observer from the world.
+	 * Remove an entity observer of the specified type.
 	 * 
-	 * @param observer to be deleted from world.
+	 * @param type of the observer to delete.
+	 * @return observer that was deleted if there was one.
 	 */
-	public void deleteObserver ( final EntityObserver observer )
+	@SuppressWarnings( "unchecked" )
+	public <T extends EntityObserver> T deleteObserver ( final Class<T> type )
 	{
-		observerMap.remove( observer.getClass() );
-		observers.remove( observer );
+		final EntityObserver obs = observerMap.remove( type );
+		observers.remove( obs );
+		return (T) obs;
 	}
 
 	/**
@@ -186,7 +203,7 @@ public class World
 	 * @return instance of the observer of the specified type in this world,
 	 *         {@code null} if there is none.
 	 */
-	@SuppressWarnings ( "unchecked" )
+	@SuppressWarnings( "unchecked" )
 	public <T extends EntityObserver> T getObserver ( final Class<T> type )
 	{
 		return (T) observerMap.get( type );
@@ -292,8 +309,8 @@ public class World
 	}
 
 	/**
-	 * Disable the entity from being processed. Won't delete it, it will
-	 * continue to exist but won't get processed.
+	 * Disable the entity from being processed. Won't delete it, it will continue
+	 * to exist but won't get processed.
 	 * 
 	 * @param eid entity id.
 	 */
@@ -316,9 +333,9 @@ public class World
 	}
 
 	/**
-	 * Iterates over all entity bags, and which each corresponding action
-	 * (added, deleted, etc), it calls it for each entity in that bag, for each
-	 * entity observer present in this World instance.
+	 * Iterates over all entity bags, and which each corresponding action (added,
+	 * deleted, etc), it calls it for each entity in that bag, for each entity
+	 * observer present in this World instance.
 	 */
 	private final void checkAll ()
 	{
@@ -378,8 +395,8 @@ public class World
 	}
 
 	/**
-	 * Retrieves a ComponentMapper instance for fast retrieval of components
-	 * from entities.
+	 * Retrieves a ComponentMapper instance for fast retrieval of components from
+	 * entities.
 	 * 
 	 * @param type of component to get mapper for.
 	 * @return mapper for specified component type.
