@@ -58,9 +58,9 @@ public final class Bag<T> extends AbstractBag<T>
 	 * 
 	 * <p>
 	 * NOTE: If capacity is less than
-	 * {@link ImmutableBag#MINIMUM_WORKING_CAPACITY}, the Bag will be created
-	 * with a capacity of {@link ImmutableBag#MINIMUM_WORKING_CAPACITY} instead.
-	 * The backing array type will be Object.
+	 * {@link ImmutableBag#MINIMUM_WORKING_CAPACITY}, the Bag will be created with
+	 * a capacity of {@link ImmutableBag#MINIMUM_WORKING_CAPACITY} instead. The
+	 * backing array type will be Object.
 	 * </p>
 	 * 
 	 * @param capacity of the Bag
@@ -87,10 +87,9 @@ public final class Bag<T> extends AbstractBag<T>
 	 * 
 	 * <p>
 	 * NOTE: If capacity is less than
-	 * {@link ImmutableBag#MINIMUM_WORKING_CAPACITY}, the Bag will be created
-	 * with a capacity of {@link ImmutableBag#MINIMUM_WORKING_CAPACITY} instead.
-	 * Uses Array.newInstance() to instantiate a backing array of the proper
-	 * type.
+	 * {@link ImmutableBag#MINIMUM_WORKING_CAPACITY}, the Bag will be created with
+	 * a capacity of {@link ImmutableBag#MINIMUM_WORKING_CAPACITY} instead. Uses
+	 * Array.newInstance() to instantiate a backing array of the proper type.
 	 * </p>
 	 * 
 	 * @param type of the backing array.
@@ -236,9 +235,9 @@ public final class Bag<T> extends AbstractBag<T>
 	}
 
 	/**
-	 * Tries to get the item at the specified index. If it isn't there, it sets
-	 * it to whatever the supplier provides, then returns that result. Will
-	 * resize the bag as needed.
+	 * Tries to get the item at the specified index. If it isn't there, it sets it
+	 * to whatever the supplier provides, then returns that result. Will resize
+	 * the bag as needed.
 	 * 
 	 * @param index of the item.
 	 * @param supplier of items to use if its missing.
@@ -320,8 +319,8 @@ public final class Bag<T> extends AbstractBag<T>
 	}
 
 	/**
-	 * Erases an element of this Bag, shifting the remaining elements to the
-	 * left, preserving their order.
+	 * Erases an element of this Bag, shifting the remaining elements to the left,
+	 * preserving their order.
 	 * 
 	 * @param index to erase an element at.
 	 * @return the element erased from this Bag.
@@ -337,8 +336,8 @@ public final class Bag<T> extends AbstractBag<T>
 	}
 
 	/**
-	 * Erases an element of this Bag, shifting the remaining elements to the
-	 * left, preserving their order.
+	 * Erases an element of this Bag, shifting the remaining elements to the left,
+	 * preserving their order.
 	 * 
 	 * <p>
 	 * <b>UNSAFE: Avoids doing any bounds check.</b>
@@ -362,11 +361,37 @@ public final class Bag<T> extends AbstractBag<T>
 	}
 
 	/**
+	 * Erases the first occurrence of the item that matches the provided criteria,
+	 * shifting the remaining elements to the left, preserving their order.
+	 * 
+	 * @param criteria to match the items against.
+	 * 
+	 * @return the first item that matched the criteria, <code>null</code> if no
+	 *         items matched the criteria.
+	 */
+	public T erase ( final Predicate<T> criteria )
+	{
+		final int iSize = size;
+
+		for ( int i = 0; i < iSize; ++i )
+		{
+			if ( criteria.test( data[i] ) )
+			{
+				// Item found. Erase and return it.
+				return eraseUnsafe( i );
+			}
+		}
+
+		// Item not found.
+		return null;
+	}
+
+	/**
 	 * Removes the item at the specified position in this Bag. Does this by
 	 * overwriting it was last item then removing last item.
 	 * 
-	 * It returns <code>null</code> if the index its outside bounds or if the
-	 * item at the index was <code>null</code>.
+	 * It returns <code>null</code> if the index its outside bounds or if the item
+	 * at the index was <code>null</code>.
 	 * 
 	 * @param index the index of item to be removed
 	 * @return item that was removed from the Bag.
@@ -440,8 +465,7 @@ public final class Bag<T> extends AbstractBag<T>
 	/**
 	 * Removes the last object in the bag.
 	 * 
-	 * @return the last item in the bag, or <code>null</code> if it has no
-	 *         items.
+	 * @return the last item in the bag, or <code>null</code> if it has no items.
 	 */
 	public T removeLast ()
 	{
@@ -476,9 +500,8 @@ public final class Bag<T> extends AbstractBag<T>
 	}
 
 	/**
-	 * Removes the first occurrence of the specified item from this Bag, if it
-	 * is present. Works by overwriting it was last item then removing last
-	 * item.
+	 * Removes the first occurrence of the specified item from this Bag, if it is
+	 * present. Works by overwriting it was last item then removing last item.
 	 * 
 	 * @param item to be removed from this bag.
 	 * @return <code>true</code> if this bag contained the specified item.
@@ -529,8 +552,8 @@ public final class Bag<T> extends AbstractBag<T>
 	}
 
 	/**
-	 * Removes from this Bag all of its items that are contained in the
-	 * specified Bag.
+	 * Removes from this Bag all of its items that are contained in the specified
+	 * Bag.
 	 * 
 	 * @param bag containing items to be removed from this Bag
 	 */
@@ -546,8 +569,8 @@ public final class Bag<T> extends AbstractBag<T>
 	}
 
 	/**
-	 * Removes from this Bag all of its items that are contained in the
-	 * specified Bag.
+	 * Removes from this Bag all of its items that are contained in the specified
+	 * Bag.
 	 * 
 	 * @param bag containing items to be removed from this Bag
 	 */
@@ -562,8 +585,8 @@ public final class Bag<T> extends AbstractBag<T>
 	}
 
 	/**
-	 * Compacts the backing array of this Bag to the left, leaving all null
-	 * values to the right. Preserves ordering.
+	 * Compacts the backing array of this Bag to the left, leaving all null values
+	 * to the right. Preserves ordering.
 	 */
 	public void compact ()
 	{
