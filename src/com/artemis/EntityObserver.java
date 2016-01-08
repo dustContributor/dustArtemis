@@ -4,11 +4,13 @@ import com.artemis.utils.ImmutableIntBag;
 
 /**
  * @author Arni Arent
+ * @author dustContributor
  */
-@SuppressWarnings ( "unused" )
+@SuppressWarnings( "unused" )
 public abstract class EntityObserver
 {
-	private boolean active;
+	/** Active by default. */
+	private boolean active = true;
 
 	protected World world;
 
@@ -76,7 +78,7 @@ public abstract class EntityObserver
 	 * Sets the state of this observer.
 	 * 
 	 * @param active {@code true} if its active and will get processed,
-	 *            {@code false} otherwise.
+	 *          {@code false} otherwise.
 	 */
 	public void setActive ( final boolean active )
 	{

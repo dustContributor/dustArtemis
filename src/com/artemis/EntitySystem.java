@@ -17,7 +17,6 @@ import com.artemis.utils.MutableBitIterator;
  * 
  * @author Arni Arent
  * @author dustContributor
- * 
  */
 public abstract class EntitySystem extends EntityObserver
 {
@@ -66,8 +65,6 @@ public abstract class EntitySystem extends EntityObserver
 		this.removed = new IntBag( actSize / 2 );
 		this.activeBits = new OpenBitSet( actSize );
 		this.bitIterator = new MutableBitIterator();
-		// Inactive by default.
-		this.setActive( false );
 	}
 
 	/**

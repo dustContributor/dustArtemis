@@ -8,8 +8,8 @@ import com.artemis.utils.IntBag;
 
 /**
  * @author Arni Arent
+ * @author dustContributor
  */
-@SuppressWarnings ( "hiding" )
 public final class EntityManager extends EntityObserver
 {
 	/* Various counters of entity state in this manager. */
@@ -42,8 +42,8 @@ public final class EntityManager extends EntityObserver
 
 		++createdCount;
 		/*
-		 * Guarantee 'entities' and 'disabled' can hold the Entity. This way we
-		 * can avoid doing bound checks in other methods later.
+		 * Guarantee 'entities' and 'disabled' can hold the Entity. This way we can
+		 * avoid doing bound checks in other methods later.
 		 */
 		entities.ensureCapacity( eid + 1 );
 		disabled.ensureCapacity( eid + 1 );
@@ -104,8 +104,7 @@ public final class EntityManager extends EntityObserver
 	}
 
 	/**
-	 * Returns the destination bag with all the current alive entities that
-	 * exist.
+	 * Returns the destination bag with all the current alive entities that exist.
 	 * 
 	 * @param dest bag to hold the values.
 	 * @return the bag passed as parameter holding all the entities that are
@@ -152,8 +151,8 @@ public final class EntityManager extends EntityObserver
 
 	/**
 	 * Get how many entities have been created in the world since start. Note: A
-	 * created entity may not have been added to the world, thus created count
-	 * is always equal or larger than added count.
+	 * created entity may not have been added to the world, thus created count is
+	 * always equal or larger than added count.
 	 * 
 	 * @return how many entities have been created since start.
 	 */

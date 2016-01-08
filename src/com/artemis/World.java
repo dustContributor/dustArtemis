@@ -143,28 +143,14 @@ public class World
 	}
 
 	/**
-	 * Adds an entity observer to this world that will be processed by
-	 * World.process()
-	 * 
-	 * @param observer the observer to add.
-	 * @return the added observer.
-	 */
-	public <T extends EntityObserver> T addObserver ( final T observer )
-	{
-		return addObserver( observer, true );
-	}
-
-	/**
 	 * Add an observer into this world. It can be retrieved later. World will
 	 * notify this observer of changes to entities.
 	 * 
-	 * @param observer the observer to add.
-	 * @param active whether or not this observer will be processed by
-	 *          World.process()
+	 * @param observer to add.
 	 * @return the added observer.
 	 */
 	@SuppressWarnings( "unchecked" )
-	public <T extends EntityObserver> T addObserver ( final T observer, final boolean active )
+	public <T extends EntityObserver> T addObserver ( final T observer )
 	{
 		if ( observer == null )
 		{
@@ -172,7 +158,6 @@ public class World
 		}
 		// Setup observer state.
 		observer.world = this;
-		observer.setActive( active );
 
 		// Fetch type of the observer to be added.
 		final Class<EntityObserver> type = (Class<EntityObserver>) observer.getClass();
