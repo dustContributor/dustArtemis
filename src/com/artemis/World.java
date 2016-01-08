@@ -181,8 +181,11 @@ public class World
 
 		if ( prevObserver != null )
 		{
-			// If there was an observer before, remove it from the bag.
-			observers.remove( type::equals );
+			/*
+			 * If there was an observer before of the same type, erase it from the bag
+			 * preserving the order.
+			 */
+			observers.erase( type::isInstance );
 		}
 		// Now safely add the observer to the end of the bag.
 		observers.add( observer );
