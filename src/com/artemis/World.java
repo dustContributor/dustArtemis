@@ -203,7 +203,7 @@ public class World
 	public <T extends EntityObserver> T removeObserver ( final Class<T> type )
 	{
 		final EntityObserver obs = observerMap.remove( type );
-		observers.remove( obs );
+		observers.erase( obs );
 		return (T) obs;
 	}
 
