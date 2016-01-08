@@ -361,6 +361,33 @@ public final class Bag<T> extends AbstractBag<T>
 	}
 
 	/**
+	 * Erases the first occurrence of the specified item from this Bag, if it is
+	 * present, shifting the remaining elements to the left, preserving their
+	 * order.
+	 * 
+	 * @param item to be erased from this bag.
+	 * @return <code>true</code> if this bag contained the specified item.
+	 */
+	public boolean erase ( final T item )
+	{
+		final int iSize = size;
+
+		for ( int i = 0; i < iSize; ++i )
+		{
+			if ( item == data[i] )
+			{
+				// Item found, erase it.
+				eraseUnsafe( i );
+				// Item has been erased.
+				return true;
+			}
+		}
+
+		// Item not found.
+		return false;
+	}
+
+	/**
 	 * Erases the first occurrence of the item that matches the provided criteria,
 	 * shifting the remaining elements to the left, preserving their order.
 	 * 
