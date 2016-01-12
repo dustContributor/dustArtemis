@@ -10,7 +10,7 @@ import com.artemis.utils.IntBag;
  * @author Arni Arent
  * @author dustContributor
  */
-public final class EntityManager extends EntityObserver
+public final class EntityManager
 {
 	/* Various counters of entity state in this manager. */
 	private long activeCount;
@@ -36,7 +36,7 @@ public final class EntityManager extends EntityObserver
 		this.idStore = new IdAllocator();
 	}
 
-	int createEntityInstance ()
+	final int createEntityInstance ()
 	{
 		final int eid = idStore.alloc();
 
@@ -53,8 +53,7 @@ public final class EntityManager extends EntityObserver
 		return eid;
 	}
 
-	@Override
-	public void added ( final ImmutableIntBag entities )
+	final void added ( final ImmutableIntBag entities )
 	{
 		final int eSize = entities.size();
 
@@ -62,8 +61,7 @@ public final class EntityManager extends EntityObserver
 		addedCount += eSize;
 	}
 
-	@Override
-	public void enabled ( final ImmutableIntBag entities )
+	final void enabled ( final ImmutableIntBag entities )
 	{
 		final int[] array = ((IntBag) entities).data();
 
@@ -73,8 +71,7 @@ public final class EntityManager extends EntityObserver
 		}
 	}
 
-	@Override
-	public void disabled ( final ImmutableIntBag entities )
+	final void disabled ( final ImmutableIntBag entities )
 	{
 		final int[] array = ((IntBag) entities).data();
 
@@ -84,8 +81,7 @@ public final class EntityManager extends EntityObserver
 		}
 	}
 
-	@Override
-	public void deleted ( final ImmutableIntBag entities )
+	final void deleted ( final ImmutableIntBag entities )
 	{
 		final int eSize = entities.size();
 		final int[] eArray = ((IntBag) entities).data();
@@ -110,7 +106,7 @@ public final class EntityManager extends EntityObserver
 	 * @return the bag passed as parameter holding all the entities that are
 	 *         alive.
 	 */
-	public IntBag getAllActiveEntities ( final IntBag dest )
+	public final IntBag activeEntities ( final IntBag dest )
 	{
 		entities.forEachSetBit( dest::add );
 		return dest;
@@ -123,7 +119,7 @@ public final class EntityManager extends EntityObserver
 	 * @param entityId of the entity that will be checked.
 	 * @return true if active, false if not.
 	 */
-	public boolean isActive ( final int entityId )
+	public final boolean isActive ( final int entityId )
 	{
 		return entities.fastGet( entityId );
 	}
@@ -134,7 +130,7 @@ public final class EntityManager extends EntityObserver
 	 * @param entityId of the entity that will be checked.
 	 * @return true if the entity is enabled, false if it is disabled.
 	 */
-	public boolean isEnabled ( final int entityId )
+	public final boolean isEnabled ( final int entityId )
 	{
 		return !disabled.fastGet( entityId );
 	}
@@ -144,7 +140,7 @@ public final class EntityManager extends EntityObserver
 	 * 
 	 * @return how many entities are currently active.
 	 */
-	public long getActiveEntityCount ()
+	public final long totalActive ()
 	{
 		return activeCount;
 	}
@@ -156,7 +152,7 @@ public final class EntityManager extends EntityObserver
 	 * 
 	 * @return how many entities have been created since start.
 	 */
-	public long getTotalCreated ()
+	public final long totalCreated ()
 	{
 		return createdCount;
 	}
@@ -166,7 +162,7 @@ public final class EntityManager extends EntityObserver
 	 * 
 	 * @return how many entities have been added.
 	 */
-	public long getTotalAdded ()
+	public final long totalAdded ()
 	{
 		return addedCount;
 	}
@@ -176,7 +172,7 @@ public final class EntityManager extends EntityObserver
 	 * 
 	 * @return how many entities have been deleted since start.
 	 */
-	public long getTotalDeleted ()
+	public final long totalDeleted ()
 	{
 		return deletedCount;
 	}

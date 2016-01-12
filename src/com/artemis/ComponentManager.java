@@ -16,6 +16,7 @@ import com.artemis.utils.SimplePool;
 
 /**
  * @author Arni Arent
+ * @author dustContributor
  */
 public final class ComponentManager
 {
@@ -34,7 +35,7 @@ public final class ComponentManager
 	/** Component bits for all entities. */
 	private FixedBitSet[] componentBits;
 
-	@SuppressWarnings ( { "unchecked" } )
+	@SuppressWarnings( { "unchecked" } )
 	ComponentManager ()
 	{
 		// Init all type bags.
@@ -53,7 +54,7 @@ public final class ComponentManager
 	 * @param eid id of the entity to add the component to.
 	 * @param component to add to the entity.
 	 */
-	public void addComponent ( final int eid, final Component component )
+	public final void addComponent ( final int eid, final Component component )
 	{
 		final Class<? extends Component> type = component.getClass();
 		final int cmpIndex = indexFor( type );
@@ -73,12 +74,12 @@ public final class ComponentManager
 	 * @param eid id of the entity to add the component to.
 	 * @param component component to add to the entity.
 	 * @param mapper of the type of the component that will be added to the
-	 *            entity.
+	 *          entity.
 	 */
-	public <T extends Component> void addComponent (
-		final int eid,
-		final T component,
-		final ComponentMapper<T> mapper )
+	public final <T extends Component> void addComponent (
+			final int eid,
+			final T component,
+			final ComponentMapper<T> mapper )
 	{
 		final int cmpIndex = mapper.typeIndex;
 		mapper.ensureCapacity( eid );
@@ -92,7 +93,7 @@ public final class ComponentManager
 	 * @param eid id of the entity to add the component to.
 	 * @param type of component to add to the entity
 	 */
-	public void addPooledComponent ( final int eid, final Class<? extends Component> type )
+	public final void addPooledComponent ( final int eid, final Class<? extends Component> type )
 	{
 		final int cmpIndex = indexFor( type );
 		final ComponentMapper<Component> cm = initIfAbsent( cmpIndex, type );
@@ -110,12 +111,12 @@ public final class ComponentManager
 	 * 
 	 * @param eid id of the entity to add the component to.
 	 * @param mapper of the type of the component that will be added to the
-	 *            entity.
+	 *          entity.
 	 */
-	@SuppressWarnings ( "unchecked" )
-	public <T extends Component> void addPooledComponent (
-		final int eid,
-		final ComponentMapper<T> mapper )
+	@SuppressWarnings( "unchecked" )
+	public final <T extends Component> void addPooledComponent (
+			final int eid,
+			final ComponentMapper<T> mapper )
 	{
 		final int cmpIndex = mapper.typeIndex;
 		mapper.ensureCapacity( eid );
@@ -123,11 +124,11 @@ public final class ComponentManager
 		componentBits[eid].set( cmpIndex );
 	}
 
-	@SuppressWarnings ( { "unchecked", "rawtypes" } )
-	<T extends Component> void registerPoolable (
-		final Class<T> type,
-		final Supplier<T> supplier,
-		final Consumer<T> resetter )
+	@SuppressWarnings( { "unchecked", "rawtypes" } )
+	final <T extends Component> void registerPoolable (
+			final Class<T> type,
+			final Supplier<T> supplier,
+			final Consumer<T> resetter )
 	{
 		final int cmpIndex = indexFor( type );
 
@@ -147,7 +148,7 @@ public final class ComponentManager
 	 * @param eid id of the entity to remove the component from.
 	 * @param type of the component to be removed.
 	 */
-	public void removeComponent ( final int eid, final Class<? extends Component> type )
+	public final void removeComponent ( final int eid, final Class<? extends Component> type )
 	{
 		final int cmpIndex = indexFor( type );
 		final FixedBitSet bits = componentBits[eid];
@@ -166,10 +167,10 @@ public final class ComponentManager
 	 * Remove component by its type.
 	 * 
 	 * @param eid id of the entity to remove the component from.
-	 * @param mapper related to the type of component that will be removed of
-	 *            the entity.
+	 * @param mapper related to the type of component that will be removed of the
+	 *          entity.
 	 */
-	public void removeComponent ( final int eid, final ComponentMapper<? extends Component> mapper )
+	public final void removeComponent ( final int eid, final ComponentMapper<? extends Component> mapper )
 	{
 		final int cmpIndex = mapper.typeIndex;
 		final FixedBitSet bits = componentBits[eid];
@@ -187,7 +188,7 @@ public final class ComponentManager
 	 * @param eid id of the entity to remove the component from.
 	 * @param type of the component to be removed.
 	 */
-	public void removePooledComponent ( final int eid, final Class<? extends Component> type )
+	public final void removePooledComponent ( final int eid, final Class<? extends Component> type )
 	{
 		final int cmpIndex = indexFor( type );
 		final FixedBitSet bits = componentBits[eid];
@@ -207,12 +208,12 @@ public final class ComponentManager
 	 * Remove component by its type.
 	 * 
 	 * @param eid id of the entity to remove the component from.
-	 * @param mapper related to the type of component that will be removed of
-	 *            the entity.
+	 * @param mapper related to the type of component that will be removed of the
+	 *          entity.
 	 */
-	public void removePooledComponent (
-		final int eid,
-		final ComponentMapper<? extends Component> mapper )
+	public final void removePooledComponent (
+			final int eid,
+			final ComponentMapper<? extends Component> mapper )
 	{
 		final int cmpIndex = mapper.typeIndex;
 		final FixedBitSet bits = componentBits[eid];
@@ -227,21 +228,21 @@ public final class ComponentManager
 
 	/**
 	 * Slower retrieval of components from an entity. The recommended way to
-	 * retrieve components from an entity is using the ComponentMapper. Is fine
-	 * to use e.g. when creating new entities and setting data in components.
+	 * retrieve components from an entity is using the ComponentMapper. Is fine to
+	 * use e.g. when creating new entities and setting data in components.
 	 * 
 	 * @param <T> the expected component type.
 	 * @param eid id of the entity to retrieve the component from.
 	 * @param type the expected return component type.
 	 * @return component that matches, or null if none is found.
 	 */
-	@SuppressWarnings ( "unchecked" )
-	public <T extends Component> T getComponent ( final int eid, final Class<T> type )
+	@SuppressWarnings( "unchecked" )
+	public final <T extends Component> T getComponent ( final int eid, final Class<T> type )
 	{
 		return (T) initIfAbsent( indexFor( type ), type ).get( eid );
 	}
 
-	public Bag<Component> getComponentsFor ( final int eid, final Bag<Component> fillBag )
+	public final Bag<Component> getComponentsFor ( final int eid, final Bag<Component> fillBag )
 	{
 		final ComponentMapper<Component>[] cmpBags = componentsByType;
 		final FixedBitIterator mbi = bitIterator;
@@ -256,19 +257,19 @@ public final class ComponentManager
 		return fillBag;
 	}
 
-	@SuppressWarnings ( "unchecked" )
-	<T extends Component> ComponentMapper<T> getMapperFor ( final Class<T> type )
+	@SuppressWarnings( "unchecked" )
+	final <T extends Component> ComponentMapper<T> getMapperFor ( final Class<T> type )
 	{
 		return (ComponentMapper<T>) initIfAbsent( indexFor( type ), type );
 	}
 
-	void clean ( final ImmutableIntBag deleted )
+	final void clean ( final ImmutableIntBag deleted )
 	{
 		// Clear all components.
 		clearComponents( ((IntBag) deleted).data(), deleted.size() );
 	}
 
-	void registerEntity ( final int eid )
+	final void registerEntity ( final int eid )
 	{
 		if ( eid >= componentBits.length )
 		{
@@ -285,7 +286,7 @@ public final class ComponentManager
 		}
 	}
 
-	private void clearComponents ( final int[] ents, final int size )
+	private final void clearComponents ( final int[] ents, final int size )
 	{
 		final ComponentMapper<Component>[] cmpBags = componentsByType;
 		final SimplePool<Component>[] pools = poolsByType;
@@ -328,25 +329,25 @@ public final class ComponentManager
 		}
 	}
 
-	FixedBitSet[] componentBits ()
+	final FixedBitSet[] componentBits ()
 	{
 		return componentBits;
 	}
 
 	/**
-	 * If the component index passed is too high for the
-	 * {@link #componentsByType} to hold, it resizes it.
+	 * If the component index passed is too high for the {@link #componentsByType}
+	 * to hold, it resizes it.
 	 * 
 	 * It also initializes the mapper if it isn't present.
 	 * 
 	 * @param typeIndex component type index to check if it has a component bag
-	 *            initialized.
+	 *          initialized.
 	 * @return Component bag for the given component index.
 	 */
-	@SuppressWarnings ( { "rawtypes", "unchecked" } )
-	private ComponentMapper<Component> initIfAbsent (
-		final int typeIndex,
-		final Class<? extends Component> type )
+	@SuppressWarnings( { "rawtypes", "unchecked" } )
+	private final ComponentMapper<Component> initIfAbsent (
+			final int typeIndex,
+			final Class<? extends Component> type )
 	{
 		// If type bag can't hold this component type.
 		if ( typeIndex >= componentsByType.length )

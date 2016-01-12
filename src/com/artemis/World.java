@@ -56,20 +56,16 @@ public class World
 		cm = new ComponentManager();
 		em = new EntityManager();
 
-		// Compensating size for EntityManager.
-		this.observers = new EntityObserver[observers.length + 1];
-		// Insert EntityManager before all other observers.
-		this.observers[0] = em;
-		// Now copy the rest of the observers to the right.
-		System.arraycopy( observers, 0, this.observers, 1, observers.length );
+		// Store observers.
+		this.observers = observers;
 
 		// Create immutable view of the observer array.
-		final Bag<EntityObserver> obag = new Bag<>( this.observers );
-		obag.setSize( this.observers.length );
-		this.immutableObservers = obag;
+		final Bag<EntityObserver> obag = new Bag<>( observers );
+		obag.setSize( observers.length );
+		immutableObservers = obag;
 
 		// World sets itself in all its observers.
-		this.immutableObservers.forEach( o -> o.world = this );
+		immutableObservers.forEach( o -> o.world = this );
 	}
 
 	/**
@@ -294,14 +290,11 @@ public class World
 	{
 		// Checking all affected entities in all EntityObservers.
 		notifyObservers();
-		// Clean components from deleted entities.
-		cm.clean( deleted );
-		// Clearing all the affected entities before next world update.
-		clearAllBags();
-	}
 
-	private final void clearAllBags ()
-	{
+		notifyComponentManager();
+		notifyEntityManager();
+
+		// Clearing all the affected entities before next world update.
 		added.setSize( 0 );
 		changed.setSize( 0 );
 		disabled.setSize( 0 );
@@ -321,6 +314,21 @@ public class World
 			o.deleted( deleted );
 			o.processModifiedEntities();
 		}
+	}
+
+	private final void notifyComponentManager ()
+	{
+		// Clean components from deleted entities.
+		cm.clean( deleted );
+	}
+
+	private final void notifyEntityManager ()
+	{
+		// Notify entity manager of all entity changes.
+		em.added( added );
+		em.disabled( disabled );
+		em.enabled( enabled );
+		em.deleted( deleted );
 	}
 
 	/**
