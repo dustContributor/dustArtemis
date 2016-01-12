@@ -26,40 +26,38 @@ final class Injector
 	}
 
 	/**
-	 * For each of the EntityObservers provided, they will get a proper instance
-	 * for each of their {@link ComponentMapper} or {@link EntityObserver}
-	 * fields.
+	 * For each of the {@link EntityObserver}s provided, they will get a proper
+	 * instance for each of their {@link ComponentMapper} or
+	 * {@link EntityObserver} fields.
 	 * 
 	 * @param observers that you need initialized.
 	 */
-	static final void init ( final Bag<? extends EntityObserver> observers )
+	static final void init ( final EntityObserver[] observers )
 	{
-		final EntityObserver[] obs = observers.data();
 		// Reasonable initial field amount.
 		final Bag<Field> fields = new Bag<>( new Field[32] );
 		// Predicates to test if the field is the appropiate one.
-		@SuppressWarnings ( { "unchecked" } )
+		@SuppressWarnings( { "unchecked" } )
 		final Predicate<Field>[] tests = new Predicate[3];
 		tests[0] = Injector::testForMapper;
 		tests[1] = Injector::testForObserver;
 		tests[2] = Injector::testForEntitiesOf;
 		// Suppliers for each of the fields that need to be injected.
-		@SuppressWarnings ( "unchecked" )
+		@SuppressWarnings( "unchecked" )
 		final BiFunction<Field, EntityObserver, Object>[] suppliers = new BiFunction[3];
 		suppliers[0] = Injector::supplyMapper;
 		suppliers[1] = Injector::supplyObserver;
 		suppliers[2] = Injector::supplyEntities;
 
 		// For each of the EntityObservers in observers Bag:
-		for ( int s = observers.size(); s-- > 0; )
+		for ( int s = observers.length; s-- > 0; )
 		{
-			final EntityObserver observer = obs[s];
+			final EntityObserver observer = observers[s];
 			/*
-			 * Iterating over superclasses until reaching Object. This allows
-			 * using EntityObserver class hierarchies inheriting fields to be
-			 * injected. Otherwise instances would only get assigned to the
-			 * fields declared in the downmost EntityObserver subclass in the
-			 * hierarchy.
+			 * Iterating over superclasses until reaching Object. This allows using
+			 * EntityObserver class hierarchies inheriting fields to be injected.
+			 * Otherwise instances would only get assigned to the fields declared in
+			 * the downmost EntityObserver subclass in the hierarchy.
 			 */
 			for ( Class<?> clazz = observer.getClass(); clazz != Object.class; clazz = clazz.getSuperclass() )
 			{
@@ -84,10 +82,10 @@ final class Injector
 	 * @param suppliers to fetch the instances to set in the fields.
 	 */
 	private static final void initFields (
-		final Bag<Field> fields,
-		final EntityObserver observer,
-		final Predicate<Field>[] tests,
-		final BiFunction<Field, EntityObserver, Object>[] suppliers )
+			final Bag<Field> fields,
+			final EntityObserver observer,
+			final Predicate<Field>[] tests,
+			final BiFunction<Field, EntityObserver, Object>[] suppliers )
 	{
 		final Field[] flds = fields.data();
 
@@ -112,9 +110,9 @@ final class Injector
 	private static final Object supplyMapper ( final Field field, final EntityObserver observer )
 	{
 		final ParameterizedType genericType = (ParameterizedType) field.getGenericType();
-		@SuppressWarnings ( "unchecked" )
-		final Class<? extends Component> componentType =
-				(Class<? extends Component>) genericType.getActualTypeArguments()[0];
+		@SuppressWarnings( "unchecked" )
+		final Class<? extends Component> componentType = (Class<? extends Component>) genericType
+				.getActualTypeArguments()[0];
 		final ComponentMapper<? extends Component> value = observer.world.getMapper( componentType );
 		// Check for missing mapper.
 		if ( value == null )
@@ -129,7 +127,7 @@ final class Injector
 	private static final Object supplyObserver ( final Field field, final EntityObserver observer )
 	{
 		final Class<?> type = field.getType();
-		@SuppressWarnings ( "unchecked" )
+		@SuppressWarnings( "unchecked" )
 		final EntityObserver value = observer.world.getObserver( (Class<EntityObserver>) type );
 		// Check for missing observer.
 		if ( value == null )
@@ -150,8 +148,7 @@ final class Injector
 		if ( !(ImmutableIntBag.class == field.getType()) )
 		{
 			/*
-			 * Fetch names at runtime so refactoring names wont mess up the
-			 * message.
+			 * Fetch names at runtime so refactoring names wont mess up the message.
 			 */
 			final String anName = EntitiesOf.class.getSimpleName();
 			final String listName = ImmutableIntBag.class.getSimpleName();
@@ -234,7 +231,8 @@ final class Injector
 			throw new DustException( Injector.class,
 					"While injecting object: " + vmsg +
 							", in field: " + fmsg +
-							", in instance: " + tmsg, e );
+							", in instance: " + tmsg,
+					e );
 		}
 		finally
 		{

@@ -1,7 +1,10 @@
 package com.artemis;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import com.artemis.utils.Bag;
@@ -33,13 +36,16 @@ public class World
 	private final IntBag enabled;
 	private final IntBag disabled;
 
-	private final IdentityHashMap<Class<EntityObserver>, EntityObserver> observerMap;
-	private final Bag<EntityObserver> observers;
+	private final EntityObserver[] observers;
 
-	public World ()
+	private final ImmutableBag<EntityObserver> immutableObservers;
+
+	protected World ( final EntityObserver[] observers )
 	{
-		observerMap = new IdentityHashMap<>();
-		observers = new Bag<>( new EntityObserver[ImmutableBag.DEFAULT_CAPACITY] );
+		if ( observers == null )
+		{
+			throw new DustException( this, "observers can't be null!" );
+		}
 
 		added = new IntBag();
 		changed = new IntBag();
@@ -50,28 +56,20 @@ public class World
 		cm = new ComponentManager();
 		em = new EntityManager();
 
-		addObserver( em );
-	}
+		// Compensating size for EntityManager.
+		this.observers = new EntityObserver[observers.length + 1];
+		// Insert EntityManager before all other observers.
+		this.observers[0] = em;
+		// Now copy the rest of the observers to the right.
+		System.arraycopy( observers, 0, this.observers, 1, observers.length );
 
-	/**
-	 * Makes sure all managers observers are initialized in the order they were
-	 * added.
-	 */
-	public void initialize ()
-	{
-		/*
-		 * Injecting all ComponentMappers and EntityObservers into the observers.
-		 */
-		Injector.init( observers );
+		// Create immutable view of the observer array.
+		final Bag<EntityObserver> obag = new Bag<>( this.observers );
+		obag.setSize( this.observers.length );
+		this.immutableObservers = obag;
 
-		// Initialize all observers.
-		final EntityObserver[] data = observers.data();
-		final int size = observers.size();
-
-		for ( int i = 0; i < size; ++i )
-		{
-			data[i].init();
-		}
+		// World sets itself in all its observers.
+		this.immutableObservers.forEach( o -> o.world = this );
 	}
 
 	/**
@@ -139,57 +137,7 @@ public class World
 	 */
 	public ImmutableBag<EntityObserver> getObservers ()
 	{
-		return observers;
-	}
-
-	/**
-	 * Add an observer into this world. It can be retrieved later. World will
-	 * notify this observer of changes to entities.
-	 * 
-	 * @param observer to add.
-	 * @return the added observer.
-	 */
-	@SuppressWarnings( "unchecked" )
-	public <T extends EntityObserver> T addObserver ( final T observer )
-	{
-		if ( observer == null )
-		{
-			throw new DustException( this, "Can't pass a null observer!" );
-		}
-		// Setup observer state.
-		observer.world = this;
-
-		// Fetch type of the observer to be added.
-		final Class<EntityObserver> type = (Class<EntityObserver>) observer.getClass();
-		// Insert it and retrieve the previous one.
-		final EntityObserver prevObserver = observerMap.put( type, observer );
-
-		if ( prevObserver != null )
-		{
-			/*
-			 * If there was an observer before of the same type, erase it from the bag
-			 * preserving the order.
-			 */
-			observers.erase( type::isInstance );
-		}
-		// Now safely add the observer to the end of the bag.
-		observers.add( observer );
-
-		return observer;
-	}
-
-	/**
-	 * Remove an entity observer of the specified type.
-	 * 
-	 * @param type of the observer to delete.
-	 * @return observer that was deleted if there was one.
-	 */
-	@SuppressWarnings( "unchecked" )
-	public <T extends EntityObserver> T removeObserver ( final Class<T> type )
-	{
-		final EntityObserver obs = observerMap.remove( type );
-		observers.erase( obs );
-		return (T) obs;
+		return immutableObservers;
 	}
 
 	/**
@@ -202,7 +150,16 @@ public class World
 	@SuppressWarnings( "unchecked" )
 	public <T extends EntityObserver> T getObserver ( final Class<T> type )
 	{
-		return (T) observerMap.get( type );
+		for ( int i = 0; i < observers.length; ++i )
+		{
+			final EntityObserver obs = observers[i];
+
+			if ( obs.getClass() == type )
+			{
+				return (T) obs;
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -336,7 +293,7 @@ public class World
 	private final void checkAll ()
 	{
 		// Checking all affected entities in all EntityObservers.
-		notifyObservers( observers );
+		notifyObservers();
 		// Clean components from deleted entities.
 		cm.clean( deleted );
 		// Clearing all the affected entities before next world update.
@@ -352,14 +309,11 @@ public class World
 		deleted.setSize( 0 );
 	}
 
-	private final <T extends EntityObserver> void notifyObservers ( final Bag<T> observers )
+	private final void notifyObservers ()
 	{
-		final int size = observers.size();
-		final T[] obs = observers.data();
-
-		for ( int i = 0; i < size; ++i )
+		for ( int i = 0; i < observers.length; ++i )
 		{
-			final T o = obs[i];
+			final EntityObserver o = observers[i];
 			o.added( added );
 			o.changed( changed );
 			o.disabled( disabled );
@@ -376,12 +330,9 @@ public class World
 	{
 		checkAll();
 
-		final EntityObserver[] sArray = observers.data();
-		final int sSize = observers.size();
-
-		for ( int i = 0; i < sSize; ++i )
+		for ( int i = 0; i < observers.length; ++i )
 		{
-			final EntityObserver obs = sArray[i];
+			final EntityObserver obs = observers[i];
 
 			if ( obs.isActive() )
 			{
@@ -402,4 +353,207 @@ public class World
 		return cm.getMapperFor( type );
 	}
 
+	/**
+	 * Returns a new {@link World} {@link Builder} instance. By default its
+	 * configured to not respect each {@link EntityObserver}'s order.
+	 * 
+	 * @return new {@link Builder} instance.
+	 */
+	public static final Builder builder ()
+	{
+		return new Builder();
+	}
+
+	/**
+	 * <p>
+	 * Builder class to configure and construct {@link World} instances from.
+	 * </p>
+	 * 
+	 * <p>
+	 * Can be configured with {@link EntityObserver}s, configure if the
+	 * {@link EntityObserver} initialization and/or processing should be done in a
+	 * specific order.
+	 * </p>
+	 * 
+	 * <p>
+	 * Also can be configured to supply other kinds of {@link World} instaces by
+	 * providing a custom world supplier.
+	 * </p>
+	 * 
+	 * 
+	 * @author dustContributor
+	 *
+	 */
+	public static final class Builder
+	{
+		private final Bag<EntityObserver> observers;
+		private final IdentityHashMap<EntityObserver, Integer> orders;
+
+		private Function<EntityObserver[], World> worldSupplier;
+		private boolean initializeByOrder;
+		private boolean processByOrder;
+
+		Builder ()
+		{
+			this.worldSupplier = World::new;
+			this.initializeByOrder = false;
+			this.processByOrder = false;
+			this.observers = new Bag<>( EntityObserver.class, 16 );
+			this.orders = new IdentityHashMap<>( 16 );
+		}
+
+		/**
+		 * In case you want to override the default {@link World} constructor call,
+		 * useful for when you want to build your subclass of {@link World}.
+		 * 
+		 * <p>
+		 * For example: <br>
+		 * 
+		 * <pre>
+		 * builder.worldSupplier( SomeWorldSubclass::new );
+		 * </pre>
+		 * </p>
+		 * 
+		 * @param worldSupplier to construct a {@link World} from.
+		 * @return this builder instance.
+		 */
+		public final Builder worldSupplier ( final Function<EntityObserver[], World> worldSupplier )
+		{
+			if ( worldSupplier == null )
+			{
+				throw new DustException( this, "worldSupplier can't be null!" );
+			}
+
+			this.worldSupplier = worldSupplier;
+			return this;
+		}
+
+		/**
+		 * Configures this {@link Builder} response to each of the
+		 * {@link EntityObserver}'s order.
+		 * 
+		 * <p>
+		 * If set to 'true', the produced {@link World} will initialize
+		 * {@link EntityObserver} instances respecting the passed order (from lower
+		 * to upper). Otherwise if set to 'false' it will ignore it and initialize
+		 * {@link EntityObserver} instances in the order they were added to this
+		 * {@link Builder}.
+		 * </p>
+		 * 
+		 * <p>
+		 * 'false' by default.
+		 * </p>
+		 * 
+		 * @param initializeByOrder value.
+		 * @return this builder instance.
+		 */
+		public final Builder initializeByOrder ( final boolean initializeByOrder )
+		{
+			this.initializeByOrder = initializeByOrder;
+			return this;
+		}
+
+		/**
+		 * Configures this {@link Builder} response to each of the
+		 * {@link EntityObserver}'s order.
+		 * <p>
+		 * If set to 'true', the produced {@link World} will process
+		 * {@link EntityObserver} instances respecting the passed order (from lower
+		 * to upper). Otherwise if set to 'false' it will ignore it and process
+		 * {@link EntityObserver} instances in the order they were added to this
+		 * {@link Builder}.
+		 * </p>
+		 * <p>
+		 * 'false' by default.
+		 * </p>
+		 * 
+		 * @param processByOrder value.
+		 * @return this builder instance.
+		 */
+		public final Builder processByOrder ( final boolean processByOrder )
+		{
+			this.processByOrder = processByOrder;
+			return this;
+		}
+
+		/**
+		 * Add an observer into this world {@link Builder}. It can be retrieved
+		 * later. Later, the {@link World} instance constructed with this
+		 * {@link Builder} will notify the {@link EntityObserver} of any entity
+		 * changes. <b>Its order will be set to 0.</b>
+		 * 
+		 * @param observer to add.
+		 * @return this builder instance.
+		 */
+		public final Builder observer ( final EntityObserver observer )
+		{
+			return observer( observer, 0 );
+		}
+
+		/**
+		 * Add an observer into this world {@link Builder}. It can be retrieved
+		 * later. Later, the {@link World} instance constructed with this
+		 * {@link Builder} will notify the {@link EntityObserver} of any entity
+		 * changes.
+		 * 
+		 * @param observer to add.
+		 * @param order of the observer.
+		 * @return this builder instance.
+		 */
+		public final Builder observer ( final EntityObserver observer, final int order )
+		{
+			if ( observer == null )
+			{
+				throw new DustException( this, "observer can't be null!" );
+			}
+
+			this.observers.add( observer );
+			this.orders.put( observer, Integer.valueOf( order ) );
+			return this;
+		}
+
+		/**
+		 * Builds a {@link World} instance with this {@link Builder}'s
+		 * {@link EntityObserver} configuration.
+		 * 
+		 * @return new {@link World} instance.
+		 */
+		public final World build ()
+		{
+			// EntityObserver comparator by order.
+			final Comparator<EntityObserver> orderComparator = ( a, b ) ->
+			{
+				return orders.get( a ).compareTo( orders.get( b ) );
+			};
+
+			final EntityObserver[] processObservers = Arrays.copyOf( observers.data(), observers.size() );
+			final EntityObserver[] initializeObservers = Arrays.copyOf( observers.data(), observers.size() );
+
+			if ( processByOrder )
+			{
+				Arrays.sort( processObservers, orderComparator );
+			}
+			/*
+			 * World will respect the order in which processObservers is for calling
+			 * 'process' on each of them.
+			 */
+			final World world = worldSupplier.apply( processObservers );
+
+			if ( initializeByOrder )
+			{
+				Arrays.sort( initializeObservers, orderComparator );
+			}
+
+			// Inject the observers in initialization order.
+			Injector.init( initializeObservers );
+
+			for ( int i = 0; i < initializeObservers.length; ++i )
+			{
+				// And call 'init' on them in initialization order.
+				initializeObservers[i].init();
+			}
+			// Now return fully constructed World instance.
+			return world;
+		}
+	}
 }
