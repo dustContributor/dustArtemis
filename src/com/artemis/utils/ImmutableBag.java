@@ -39,13 +39,13 @@ public abstract class ImmutableBag<T>
 	 * <p>
 	 * <b>NOTE</b>: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY},
 	 * the Bag will be created with a capacity of
-	 * {@value #MINIMUM_WORKING_CAPACITY} instead. The backing array type will
-	 * be Object.
+	 * {@value #MINIMUM_WORKING_CAPACITY} instead. The backing array type will be
+	 * Object.
 	 * </p>
 	 * 
 	 * @param capacity of the Bag
 	 */
-	@SuppressWarnings ( "unchecked" )
+	@SuppressWarnings( "unchecked" )
 	public ImmutableBag ( final int capacity )
 	{
 		this( (Class<T>) Object.class, capacity );
@@ -77,7 +77,7 @@ public abstract class ImmutableBag<T>
 	 * 
 	 * @param capacity of the Bag.
 	 */
-	@SuppressWarnings ( "unchecked" )
+	@SuppressWarnings( "unchecked" )
 	public ImmutableBag ( final Class<T> type, final int capacity )
 	{
 		this( (T[]) Array.newInstance( type, fixInitialCapacity( capacity ) ) );
@@ -194,8 +194,8 @@ public abstract class ImmutableBag<T>
 	}
 
 	/**
-	 * Iterates over each element of this bag and applying the supplied
-	 * operation on each element.
+	 * Iterates over each element of this bag and applying the supplied operation
+	 * on each element.
 	 * 
 	 * @param operation to be performed on each element of this bag.
 	 */
@@ -210,9 +210,8 @@ public abstract class ImmutableBag<T>
 	}
 
 	/**
-	 * Iterates over each element of this bag and applying the supplied
-	 * operation on each element while passing the index of the element being
-	 * operated on.
+	 * Iterates over each element of this bag and applying the supplied operation
+	 * on each element while passing the index of the element being operated on.
 	 * 
 	 * @param operation to be performed on each element of this bag.
 	 */
@@ -258,8 +257,8 @@ public abstract class ImmutableBag<T>
 	}
 
 	/**
-	 * Checks if the index is within the capacity of the Bag (ie, if its bigger
-	 * or equal than 0 and less than the length of the backing array).
+	 * Checks if the index is within the capacity of the Bag (ie, if its bigger or
+	 * equal than 0 and less than the length of the backing array).
 	 * 
 	 * @param index that needs to be checked.
 	 * @return <code>true</code> if the index is within the bounds of the Bag,
@@ -329,7 +328,7 @@ public abstract class ImmutableBag<T>
 	 * @return capacity if its valid,
 	 *         {@link ImmutableBag#MINIMUM_WORKING_CAPACITY} otherwise.
 	 */
-	protected static final int fixInitialCapacity ( final int capacity )
+	public static final int fixInitialCapacity ( final int capacity )
 	{
 		return (capacity > MINIMUM_WORKING_CAPACITY) ? capacity : MINIMUM_WORKING_CAPACITY;
 	}
@@ -353,7 +352,7 @@ public abstract class ImmutableBag<T>
 	 * @param arrayLength of the current backing array.
 	 * @return proper capacity given by the grow strategy.
 	 */
-	protected static final int getCapacityFor ( final int index, final int arrayLength )
+	public static final int getCapacityFor ( final int index, final int arrayLength )
 	{
 		int newSize = arrayLength;
 
