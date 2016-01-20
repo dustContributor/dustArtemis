@@ -10,9 +10,9 @@ import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableIntBag;
 
 /**
- * Class with static method for initializing {@link ComponentMapper}s and
+ * Class with static method for initializing {@link ComponentHandler}s and
  * {@link EntityObserver}s. <br>
- * It just plain initializes any {@link ComponentMapper} or
+ * It just plain initializes any {@link ComponentHandler} or
  * {@link EntityObserver} field it comes across in each observer.
  * 
  * @author dustContributor
@@ -27,7 +27,7 @@ final class Injector
 
 	/**
 	 * For each of the {@link EntityObserver}s provided, they will get a proper
-	 * instance for each of their {@link ComponentMapper} or
+	 * instance for each of their {@link ComponentHandler} or
 	 * {@link EntityObserver} fields.
 	 * 
 	 * @param observers that you need initialized.
@@ -39,13 +39,13 @@ final class Injector
 		// Predicates to test if the field is the appropiate one.
 		@SuppressWarnings( { "unchecked" } )
 		final Predicate<Field>[] tests = new Predicate[3];
-		tests[0] = Injector::testForMapper;
+		tests[0] = Injector::testForHandler;
 		tests[1] = Injector::testForObserver;
 		tests[2] = Injector::testForEntitiesOf;
 		// Suppliers for each of the fields that need to be injected.
 		@SuppressWarnings( "unchecked" )
 		final BiFunction<Field, EntityObserver, Object>[] suppliers = new BiFunction[3];
-		suppliers[0] = Injector::supplyMapper;
+		suppliers[0] = Injector::supplyHandler;
 		suppliers[1] = Injector::supplyObserver;
 		suppliers[2] = Injector::supplyEntities;
 
@@ -89,7 +89,7 @@ final class Injector
 	{
 		final Field[] flds = fields.data();
 
-		// Now for each of those ComponentMapper fields in the observer:
+		// Now for each of those ComponentHandler fields in the observer:
 		for ( int f = fields.size(); f-- > 0; )
 		{
 			final Field field = flds[f];
@@ -107,18 +107,18 @@ final class Injector
 		}
 	}
 
-	private static final Object supplyMapper ( final Field field, final EntityObserver observer )
+	private static final Object supplyHandler ( final Field field, final EntityObserver observer )
 	{
 		final ParameterizedType genericType = (ParameterizedType) field.getGenericType();
 		@SuppressWarnings( "unchecked" )
 		final Class<? extends Component> componentType = (Class<? extends Component>) genericType
 				.getActualTypeArguments()[0];
-		final ComponentMapper<? extends Component> value = observer.world.getMapper( componentType );
-		// Check for missing mapper.
+		final ComponentHandler<? extends Component> value = observer.world.getHandler( componentType );
+		// Check for missing handler.
 		if ( value == null )
 		{
 			final String tname = componentType.getSimpleName();
-			throw new DustException( Injector.class, "Cant find MAPPER for the type " + tname + " to inject!" );
+			throw new DustException( Injector.class, "Cant find HANDLER for the type " + tname + " to inject!" );
 		}
 		// Everything OK.
 		return value;
@@ -177,14 +177,14 @@ final class Injector
 	}
 
 	/**
-	 * Tests if the passed field is a {@link ComponentMapper}.
+	 * Tests if the passed field is a {@link ComponentHandler}.
 	 * 
 	 * @param field to test.
 	 * @return 'true' if it is, 'false' otherwise.
 	 */
-	private static final boolean testForMapper ( final Field field )
+	private static final boolean testForHandler ( final Field field )
 	{
-		return ComponentMapper.class == field.getType();
+		return ComponentHandler.class == field.getType();
 	}
 
 	/**

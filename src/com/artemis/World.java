@@ -3,9 +3,7 @@ package com.artemis;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.IdentityHashMap;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
@@ -28,6 +26,9 @@ public class World
 	private final EntityManager em;
 	private final ComponentManager cm;
 
+	/**
+	 * Delta time to provide for systems.
+	 */
 	public float delta;
 
 	private final IntBag added;
@@ -87,43 +88,6 @@ public class World
 	public ComponentManager componentManager ()
 	{
 		return cm;
-	}
-
-	/**
-	 * Registers a poolable component with its supplier.
-	 * 
-	 * @param type of the poolable component.
-	 * @param supplier of new component instances.
-	 */
-	public <T extends Component> void registerPoolable ( final Class<T> type, final Supplier<T> supplier )
-	{
-		registerPoolable( type, supplier, null );
-	}
-
-	/**
-	 * Registers a poolable component with its supplier and a resetter for
-	 * components that need to be reset in some way before being reused.
-	 * 
-	 * @param type of the poolable component.
-	 * @param supplier of new component instances.
-	 * @param resetter of components that will be reused.
-	 */
-	public <T extends Component> void registerPoolable (
-			final Class<T> type,
-			final Supplier<T> supplier,
-			final Consumer<T> resetter )
-	{
-		if ( type == null )
-		{
-			throw new DustException( this, "Can't pass a null type!" );
-		}
-
-		if ( supplier == null )
-		{
-			throw new DustException( this, "Can't pass a null supplier!" );
-		}
-
-		cm.registerPoolable( type, supplier, resetter );
 	}
 
 	/**
@@ -350,15 +314,15 @@ public class World
 	}
 
 	/**
-	 * Retrieves a ComponentMapper instance for fast retrieval of components from
-	 * entities.
+	 * Retrieves a {@link ComponentHandler} instance for fast retrieval of
+	 * components from entities.
 	 * 
-	 * @param type of component to get mapper for.
-	 * @return mapper for specified component type.
+	 * @param type of component to get handler for.
+	 * @return handler for specified component type.
 	 */
-	public <T extends Component> ComponentMapper<T> getMapper ( final Class<T> type )
+	public <T extends Component> ComponentHandler<T> getHandler ( final Class<T> type )
 	{
-		return cm.getMapperFor( type );
+		return cm.getHandlerFor( type );
 	}
 
 	/**
