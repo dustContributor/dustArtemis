@@ -517,7 +517,7 @@ public class World
 			}
 
 			// Inject the observers in initialization order.
-			Injector.init( initializeObservers );
+			Injector.init( world, initializeObservers );
 
 			for ( int i = 0; i < initializeObservers.length; ++i )
 			{
