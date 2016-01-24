@@ -86,6 +86,29 @@ public final class ComponentManager
 		}
 	}
 
+	/**
+	 * Notifies this component manager that a component was added to an entity.
+	 * 
+	 * @param id of the entity to add a component to.
+	 * @param typeIndex of the component that was added.
+	 */
+	final void notifyAddedComponent ( final int id, final int typeIndex )
+	{
+		this.componentBits[id].set( typeIndex );
+	}
+
+	/**
+	 * Notifies this component manager that a component was removed from an
+	 * entity.
+	 * 
+	 * @param id of the entity to remove a component from.
+	 * @param typeIndex of the component that was removed.
+	 */
+	final void notifyRemovedComponent ( final int id, final int typeIndex )
+	{
+		this.componentBits[id].clear( typeIndex );
+	}
+
 	final FixedBitSet[] componentBits ()
 	{
 		return componentBits;

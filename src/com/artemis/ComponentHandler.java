@@ -3,8 +3,6 @@ package com.artemis;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
-import org.apache.lucene.util.FixedBitSet;
-
 import com.artemis.utils.ImmutableBag;
 
 /**
@@ -122,7 +120,7 @@ public final class ComponentHandler<T extends Component>
 	public final void addUnsafe ( final int id, final T component )
 	{
 		data[id] = component;
-		cm.componentBits()[id].set( typeIndex );
+		cm.notifyAddedComponent( id, typeIndex );
 	}
 
 	/**
@@ -156,8 +154,7 @@ public final class ComponentHandler<T extends Component>
 	 */
 	public final T remove ( final int id )
 	{
-		final FixedBitSet bits = cm.componentBits()[id];
-		bits.clear( typeIndex );
+		cm.notifyRemovedComponent( id, typeIndex );
 		// Item ref copy.
 		final T item = data[id];
 		// Null item.
