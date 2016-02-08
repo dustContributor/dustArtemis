@@ -2,7 +2,7 @@ package com.artemis;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import com.artemis.annotations.EntitiesOf;
@@ -20,14 +20,35 @@ import com.artemis.utils.ImmutableIntBag;
 final class Injector
 {
 	private final World world;
+	private final Predicate<Field>[] tests;
+	private final Function<Field, Object>[] suppliers;
 
 	private Injector ( final World world )
 	{
-		if ( world == null )
-		{
-			throw new DustException( this, "world can't be null!" );
-		}
+		// Init all fields.
 		this.world = world;
+		// Predicates to test if the field is the appropriate one.
+		this.tests = asArray(
+				Injector::testForHandler,
+				Injector::testForObserver,
+				Injector::testForEntitiesOf );
+		// Suppliers for each of the fields that need to be injected.
+		this.suppliers = asArray(
+				this::supplyHandler,
+				this::supplyObserver,
+				this::supplyEntities );
+	}
+
+	/**
+	 * Just to get around the generic array initializer limitation.
+	 * 
+	 * @param params to convert to array.
+	 * @return an array composed of the parameters.
+	 */
+	@SafeVarargs
+	private static final <T> T[] asArray ( T... params )
+	{
+		return params;
 	}
 
 	/**
@@ -39,22 +60,14 @@ final class Injector
 	 */
 	static final void init ( final World world, final Object[] objects )
 	{
+		// Validate params.
+		DustException.enforceNonNull( Injector.class, world, "world" );
+		DustException.enforceNonNull( Injector.class, objects, "objects" );
+
 		// Injector instance that holds a world reference.
 		final Injector injector = new Injector( world );
 		// Reasonable initial field amount.
 		final Bag<Field> fields = new Bag<>( new Field[32] );
-		// Predicates to test if the field is the appropriate one.
-		@SuppressWarnings( { "unchecked" } )
-		final Predicate<Field>[] tests = new Predicate[3];
-		tests[0] = Injector::testForHandler;
-		tests[1] = Injector::testForObserver;
-		tests[2] = Injector::testForEntitiesOf;
-		// Suppliers for each of the fields that need to be injected.
-		@SuppressWarnings( "unchecked" )
-		final BiFunction<Field, Object, Object>[] suppliers = new BiFunction[3];
-		suppliers[0] = injector::supplyHandler;
-		suppliers[1] = injector::supplyObserver;
-		suppliers[2] = injector::supplyEntities;
 
 		// For each of the objects in the array:
 		for ( int s = objects.length; s-- > 0; )
@@ -72,7 +85,7 @@ final class Injector
 			/*
 			 * Initialize all the collected fields in this object.
 			 */
-			initFields( fields, obj, tests, suppliers );
+			injector.initFields( fields, obj );
 			// Clear the field bag for the next object.
 			fields.setSize( 0 );
 		}
@@ -87,11 +100,7 @@ final class Injector
 	 * @param tests to try on each field.
 	 * @param suppliers to fetch the instances to set in the fields.
 	 */
-	private static final void initFields (
-			final Bag<Field> fields,
-			final Object obj,
-			final Predicate<Field>[] tests,
-			final BiFunction<Field, Object, Object>[] suppliers )
+	private final void initFields ( final Bag<Field> fields, final Object obj )
 	{
 		final Field[] flds = fields.data();
 
@@ -105,7 +114,7 @@ final class Injector
 				if ( tests[i].test( field ) )
 				{
 					// Try to set the field with the supplied value.
-					trySetField( field, obj, suppliers[i].apply( field, obj ) );
+					trySetField( field, obj, suppliers[i].apply( field ) );
 					// Field already set, jump to the next one.
 					break;
 				}
@@ -113,7 +122,7 @@ final class Injector
 		}
 	}
 
-	private final Object supplyHandler ( final Field field, final Object obj )
+	private final Object supplyHandler ( final Field field )
 	{
 		final ParameterizedType genericType = (ParameterizedType) field.getGenericType();
 		@SuppressWarnings( "unchecked" )
@@ -124,13 +133,13 @@ final class Injector
 		if ( value == null )
 		{
 			final String tname = componentType.getSimpleName();
-			throw new DustException( Injector.class, "Cant find HANDLER for the type " + tname + " to inject!" );
+			throw new DustException( this, "Cant find HANDLER for the type " + tname + " to inject!" );
 		}
 		// Everything OK.
 		return value;
 	}
 
-	private final Object supplyObserver ( final Field field, final Object obj )
+	private final Object supplyObserver ( final Field field )
 	{
 		final Class<?> type = field.getType();
 		@SuppressWarnings( "unchecked" )
@@ -139,13 +148,13 @@ final class Injector
 		if ( value == null )
 		{
 			final String tname = type.getSimpleName();
-			throw new DustException( Injector.class, "Cant find OBSERVER of the type " + tname + " to inject!" );
+			throw new DustException( this, "Cant find OBSERVER of the type " + tname + " to inject!" );
 		}
 		// Everything OK.
 		return value;
 	}
 
-	private final Object supplyEntities ( final Field field, final Object obj )
+	private final Object supplyEntities ( final Field field )
 	{
 		/*
 		 * ImmutableIntBag has no superclasses besides Object so just check
@@ -158,12 +167,10 @@ final class Injector
 			 */
 			final String anName = EntitiesOf.class.getSimpleName();
 			final String listName = ImmutableIntBag.class.getSimpleName();
-			final String tmsg = (obj == null) ? "null" : obj.getClass().getSimpleName();
 			final String fmsg = field.toString();
 			// Compose error message and throw exception.
-			throw new DustException( Injector.class,
-					"While injecting FIELD: " + fmsg +
-							", in object: " + tmsg + ". Can only use " + anName +
+			throw new DustException( this,
+					"While injecting FIELD: " + fmsg + ". Can only use " + anName +
 							" annotation on " + listName + " fields!" );
 		}
 
@@ -174,7 +181,7 @@ final class Injector
 		if ( source == null )
 		{
 			final String tname = type.getSimpleName();
-			throw new DustException( Injector.class,
+			throw new DustException( this,
 					"Cant find OBSERVER of the type " + tname
 							+ " to fetch entity list from!" );
 		}
@@ -217,8 +224,13 @@ final class Injector
 
 	private static final void trySetField ( final Field field, final Object target, final Object value )
 	{
-		// Set accessible through reflection.
-		field.setAccessible( true );
+		// Store current state of the field.
+		final boolean wasntAccessible = !field.isAccessible();
+		// If its accessible, no need to change it.
+		if ( wasntAccessible )
+		{
+			field.setAccessible( true );
+		}
 		try
 		{
 			// Only modify the field if it hasn't been set already.
@@ -234,11 +246,10 @@ final class Injector
 			final String tmsg = String.valueOf( target );
 			final String fmsg = String.valueOf( field );
 			// Compose error message and throw exception.
-			throw new DustException( Injector.class,
-					"While injecting object: " + vmsg +
-							", in field: " + fmsg +
-							", in instance: " + tmsg,
-					e );
+			final String emsg = "While injecting object: " + vmsg +
+					", in field: " + fmsg +
+					", in instance: " + tmsg;
+			throw new DustException( Injector.class, emsg, e );
 		}
 		finally
 		{
@@ -246,7 +257,10 @@ final class Injector
 			 * Return the field to its initial state regardless of successful
 			 * assignment or not.
 			 */
-			field.setAccessible( false );
+			if ( wasntAccessible )
+			{
+				field.setAccessible( false );
+			}
 		}
 	}
 
