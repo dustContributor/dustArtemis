@@ -7,19 +7,9 @@ final class DustException extends RuntimeException
 
 	private static final long serialVersionUID = 1L;
 
-	DustException ( final Class<?> sourceType, final String message )
-	{
-		super( makeMessage( sourceType, message ) );
-	}
-
 	DustException ( final Object source, final String message )
 	{
 		super( makeMessage( source, message ) );
-	}
-
-	DustException ( final Class<?> sourceType, final String message, final Throwable throwable )
-	{
-		super( makeMessage( sourceType, message ), throwable );
 	}
 
 	DustException ( final Object source, final String message, final Throwable throwable )
@@ -27,14 +17,38 @@ final class DustException extends RuntimeException
 		super( makeMessage( source, message ), throwable );
 	}
 
-	private static final String makeMessage ( final Class<?> sourceType, final String message )
+	static final <T> T enforceNonNull ( final Object source, final T value, final String fieldName )
 	{
-		return makeMessage( (sourceType != null) ? sourceType.getSimpleName() : "null", message );
+		if ( value == null )
+		{
+			throw new DustException( source, String.valueOf( fieldName ) + " can't be null!" );
+		}
+
+		return value;
 	}
 
-	private static final String makeMessage ( final Object source, final String message )
+	static final String makeMessage ( final Object source, final String message )
 	{
-		return makeMessage( (source != null) ? source.getClass().getSimpleName() : "null", message );
+		// Assume null then check later.
+		String sourceName = "null";
+
+		if ( source != null )
+		{
+			final Class<?> sourceType;
+			// Check if we got passed a class or not.
+			if ( source instanceof Class )
+			{
+				sourceType = (Class<?>) source;
+			}
+			else
+			{
+				sourceType = source.getClass();
+			}
+			// Now get the source class name for composing the message.
+			sourceName = sourceType.getSimpleName();
+		}
+
+		return makeMessage( sourceName, message );
 	}
 
 	private static final String makeMessage ( final String sourceName, final String message )
