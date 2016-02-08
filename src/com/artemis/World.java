@@ -43,11 +43,6 @@ public class World
 
 	protected World ( final EntityObserver[] observers )
 	{
-		if ( observers == null )
-		{
-			throw new DustException( this, "observers can't be null!" );
-		}
-
 		added = new IntBag();
 		changed = new IntBag();
 		deleted = new IntBag();
@@ -58,7 +53,7 @@ public class World
 		em = new EntityManager();
 
 		// Store observers.
-		this.observers = observers;
+		this.observers = DustException.enforceNonNull( this, observers, "observers" );
 
 		// Create immutable view of the observer array.
 		final Bag<EntityObserver> obag = new Bag<>( observers );
@@ -391,12 +386,7 @@ public class World
 		 */
 		public final Builder worldSupplier ( final Function<EntityObserver[], World> worldSupplier )
 		{
-			if ( worldSupplier == null )
-			{
-				throw new DustException( this, "worldSupplier can't be null!" );
-			}
-
-			this.worldSupplier = worldSupplier;
+			this.worldSupplier = DustException.enforceNonNull( this, worldSupplier, "worldSupplier" );
 			return this;
 		}
 
@@ -474,11 +464,7 @@ public class World
 		 */
 		public final Builder observer ( final EntityObserver observer, final int order )
 		{
-			if ( observer == null )
-			{
-				throw new DustException( this, "observer can't be null!" );
-			}
-
+			DustException.enforceNonNull( this, observer, "observer" );
 			this.observers.add( observer );
 			this.orders.put( observer, Integer.valueOf( order ) );
 			return this;

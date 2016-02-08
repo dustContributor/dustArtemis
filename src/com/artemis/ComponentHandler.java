@@ -40,23 +40,15 @@ public final class ComponentHandler<T extends Component>
 	@SuppressWarnings( "unchecked" )
 	ComponentHandler ( final Class<T> type, final ComponentManager owner, final int index, final int capacity )
 	{
-		if ( type == null )
-		{
-			throw new DustException( this, "type can't be null!" );
-		}
-
-		if ( owner == null )
-		{
-			throw new DustException( this, "owner can't be null!" );
-		}
+		DustException.enforceNonNull( this, type, "type" );
 
 		if ( index < 0 )
 		{
 			throw new DustException( this, "index can't be negative!" );
 		}
 
+		this.cm = DustException.enforceNonNull( this, owner, "owner" );
 		this.data = (T[]) Array.newInstance( type, capacity );
-		this.cm = owner;
 		this.typeIndex = index;
 	}
 
