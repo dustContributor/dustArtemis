@@ -3,7 +3,7 @@ package com.artemis;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.IdentityHashMap;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableBag;
@@ -14,22 +14,21 @@ import com.artemis.utils.IntBag;
  * 
  * You must use this to create, delete and retrieve entities.
  * 
- * It is also important to set the delta each game loop iteration, and
- * initialize before game loop.
- * 
  * @author Arni Arent
  * @author dustContributor
  * 
  */
 public class World
 {
+	/** Managers for all entities this instance created. */
 	private final EntityManager em;
+	/** Managers for all the components of the entities of this instance. */
 	private final ComponentManager cm;
 
-	/**
-	 * Delta time to provide for systems.
-	 */
-	public float delta;
+	/** Arbitrary data field. */
+	private final Object data;
+
+	// Various bags to hold entities in 'limbo' before observer processing.
 
 	private final IntBag added;
 	private final IntBag changed;
@@ -37,11 +36,18 @@ public class World
 	private final IntBag enabled;
 	private final IntBag disabled;
 
+	/** All the observers this instance owns. */
 	private final EntityObserver[] observers;
-
+	/** An immutable view of the observers. */
 	private final ImmutableBag<EntityObserver> immutableObservers;
 
-	protected World ( final EntityObserver[] observers )
+	/**
+	 * World instance constructor. Will set itself in all the passed observers.
+	 * 
+	 * @param observers this instance will own, can't be null.
+	 * @param data arbitrary data to hold, can be null.
+	 */
+	protected World ( final EntityObserver[] observers, final Object data )
 	{
 		added = new IntBag();
 		changed = new IntBag();
@@ -51,6 +57,9 @@ public class World
 
 		cm = new ComponentManager();
 		em = new EntityManager();
+
+		// We don't validate arbitrary data.
+		this.data = data;
 
 		// Store observers.
 		this.observers = DustException.enforceNonNull( this, observers, "observers" );
@@ -86,6 +95,27 @@ public class World
 	}
 
 	/**
+	 * With this method you can retrieve the arbitrary data you placed in this
+	 * instance. This is a generic method so it does the cast for you. But you
+	 * need to be sure you're using the relevant generic type, otherwise the cast
+	 * will fail. Used like:
+	 * 
+	 * <pre>
+	 * MySharedData mySharedData = world.data();
+	 * </pre>
+	 * 
+	 * @throws ClassCastException if tries to cast the data field to a wrong type.
+	 * 
+	 * @return the arbitrary data object you placed, or null if there isn't any.
+	 * @see Builder#data(Object)
+	 */
+	@SuppressWarnings( "unchecked" )
+	public <T> T data ()
+	{
+		return (T) data;
+	}
+
+	/**
 	 * Gives you all the entity observers in this world instance.
 	 * 
 	 * @return all entity observer in world.
@@ -115,26 +145,6 @@ public class World
 			}
 		}
 		return null;
-	}
-
-	/**
-	 * Time since last game loop.
-	 * 
-	 * @return delta time since last game loop.
-	 */
-	public float getDelta ()
-	{
-		return delta;
-	}
-
-	/**
-	 * You must specify the delta for the game here.
-	 * 
-	 * @param delta time since last game loop.
-	 */
-	public void setDelta ( final float delta )
-	{
-		this.delta = delta;
 	}
 
 	/**
@@ -356,13 +366,14 @@ public class World
 		private final Bag<EntityObserver> observers;
 		private final IdentityHashMap<EntityObserver, Integer> orders;
 
-		private Function<EntityObserver[], World> worldSupplier;
+		private BiFunction<EntityObserver[], Object, World> constructor;
+		private Object data;
 		private boolean initializeByOrder;
 		private boolean processByOrder;
 
 		Builder ()
 		{
-			this.worldSupplier = World::new;
+			this.constructor = World::new;
 			this.initializeByOrder = false;
 			this.processByOrder = false;
 			this.observers = new Bag<>( EntityObserver.class, 16 );
@@ -377,16 +388,31 @@ public class World
 		 * For example: <br>
 		 * 
 		 * <pre>
-		 * builder.worldSupplier( SomeWorldSubclass::new );
+		 * builder.constructor( SomeWorldSubclass::new );
 		 * </pre>
 		 * </p>
 		 * 
-		 * @param worldSupplier to construct a {@link World} from.
+		 * @param constructor to construct a {@link World} from.
 		 * @return this builder instance.
 		 */
-		public final Builder worldSupplier ( final Function<EntityObserver[], World> worldSupplier )
+		public final Builder constructor ( final BiFunction<EntityObserver[], Object, World> constructor )
 		{
-			this.worldSupplier = DustException.enforceNonNull( this, worldSupplier, "worldSupplier" );
+			this.constructor = DustException.enforceNonNull( this, constructor, "worldSupplier" );
+			return this;
+		}
+
+		/**
+		 * This allows you to place an arbitrary object as field of your
+		 * {@link World} instance. This way if you need any sort of shared resources
+		 * between your systems, you can place them in a data structure of your
+		 * choice here.
+		 * 
+		 * @param data to set in the world instance.
+		 * @return this builder instance.
+		 */
+		public final Builder data ( final Object data )
+		{
+			this.data = data;
 			return this;
 		}
 
@@ -495,7 +521,7 @@ public class World
 			 * World will respect the order in which processObservers is for calling
 			 * 'process' on each of them.
 			 */
-			final World world = worldSupplier.apply( processObservers );
+			final World world = constructor.apply( processObservers, data );
 
 			if ( initializeByOrder )
 			{
