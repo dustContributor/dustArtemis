@@ -120,7 +120,7 @@ public class World
 	 * 
 	 * @return all entity observer in world.
 	 */
-	public ImmutableBag<EntityObserver> getObservers ()
+	public ImmutableBag<EntityObserver> observers ()
 	{
 		return immutableObservers;
 	}
@@ -133,7 +133,7 @@ public class World
 	 *         {@code null} if there is none.
 	 */
 	@SuppressWarnings( "unchecked" )
-	public <T extends EntityObserver> T getObserver ( final Class<T> type )
+	public <T extends EntityObserver> T observer ( final Class<T> type )
 	{
 		for ( int i = 0; i < observers.length; ++i )
 		{

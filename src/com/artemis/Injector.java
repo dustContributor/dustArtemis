@@ -143,7 +143,7 @@ final class Injector
 	{
 		final Class<?> type = field.getType();
 		@SuppressWarnings( "unchecked" )
-		final EntityObserver value = world.getObserver( (Class<EntityObserver>) type );
+		final EntityObserver value = world.observer( (Class<EntityObserver>) type );
 		// Check for missing observer.
 		if ( value == null )
 		{
@@ -176,7 +176,7 @@ final class Injector
 
 		final EntitiesOf ients = field.getAnnotation( EntitiesOf.class );
 		final Class<? extends EntitySystem> type = ients.value();
-		final EntitySystem source = world.getObserver( type );
+		final EntitySystem source = world.observer( type );
 		// Check if the entity list source is null.
 		if ( source == null )
 		{
