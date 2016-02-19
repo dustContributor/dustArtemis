@@ -38,7 +38,7 @@ public abstract class EntitySystem extends EntityObserver
 	 */
 	public EntitySystem ( final Aspect.Builder builder )
 	{
-		this( builder.build() );
+		this( DustException.enforceNonNull( EntitySystem.class, builder, "builder" ).build() );
 	}
 
 	/**
@@ -52,7 +52,7 @@ public abstract class EntitySystem extends EntityObserver
 		if ( aspect == null || aspect.isEmpty() )
 		{
 			final String cause = (aspect != null) ? "empty" : "null";
-			throw new DustException( this,
+			throw new DustException( EntitySystem.class,
 					"Cant pass an Aspect that is " + cause + '!' +
 							" Extend EntityObserver if you want an observer" +
 							" that doesn't processes any entity!" );
