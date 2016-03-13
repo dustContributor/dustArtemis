@@ -5,35 +5,58 @@ import org.apache.lucene.util.FixedBitSet;
 import com.artemis.utils.ClassIndexer;
 
 /**
- * <p>An Aspect is used by systems as a matcher against entities, to check if a
+ * <p>
+ * An Aspect is used by systems as a matcher against entities, to check if a
  * system is interested in an entity. Aspects define what sort of component
- * types an entity must possess, or not possess.</p> <p></p> <p>This creates an
- * aspect where an entity must possess A and B and C:
+ * types an entity must possess, or not possess.
+ * </p>
  * 
- * <p>new Aspect.Builder().all(A.class, B.class, C.class).build()</p> <p></p>
- * <p>This creates an aspect where an entity must possess A and B and C, but
- * must not possess U or V.</p>
+ * <p>
+ * This creates an aspect where an entity must possess A and B and C:
+ * </p>
  * 
- * <p>new Aspect.Builder().all(A.class, B.class, C.class).exclude(U.class,
- * V.class).build()</p> <p></p> <p>This creates an aspect where an entity must
- * possess A and B and C, but must not possess U or V, but must possess one of X
- * or Y or Z.</p>
+ * <pre>
+ * Aspect a = Aspect.all( A.class, B.class, C.class ).build()
+ * </pre>
  * 
- * <p>new Aspect.Builder().all(A.class, B.class, C.class).exclude(U.class,
- * V.class).one(X.class, Y.class, Z.class).build()</p>
+ * <p>
+ * This creates an aspect where an entity must possess A and B and C, but must
+ * not possess U or V.
+ * </p>
+ * 
+ * <pre>
+ * Aspect a = Aspect
+ * 	.all( A.class, B.class, C.class )
+ * 	.exclude( U.class, V.class )
+ * 	.build()
+ * </pre>
+ * 
+ * <p>
+ * This creates an aspect where an entity must possess A and B and C, but must
+ * not possess U or V, but must possess one of X or Y or Z.
+ * </p>
+ * 
+ * <pre>
+ * Aspect a = Aspect
+ * 	.all( A.class, B.class, C.class )
+ * 	.exclude( U.class, V.class )
+ * 	.one( X.class, Y.class, Z.class )
+ * 	.build()
+ * </pre>
  * 
  * @author Arni Arent
- *
+ * @author dustContributor
+ * 
  */
 public final class Aspect
 {
 	/**
 	 * If you need an entity system that doesn't process any entities but still
-	 * needs to be run, consider extending {@link EntityObserver} directly
-	 * instead of passing {@link #EMPTY_ASPECT} to {@link EntitySystem}'s
-	 * constructor. Typical usages of such systems are when you need to create
-	 * special purpose systems for debug rendering, like rendering FPS, how many
-	 * entities are active in the world, etc.
+	 * needs to be run, consider extending {@link EntityObserver} directly instead
+	 * of passing {@link #EMPTY_ASPECT} to {@link EntitySystem}'s constructor.
+	 * Typical usages of such systems are when you need to create special purpose
+	 * systems for debug rendering, like rendering FPS, how many entities are
+	 * active in the world, etc.
 	 */
 	public static final Aspect EMPTY_ASPECT = new Builder().build();
 
@@ -42,21 +65,12 @@ public final class Aspect
 	private final FixedBitSet noneSet;
 	private final FixedBitSet oneSet;
 
-	private final boolean hasSome;
-
-	Aspect ( FixedBitSet all, FixedBitSet none, FixedBitSet one )
+	Aspect ( final FixedBitSet all, final FixedBitSet none, final FixedBitSet one )
 	{
-		boolean noAll = all.isEmpty();
-		boolean noNone = none.isEmpty();
-		boolean noOne = one.isEmpty();
-
-		// Check if this Aspect actually could be interested in an Entity.
-		hasSome = !(noAll && noNone && noOne);
-
-		// If any of the FixedBitSets is empty, do not store them.
-		allSet = (noAll) ? null : all;
-		noneSet = (noNone) ? null : none;
-		oneSet = (noOne) ? null : one;
+		// If any of the bit sets is empty, do not store them.
+		this.allSet = all.isEmpty() ? null : all;
+		this.noneSet = none.isEmpty() ? null : none;
+		this.oneSet = one.isEmpty() ? null : one;
 	}
 
 	/**
@@ -67,8 +81,7 @@ public final class Aspect
 	 */
 	public final boolean isInteresting ( final FixedBitSet bits )
 	{
-		// If has none, doesn't processes any entity.
-		return hasSome && checkNone( bits ) && checkOne( bits ) && checkAll( bits );
+		return checkNone( bits ) && checkOne( bits ) && checkAll( bits );
 	}
 
 	/**
@@ -84,8 +97,7 @@ public final class Aspect
 	}
 
 	/**
-	 * Checks if the provided bit set has at least one of the bits set in
-	 * oneSet.
+	 * Checks if the provided bit set has at least one of the bits set in oneSet.
 	 * 
 	 * @param bits to check.
 	 * @return true if the two bit sets intersect, false otherwise.
@@ -105,9 +117,9 @@ public final class Aspect
 	private final boolean checkAll ( final FixedBitSet bits )
 	{
 		/*
-		 * If the intersection of the two bit sets is equal to allSet, it means
-		 * the passed bit set has all of allSet's bits set. Otherwise, reject
-		 * the entity.
+		 * If the intersection of the two bit sets is equal to allSet, it means the
+		 * passed bit set has all of allSet's bits set. Otherwise, reject the
+		 * entity.
 		 */
 		return (allSet == null) || allSet.isIntersectionEqual( bits );
 	}
@@ -121,7 +133,7 @@ public final class Aspect
 	 */
 	public final boolean isEmpty ()
 	{
-		return !hasSome;
+		return (allSet == null && noneSet == null && allSet == null);
 	}
 
 	/**
@@ -198,9 +210,9 @@ public final class Aspect
 		public Builder ()
 		{
 			final int wordCount = DAConstants.COMPONENT_BITS_WORD_COUNT;
-			all = FixedBitSet.newBitSetByWords( wordCount );
-			none = FixedBitSet.newBitSetByWords( wordCount );
-			one = FixedBitSet.newBitSetByWords( wordCount );
+			this.all = FixedBitSet.newBitSetByWords( wordCount );
+			this.none = FixedBitSet.newBitSetByWords( wordCount );
+			this.one = FixedBitSet.newBitSetByWords( wordCount );
 		}
 
 		/**
@@ -213,14 +225,14 @@ public final class Aspect
 		@SafeVarargs
 		public final Builder all ( final Class<? extends Component>... types )
 		{
-			setBits( all, types );
+			setBits( this.all, types );
 			return this;
 		}
 
 		/**
-		 * Excludes all of the specified component types from the Builder. A
-		 * system will not be interested in an entity that possesses one of the
-		 * specified exclusion component types.
+		 * Excludes all of the specified component types from the Builder. A system
+		 * will not be interested in an entity that possesses one of the specified
+		 * exclusion component types.
 		 * 
 		 * @param types component types to exclude.
 		 * @return this {@link Builder} instance.
@@ -228,7 +240,7 @@ public final class Aspect
 		@SafeVarargs
 		public final Builder exclude ( final Class<? extends Component>... types )
 		{
-			setBits( none, types );
+			setBits( this.none, types );
 			return this;
 		}
 
@@ -242,14 +254,14 @@ public final class Aspect
 		@SafeVarargs
 		public final Builder one ( final Class<? extends Component>... types )
 		{
-			setBits( one, types );
+			setBits( this.one, types );
 			return this;
 		}
 
 		@SafeVarargs
 		private static final void setBits (
-			final FixedBitSet bits,
-			final Class<? extends Component>... types )
+				final FixedBitSet bits,
+				final Class<? extends Component>... types )
 		{
 			for ( int i = types.length; i-- > 0; )
 			{
@@ -264,7 +276,7 @@ public final class Aspect
 		 */
 		public final Aspect build ()
 		{
-			return new Aspect( all, none, one );
+			return new Aspect( this.all, this.none, this.one );
 		}
 	}
 
