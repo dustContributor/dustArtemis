@@ -2,6 +2,9 @@ package com.artemis.utils;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.ObjIntConsumer;
@@ -18,7 +21,7 @@ import com.artemis.DAConstants;
  *
  * @param <T> type of the elements it holds.
  */
-public abstract class ImmutableBag<T>
+public abstract class ImmutableBag<T> implements Iterable<T>
 {
 	protected T[] data;
 	protected int size;
@@ -199,7 +202,8 @@ public abstract class ImmutableBag<T>
 	 * 
 	 * @param operation to be performed on each element of this bag.
 	 */
-	public void forEach ( final Consumer<T> operation )
+	@Override
+	public void forEach ( final Consumer<? super T> operation )
 	{
 		final int iSize = size;
 
@@ -306,6 +310,12 @@ public abstract class ImmutableBag<T>
 		return StreamSupport.stream( Arrays.spliterator( data, 0, size ), true );
 	}
 
+	@Override
+	public final Iterator<T> iterator ()
+	{
+		return new BagIterator<>( this );
+	}
+
 	/**
 	 * This value is fetched from
 	 * {@link com.artemis.DAConstants#BAG_DEFAULT_CAPACITY}
@@ -382,6 +392,51 @@ public abstract class ImmutableBag<T>
 			System.arraycopy( dest, 0, dest, i, ((limit - i) < i) ? (limit - i) : i );
 		}
 		return dest;
+	}
+
+	private static final class BagIterator<T> implements Iterator<T>
+	{
+		private final ImmutableBag<T> owner;
+		private int cursor;
+
+		public BagIterator ( final ImmutableBag<T> owner )
+		{
+			this.owner = owner;
+		}
+
+		@Override
+		public final boolean hasNext ()
+		{
+			return cursor < owner.size;
+		}
+
+		@Override
+		public final T next ()
+		{
+			if ( cursor >= owner.size )
+			{
+				throw new NoSuchElementException();
+			}
+			return owner.data[cursor++];
+		}
+
+		@Override
+		public final void forEachRemaining ( final Consumer<? super T> action )
+		{
+			Objects.requireNonNull( action );
+			final int size = owner.size;
+			final T[] data = owner.data;
+
+			int i;
+
+			for ( i = cursor; i < size; ++i )
+			{
+				action.accept( data[i] );
+			}
+
+			cursor = i;
+		}
+
 	}
 
 }
