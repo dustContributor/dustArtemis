@@ -17,7 +17,7 @@ public class FixedBitSet128 extends FixedBitSet64
 	@Override
 	public boolean get ( int index )
 	{
-		switch (index / 64)
+		switch ( index / 64 )
 		{
 			case 0:
 				return (word0 & (1L << index)) != 0L;
@@ -31,7 +31,7 @@ public class FixedBitSet128 extends FixedBitSet64
 	@Override
 	public int getBit ( int index )
 	{
-		switch (index / 64)
+		switch ( index / 64 )
 		{
 			case 0:
 				return (int) ((word0 >>> index) & 0x01L);
@@ -45,7 +45,7 @@ public class FixedBitSet128 extends FixedBitSet64
 	@Override
 	public void clear ( int index )
 	{
-		switch (index / 64)
+		switch ( index / 64 )
 		{
 			case 0:
 				word0 &= ~(1L << index);
@@ -61,7 +61,7 @@ public class FixedBitSet128 extends FixedBitSet64
 	@Override
 	public void set ( int index )
 	{
-		switch (index / 64)
+		switch ( index / 64 )
 		{
 			case 0:
 				word0 |= (1L << index);
@@ -153,7 +153,7 @@ public class FixedBitSet128 extends FixedBitSet64
 
 	public final boolean intersects ( FixedBitSet128 bits )
 	{
-		return super.intersects( bits ) || (bits.word1 & word1) != 0L;
+		return super.intersects( bits ) | (bits.word1 & word1) != 0L;
 	}
 
 	@Override
@@ -170,7 +170,7 @@ public class FixedBitSet128 extends FixedBitSet64
 
 	public final boolean isIntersectionEqual ( FixedBitSet128 bits )
 	{
-		return super.isIntersectionEqual( bits ) && (bits.word1 & word1) == word1;
+		return super.isIntersectionEqual( bits ) & (bits.word1 & word1) == word1;
 	}
 
 	@Override
@@ -214,7 +214,7 @@ public class FixedBitSet128 extends FixedBitSet64
 	@Override
 	public long getWord ( int index )
 	{
-		switch (index)
+		switch ( index )
 		{
 			case 0:
 				return word0;
@@ -228,7 +228,7 @@ public class FixedBitSet128 extends FixedBitSet64
 	@Override
 	public boolean isEmpty ()
 	{
-		return super.isEmpty() && word1 == 0L;
+		return super.isEmpty() & word1 == 0L;
 	}
 
 	@Override

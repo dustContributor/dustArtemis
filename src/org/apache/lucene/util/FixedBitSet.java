@@ -129,7 +129,7 @@ public abstract class FixedBitSet
 
 	public static final FixedBitSet newBitSetByWords ( final int words )
 	{
-		switch (words)
+		switch ( words )
 		{
 			case 1:
 				return new FixedBitSet64();
@@ -140,7 +140,7 @@ public abstract class FixedBitSet
 			case 4:
 				return new FixedBitSet256();
 			default:
-				return null;
+				throw new IllegalArgumentException();
 		}
 	}
 }
