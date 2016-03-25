@@ -81,7 +81,7 @@ public final class Aspect
 	 */
 	public final boolean isInteresting ( final FixedBitSet bits )
 	{
-		return checkNone( bits ) && checkOne( bits ) && checkAll( bits );
+		return checkNone( bits ) & checkOne( bits ) & checkAll( bits );
 	}
 
 	/**
