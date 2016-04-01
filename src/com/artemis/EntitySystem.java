@@ -1,7 +1,7 @@
 package com.artemis;
 
 import java.util.Arrays;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import org.apache.lucene.util.FixedBitSet;
 import org.apache.lucene.util.OpenBitSet;
@@ -11,9 +11,9 @@ import com.artemis.utils.IntBag;
 import com.artemis.utils.MutableBitIterator;
 
 /**
- * The most raw entity system. It should not typically be used, but you can
- * create your own entity system handling by extending this. It is recommended
- * that you use the other provided entity system implementations.
+ * This kind of observer will track an "active" list of entities that match a
+ * certain {@link Aspect} and when they get inserted/removed into/from the
+ * observer.
  * 
  * @author Arni Arent
  * @author dustContributor
@@ -30,7 +30,7 @@ public abstract class EntitySystem extends EntityObserver
 	private final MutableBitIterator bitIterator;
 
 	/**
-	 * Creates an entity system that builds an {@link Aspect} instance using the
+	 * Creates an entity observer that builds an {@link Aspect} instance using the
 	 * passed {@link Aspect.Builder}, and uses that Aspect as a matcher against
 	 * entities.
 	 * 
@@ -42,7 +42,7 @@ public abstract class EntitySystem extends EntityObserver
 	}
 
 	/**
-	 * Creates an entity system that uses the specified aspect as a matcher
+	 * Creates an entity observer that uses the specified aspect as a matcher
 	 * against entities.
 	 * 
 	 * @param aspect to match against entities.
@@ -57,7 +57,7 @@ public abstract class EntitySystem extends EntityObserver
 							" Extend EntityObserver if you want an observer" +
 							" that doesn't processes any entity!" );
 		}
-		// Fetch entity amount per system.
+		// Fetch entity amount per observer.
 		int actSize = DAConstants.APPROX_ENTITIES_PER_SYSTEM;
 		this.aspect = aspect;
 		this.actives = new IntBag( actSize );
@@ -98,19 +98,19 @@ public abstract class EntitySystem extends EntityObserver
 	}
 
 	/**
-	 * Any implementing entity system must implement this method and the logic to
-	 * process the given entities of the system. Called only if there are entities
-	 * to process.
+	 * Any implementing entity observer must implement this method and the logic
+	 * to process the given entities of the observer. Called only if there are
+	 * entities to process.
 	 * 
-	 * @param entities the entities this system contains.
+	 * @param entities the entities this observer contains.
 	 */
 	protected abstract void processEntities ( final ImmutableIntBag entities );
 
 	/**
-	 * Called only if the system received matching entities, e.g. created or a
+	 * Called only if the observer received matching entities, e.g. created or a
 	 * component was added to it.
 	 * 
-	 * @param entities that were inserted into this system.
+	 * @param entities that were inserted into this observer.
 	 */
 	protected void inserted ( final ImmutableIntBag entities )
 	{
@@ -118,10 +118,10 @@ public abstract class EntitySystem extends EntityObserver
 	}
 
 	/**
-	 * Called only if the system got any entity removed from itself, e.g. entity
+	 * Called only if the observer got any entity removed from itself, e.g. entity
 	 * deleted or had one of it's components removed.
 	 * 
-	 * @param entities that were removed from this system.
+	 * @param entities that were removed from this observer.
 	 */
 	protected void removed ( final ImmutableIntBag entities )
 	{
@@ -162,14 +162,14 @@ public abstract class EntitySystem extends EntityObserver
 	final void processModifiedEntities ()
 	{
 		// Now start checking of something actually changed.
-		final int minIdRemoved = processIfModified( removed, this::removed );
-		final int minIdInserted = processIfModified( inserted, this::inserted );
+		final int minIdRemoved = processIfModified( removed, EntitySystem::removed );
+		final int minIdInserted = processIfModified( inserted, EntitySystem::inserted );
 		// Compute real min modified entity id.
 		final int minId = Math.min( minIdRemoved, minIdInserted );
 		// Using max value as flag for no changes.
 		if ( minId < Integer.MAX_VALUE )
 		{
-			// And rebuild this system's entity list.
+			// And rebuild this observer's entity list.
 			rebuildEntityList( minId );
 		}
 	}
@@ -184,9 +184,9 @@ public abstract class EntitySystem extends EntityObserver
 	 * @return minimum affected entity id, or {@link Integer#MAX_VALUE} if there
 	 *         was nothing in the bag.
 	 */
-	private static final int processIfModified (
+	private final int processIfModified (
 			final IntBag entities,
-			final Consumer<IntBag> operation )
+			final BiConsumer<EntitySystem, IntBag> operation )
 	{
 		// Using max value as flag for no changes.
 		int minId = Integer.MAX_VALUE;
@@ -203,8 +203,8 @@ public abstract class EntitySystem extends EntityObserver
 		{
 			minId = Math.min( minId, data[i] );
 		}
-		// Let the system process the events.
-		operation.accept( entities );
+		// Let the observer process the events.
+		operation.accept( this, entities );
 		// Clear the container.
 		entities.setSize( 0 );
 		// Return min entity id that was modified.
@@ -284,9 +284,10 @@ public abstract class EntitySystem extends EntityObserver
 	}
 
 	/**
-	 * Adds entity if the system is interested in it and hasn't been added before.
+	 * Adds entity if the observer is interested in it and hasn't been added
+	 * before.
 	 * 
-	 * Removes entity from system if its not interesting and it has been added
+	 * Removes entity from observer if its not interesting and it has been added
 	 * before.
 	 * 
 	 * @param entities to check.
@@ -314,14 +315,14 @@ public abstract class EntitySystem extends EntityObserver
 			{
 				case 0b01:
 				{
-					// Interesting and system doesn't contains. Insert.
+					// Interesting and observer doesn't contains. Insert.
 					insrts.add( eid );
 					acBits.set( eid );
 					continue;
 				}
 				case 0b10:
 				{
-					// Not interesting and system does contains. Remove.
+					// Not interesting and observer does contains. Remove.
 					removs.add( eid );
 					acBits.fastClear( eid );
 					continue;
