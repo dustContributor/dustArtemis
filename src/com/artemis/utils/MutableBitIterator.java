@@ -21,43 +21,43 @@ public final class MutableBitIterator
 	private long[] bits;
 	private long word;
 
+	private int length;
 	private int wordi;
-	private int offset;
 
 	public MutableBitIterator ()
 	{
 		// Empty.
 	}
 
-	public MutableBitIterator ( long[] bits )
+	public MutableBitIterator ( final long[] bits )
 	{
 		this.setBits( bits );
 	}
 
-	public void setBits ( long[] bits )
+	public final void setBits ( final long[] bits )
 	{
 		this.bits = bits;
-		reset();
+		this.length = bits.length;
 	}
 
-	public void startingFrom ( int index )
+	public final void startingFrom ( final int index )
 	{
 		long msk = -1L << (index & 63);
-		// Computing starting word index and offset.
-		wordi = index / 64;
-		offset = wordi * 64;
+		// Computing starting word index.
+		int wordIndex = index >> 6;
 		// Masking unwanted bits from that word.
-		word = bits[wordi] & msk;
+		word = bits[wordIndex] & msk;
+		// Storing index.
+		wordi = wordIndex;
 	}
 
 	/**
 	 * Resets the position of this iterator to 0.
 	 */
-	public void reset ()
+	public final void reset ()
 	{
 		this.wordi = 0;
 		this.word = bits[0];
-		this.offset = 0;
 	}
 
 	/**
@@ -65,24 +65,31 @@ public final class MutableBitIterator
 	 * 
 	 * @return the index of the next set bit if there is one, -1 otherwise.
 	 */
-	public int nextSetBit ()
+	public final int nextSetBit ()
 	{
-		while ( word == 0 )
+		final long[] bits = this.bits;
+		final int length = this.length;
+
+		long word = this.word;
+		int wordi = this.wordi;
+
+		while ( word == 0L )
 		{
-			// If no words left.
-			if ( ++wordi >= bits.length )
+			if ( ++wordi >= length )
 			{
+				// No words left.
 				return -1;
 			}
-			// Store word.
 			word = bits[wordi];
-			// Increase offset.
-			offset = wordi * 64;
 		}
 		// Word and anti word.
 		long val = word & -word;
-		// Flip bit.
-		word ^= val;
+		// Compute offset.
+		int offset = wordi << 6;
+		// Store the new word index.
+		this.wordi = wordi;
+		// Flip bit and store.
+		this.word = word ^ val;
 		// Return offset + next set bit of word.
 		return offset + Long.bitCount( val - 1 );
 	}
