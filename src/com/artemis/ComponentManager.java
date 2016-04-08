@@ -3,13 +3,13 @@ package com.artemis;
 import java.util.Arrays;
 
 import org.apache.lucene.util.BitUtil;
-import org.apache.lucene.util.FixedBitSet;
+import org.apache.lucene.util.OpenBitSet;
 
 import com.artemis.utils.Bag;
 import com.artemis.utils.ClassIndexer;
-import com.artemis.utils.FixedBitIterator;
 import com.artemis.utils.ImmutableIntBag;
 import com.artemis.utils.IntBag;
+import com.artemis.utils.MutableBitIterator;
 
 /**
  * @author Arni Arent
@@ -18,22 +18,23 @@ import com.artemis.utils.IntBag;
 public final class ComponentManager
 {
 	/** Mutable iterator for component bits. */
-	private final FixedBitIterator bitIterator = new FixedBitIterator();
+	private final MutableBitIterator bitIterator = new MutableBitIterator();
+
 	/** Component bags by type index. */
 	private ComponentHandler<Component>[] componentHandlers;
 	/** Component bits for all entities. */
-	private FixedBitSet[] componentBits;
+	private final OpenBitSet componentBits;
 
 	@SuppressWarnings( { "unchecked" } )
 	ComponentManager ()
 	{
 		// Init all type bags.
 		componentHandlers = new ComponentHandler[DAConstants.COMPONENT_TYPES_COUNT];
-		componentBits = new FixedBitSet[DAConstants.APPROX_LIVE_ENTITIES];
-
 		// Init bitsets for all entities.
 		final int wCnt = DAConstants.COMPONENT_BITS_WORD_COUNT;
-		Arrays.setAll( componentBits, ( i ) -> FixedBitSet.newBitSetByWords( wCnt ) );
+		final int bitCount = (DAConstants.APPROX_LIVE_ENTITIES * wCnt) * 64;
+		componentBits = new OpenBitSet( bitCount );
+		bitIterator.setBits( componentBits.getBits() );
 	}
 
 	/**
@@ -44,11 +45,12 @@ public final class ComponentManager
 	public final Bag<Component> getComponentsFor ( final int id, final Bag<Component> dest )
 	{
 		final ComponentHandler<Component>[] cmpBags = componentHandlers;
-		final FixedBitIterator mbi = bitIterator;
+		final MutableBitIterator it = bitIterator;
+		final int start = id * DAConstants.COMPONENT_BITS_WORD_COUNT;
+		final int end = start + DAConstants.COMPONENT_BITS_WORD_COUNT;
+		it.selectWord( start );
 
-		mbi.setBits( componentBits[id] );
-
-		for ( int i = mbi.nextSetBit(); i >= 0; i = mbi.nextSetBit() )
+		for ( int i = it.nextSetBit( end ); i >= 0; i = it.nextSetBit( end ) )
 		{
 			dest.add( cmpBags[i].get( id ) );
 		}
@@ -59,7 +61,7 @@ public final class ComponentManager
 	/**
 	 * Either creates or retrieves a component handler for the passed component
 	 * type.
-	 * 
+	 *
 	 * @param type of the component to create or retrieve a handler from.
 	 * @return handler of the component type.
 	 */
@@ -71,47 +73,41 @@ public final class ComponentManager
 
 	final void registerEntity ( final int eid )
 	{
-		if ( eid >= componentBits.length )
-		{
-			final int newLen = BitUtil.nextHighestPowerOfTwo( eid + 1 );
-			componentBits = Arrays.copyOf( componentBits, newLen );
-		}
+		final int index = eid * DAConstants.COMPONENT_BITS_WORD_COUNT;
 
-		final FixedBitSet[] bits = componentBits;
-
-		if ( bits[eid] == null )
+		if ( index >= componentBits.length() )
 		{
-			final int wCnt = DAConstants.COMPONENT_BITS_WORD_COUNT;
-			bits[eid] = FixedBitSet.newBitSetByWords( wCnt );
+			componentBits.resizeWords( index + 1 );
+			bitIterator.setBits( componentBits() );
 		}
 	}
 
 	/**
 	 * Notifies this component manager that a component was added to an entity.
-	 * 
+	 *
 	 * @param id of the entity to add a component to.
 	 * @param typeIndex of the component that was added.
 	 */
 	final void notifyAddedComponent ( final int id, final int typeIndex )
 	{
-		this.componentBits[id].set( typeIndex );
+		BitUtil.setRelative( componentBits(), typeIndex, id, DAConstants.COMPONENT_BITS_WORD_COUNT );
 	}
 
 	/**
 	 * Notifies this component manager that a component was removed from an
 	 * entity.
-	 * 
+	 *
 	 * @param id of the entity to remove a component from.
 	 * @param typeIndex of the component that was removed.
 	 */
 	final void notifyRemovedComponent ( final int id, final int typeIndex )
 	{
-		this.componentBits[id].clear( typeIndex );
+		BitUtil.clearRelative( componentBits(), typeIndex, id, DAConstants.COMPONENT_BITS_WORD_COUNT );
 	}
 
-	final FixedBitSet[] componentBits ()
+	final long[] componentBits ()
 	{
-		return componentBits;
+		return componentBits.getBits();
 	}
 
 	final void clean ( final ImmutableIntBag deleted )
@@ -123,33 +119,34 @@ public final class ComponentManager
 	private final void clearComponents ( final int[] ents, final int size )
 	{
 		final ComponentHandler<Component>[] cmpBags = componentHandlers;
-		final FixedBitSet[] bits = componentBits;
-		final FixedBitIterator mbi = bitIterator;
+		final long[] bits = componentBits();
+		final MutableBitIterator it = bitIterator;
+		final int wordCount = DAConstants.COMPONENT_BITS_WORD_COUNT;
 
 		for ( int i = size; i-- > 0; )
 		{
 			final int eid = ents[i];
-			final FixedBitSet ebits = bits[eid];
-
+			final int start = eid * wordCount;
+			final int end = start + wordCount;
 			// Now iterate over normal component bits and remove them.
-			mbi.setBits( ebits );
+			it.selectWord( start );
 
-			for ( int j = mbi.nextSetBit(); j >= 0; j = mbi.nextSetBit() )
+			for ( int j = it.nextSetBit( end ); j >= 0 && j < cmpBags.length; j = it.nextSetBit( end ) )
 			{
 				cmpBags[j].data()[eid] = null;
 			}
 
 			// Now clear all component bits from the entity.
-			ebits.clear();
+			BitUtil.clearWords( bits, start, end );
 		}
 	}
 
 	/**
 	 * If the component index passed is too high for the
 	 * {@link #componentHandlers} to hold, it resizes it.
-	 * 
+	 *
 	 * It also initializes the handler if it isn't present.
-	 * 
+	 *
 	 * @param typeIndex component type index to check if it has a component bag
 	 *          initialized.
 	 * @return Component bag for the given component index.

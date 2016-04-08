@@ -3,7 +3,6 @@ package com.artemis;
 import java.util.Arrays;
 import java.util.function.BiConsumer;
 
-import org.apache.lucene.util.FixedBitSet;
 import org.apache.lucene.util.OpenBitSet;
 
 import com.artemis.utils.ImmutableIntBag;
@@ -14,7 +13,7 @@ import com.artemis.utils.MutableBitIterator;
  * This kind of observer will track an "active" list of entities that match a
  * certain {@link Aspect} and when they get inserted/removed into/from the
  * observer.
- * 
+ *
  * @author Arni Arent
  * @author dustContributor
  */
@@ -33,7 +32,7 @@ public abstract class EntitySystem extends EntityObserver
 	 * Creates an entity observer that builds an {@link Aspect} instance using the
 	 * passed {@link Aspect.Builder}, and uses that Aspect as a matcher against
 	 * entities.
-	 * 
+	 *
 	 * @param builder to create an {@link Aspect} to match against entities.
 	 */
 	public EntitySystem ( final Aspect.Builder builder )
@@ -44,7 +43,7 @@ public abstract class EntitySystem extends EntityObserver
 	/**
 	 * Creates an entity observer that uses the specified aspect as a matcher
 	 * against entities.
-	 * 
+	 *
 	 * @param aspect to match against entities.
 	 */
 	public EntitySystem ( final Aspect aspect )
@@ -58,7 +57,7 @@ public abstract class EntitySystem extends EntityObserver
 							" that doesn't processes any entity!" );
 		}
 		// Fetch entity amount per observer.
-		int actSize = DAConstants.APPROX_ENTITIES_PER_SYSTEM;
+		final int actSize = DAConstants.APPROX_ENTITIES_PER_SYSTEM;
 		this.aspect = aspect;
 		this.actives = new IntBag( actSize );
 		this.inserted = new IntBag( actSize / 2 );
@@ -101,7 +100,7 @@ public abstract class EntitySystem extends EntityObserver
 	 * Any implementing entity observer must implement this method and the logic
 	 * to process the given entities of the observer. Called only if there are
 	 * entities to process.
-	 * 
+	 *
 	 * @param entities the entities this observer contains.
 	 */
 	protected abstract void processEntities ( final ImmutableIntBag entities );
@@ -109,7 +108,7 @@ public abstract class EntitySystem extends EntityObserver
 	/**
 	 * Called only if the observer received matching entities, e.g. created or a
 	 * component was added to it.
-	 * 
+	 *
 	 * @param entities that were inserted into this observer.
 	 */
 	protected void inserted ( final ImmutableIntBag entities )
@@ -120,7 +119,7 @@ public abstract class EntitySystem extends EntityObserver
 	/**
 	 * Called only if the observer got any entity removed from itself, e.g. entity
 	 * deleted or had one of it's components removed.
-	 * 
+	 *
 	 * @param entities that were removed from this observer.
 	 */
 	protected void removed ( final ImmutableIntBag entities )
@@ -178,7 +177,7 @@ public abstract class EntitySystem extends EntityObserver
 	 * If there is something in the passed entities bag, it will call the
 	 * operation on the bag, clear it, then return the minimum affected entity id
 	 * found.
-	 * 
+	 *
 	 * @param entities to process.
 	 * @param operation to make on the entities.
 	 * @return minimum affected entity id, or {@link Integer#MAX_VALUE} if there
@@ -222,7 +221,7 @@ public abstract class EntitySystem extends EntityObserver
 
 		final MutableBitIterator mbi = bitIterator;
 		mbi.setBits( activeBits.getBits() );
-		mbi.startingFrom( startId );
+		mbi.selectIndex( startId );
 
 		int j = Arrays.binarySearch( ids, 0, oldSize, startId );
 		// Fix index if Entity ID isn't on the list yet.
@@ -230,7 +229,7 @@ public abstract class EntitySystem extends EntityObserver
 
 		/*
 		 * From the found position, rebuild the entity ID list.
-		 * 
+		 *
 		 * NOTE: It seems explicitly checking for j < ids.length helps the JIT a
 		 * bit, j wont ever be bigger than ids.length, but probably the JIT can't
 		 * infer that and checks every loop if it has to raise an out of bounds
@@ -267,7 +266,7 @@ public abstract class EntitySystem extends EntityObserver
 		final Aspect asp = aspect;
 		final OpenBitSet acBits = activeBits;
 		final IntBag insrts = inserted;
-		final FixedBitSet[] cmpBits = world.componentManager().componentBits();
+		final long[] cmpBits = world.componentManager().componentBits();
 		final int[] array = ((IntBag) entities).data();
 		final int size = entities.size();
 
@@ -275,7 +274,7 @@ public abstract class EntitySystem extends EntityObserver
 		{
 			final int eid = array[i];
 
-			if ( asp.isInteresting( cmpBits[eid] ) )
+			if ( asp.isInteresting( eid, cmpBits ) )
 			{
 				insrts.add( eid );
 				acBits.set( eid );
@@ -286,10 +285,10 @@ public abstract class EntitySystem extends EntityObserver
 	/**
 	 * Adds entity if the observer is interested in it and hasn't been added
 	 * before.
-	 * 
+	 *
 	 * Removes entity from observer if its not interesting and it has been added
 	 * before.
-	 * 
+	 *
 	 * @param entities to check.
 	 */
 	private final void checkAll ( final ImmutableIntBag entities )
@@ -299,7 +298,7 @@ public abstract class EntitySystem extends EntityObserver
 		final OpenBitSet acBits = activeBits;
 		final IntBag insrts = inserted;
 		final IntBag removs = removed;
-		final FixedBitSet[] cmpBits = world.componentManager().componentBits();
+		final long[] cmpBits = world.componentManager().componentBits();
 		final int[] array = ((IntBag) entities).data();
 		final int size = entities.size();
 
@@ -309,7 +308,7 @@ public abstract class EntitySystem extends EntityObserver
 			// Second bit for 'contains'.
 			int flags = acBits.getBit( eid ) << 1;
 			// First bit for 'interesting'.
-			flags |= asp.isInteresting( cmpBits[eid] ) ? 0b1 : 0b0;
+			flags |= asp.isInteresting( eid, cmpBits ) ? 0b1 : 0b0;
 
 			switch ( flags )
 			{
