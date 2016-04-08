@@ -74,11 +74,16 @@ import java.util.function.IntConsumer;
  * Cleaned up the file, made all methods final, all fields private, added a bits
  * setter.
  * </p>
+ * <p>
+ * Made it use BitUtils new methods in a few instances. Added direct resize
+ * method. Fixed 'length' method.
+ * </p>
  *
  * @author originally from <b>Apache Lucene Project</b>.
  */
 
-@SuppressWarnings( "javadoc" ) // No Javadoc warnings for external class.
+@SuppressWarnings( "javadoc" )
+// No Javadoc warnings for external class.
 public final class OpenBitSet implements Cloneable
 {
 
@@ -144,9 +149,10 @@ public final class OpenBitSet implements Cloneable
 		return capacity();
 	}
 
+	/** Returns how many words this bit set can hold. */
 	public final int length ()
 	{
-		return bits.length << 6;
+		return bits.length;
 	}
 
 	/** Returns true if there are no set bits */
@@ -185,8 +191,7 @@ public final class OpenBitSet implements Cloneable
 			return false;
 		}
 
-		final long bitmask = 1L << index;
-		return (bits[i] & bitmask) != 0;
+		return BitUtil.get( bits, index, i );
 	}
 
 	/**
@@ -196,12 +201,10 @@ public final class OpenBitSet implements Cloneable
 	public final boolean fastGet ( final int index )
 	{
 		assert index >= 0 && index < numBits;
-		final int i = index >> 6; // div 64
 		// signed shift will keep a negative index and force an
 		// array-index-out-of-bounds-exception, removing the need for an
 		// explicit check.
-		final long bitmask = 1L << index;
-		return (bits[i] & bitmask) != 0;
+		return BitUtil.get( bits, index );
 	}
 
 	/*
@@ -252,8 +255,7 @@ public final class OpenBitSet implements Cloneable
 	public final void set ( final int index )
 	{
 		final int wordNum = expandingWordNum( index );
-		final long bitmask = 1L << index;
-		bits[wordNum] |= bitmask;
+		BitUtil.set( bits, index, wordNum );
 	}
 
 	/**
@@ -263,9 +265,7 @@ public final class OpenBitSet implements Cloneable
 	public final void fastSet ( final int index )
 	{
 		assert index >= 0 && index < numBits;
-		final int wordNum = index >> 6; // div 64
-		final long bitmask = 1L << index;
-		bits[wordNum] |= bitmask;
+		BitUtil.set( bits, index );
 	}
 
 	/**
@@ -288,8 +288,8 @@ public final class OpenBitSet implements Cloneable
 		final int endWord = expandingWordNum( endIndex - 1 );
 
 		final long startmask = -1L << startIndex;
-		final long endmask = -1L >>> -endIndex; // 64-(endIndex&0x3f) is the same as
-		// -endIndex due to wrap
+		// 64-(endIndex&0x3f) is the same as -endIndex due to wrap
+		final long endmask = -1L >>> -endIndex;
 
 		if ( startWord == endWord )
 		{
@@ -318,9 +318,7 @@ public final class OpenBitSet implements Cloneable
 	public final void fastClear ( final int index )
 	{
 		assert index >= 0 && index < numBits;
-		final int wordNum = index >> 6;
-		final long bitmask = 1L << index;
-		bits[wordNum] &= ~bitmask;
+		BitUtil.clear( bits, index );
 		/*
 		 * hmmm, it takes one more instruction to clear than it does to set... any
 		 * way to work around this? If there were only 63 bits per word, we could
@@ -342,8 +340,7 @@ public final class OpenBitSet implements Cloneable
 		{
 			return;
 		}
-		final long bitmask = 1L << index;
-		bits[wordNum] &= ~bitmask;
+		BitUtil.clear( bits, index, wordNum );
 	}
 
 	/**
@@ -399,10 +396,7 @@ public final class OpenBitSet implements Cloneable
 	 */
 	public final void clear ()
 	{
-		for ( int i = bits.length; i-- > 0; )
-		{
-			bits[i] = 0L;
-		}
+		BitUtil.clearWords( bits, 0, bits.length );
 	}
 
 	/**
@@ -478,7 +472,8 @@ public final class OpenBitSet implements Cloneable
 		 ***/
 
 		final long startmask = -1L << startIndex;
-		final long endmask = -1L >>> -endIndex; // 64-(endIndex&0x3f) is the same as
+		final long endmask = -1L >>> -endIndex; // 64-(endIndex&0x3f) is the
+		// same as
 		// -endIndex due to wrap
 
 		if ( startWord == endWord )
@@ -502,13 +497,13 @@ public final class OpenBitSet implements Cloneable
 	 * derived from pop_array by setting last four elems to 0. // exchanges one
 	 * pop() call for 10 elementary operations // saving about 7 instructions...
 	 * is there a better way? long twosA=v0 & v1; long ones=v0^v1;
-	 *
+	 * 
 	 * long u2=ones^v2; long twosB =(ones&v2)|(u2&v3); ones=u2^v3;
-	 *
+	 * 
 	 * long fours=(twosA&twosB); long twos=twosA^twosB;
-	 *
+	 * 
 	 * return (pop(fours)<<2) + (pop(twos)<<1) + pop(ones);
-	 *
+	 * 
 	 * }
 	 */
 
@@ -828,10 +823,21 @@ public final class OpenBitSet implements Cloneable
 	}
 
 	/**
+	 * Resizes the backing array to hold the number of words (64 bit longs)
+	 * passed.
+	 */
+	public final void resizeWords ( final int numWords )
+	{
+		final int words = BitUtil.nextHighestPowerOfTwo( numWords );
+		bits = Arrays.copyOf( bits, words );
+		wlen = words;
+
+	}
+
+	/**
 	 * Ensure that the long[] is big enough to hold numBits, expanding it if
 	 * necessary.
 	 */
-	@SuppressWarnings( "hiding" )
 	public final void ensureCapacity ( final int numBits )
 	{
 		ensureCapacityWords( bits2words( numBits ) );
