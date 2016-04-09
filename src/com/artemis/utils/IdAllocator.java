@@ -8,7 +8,7 @@ import java.util.Arrays;
  * Integer id allocator. It manages integer IDs in a given range. Retrieve IDs
  * with {@link #alloc()} method, and free them with the {@link #free(int)}
  * method.
- * 
+ *
  * @author dustContributor
  */
 public final class IdAllocator
@@ -29,13 +29,13 @@ public final class IdAllocator
 	/**
 	 * Creates an IdAllocator that will manage IDs in the range of the provided
 	 * parameters.
-	 * 
+	 *
 	 * @param rangeStart start of the range of IDs this allocator will provide.
-	 *            Inclusive.
+	 *          Inclusive.
 	 * @param rangeEnd start of the range of IDs this allocator will provide.
-	 *            Exclusive.
+	 *          Exclusive.
 	 */
-	public IdAllocator ( int rangeStart, int rangeEnd )
+	public IdAllocator ( final int rangeStart, final int rangeEnd )
 	{
 		this.freeRanges = new int[256];
 		this.freeRanges[0] = rangeStart;
@@ -46,7 +46,7 @@ public final class IdAllocator
 	/**
 	 * Returns an unused integer ID. Doesn't checks if you ran out of IDs given
 	 * the initial range of the allocator.
-	 * 
+	 *
 	 * @return an unused integer ID.
 	 */
 	public final int alloc ()
@@ -55,8 +55,7 @@ public final class IdAllocator
 		// Free range's start will be new ID.
 		final int id = fRanges[0]++;
 
-		// If free range's end was reached,
-		// remove it from the list.
+		// If free range's end was reached, remove it from the list.
 		if ( fRanges[0] >= fRanges[1] )
 		{
 			final int newSize = freeRangesSize - 2;
@@ -65,15 +64,15 @@ public final class IdAllocator
 			freeRangesSize = newSize;
 		}
 		/*
-		 * We're going to assume that you didn't ran out of IDs (ie, that
-		 * freeRanges isn't empty) for the sake of simplicity.
+		 * We're going to assume that you didn't ran out of IDs (ie, that freeRanges
+		 * isn't empty) for the sake of simplicity.
 		 */
 		return id;
 	}
 
 	/**
 	 * Indicates that an ID isn't used anymore to this allocator.
-	 * 
+	 *
 	 * @param id to be freed.
 	 */
 	public final void free ( final int id )
@@ -84,34 +83,8 @@ public final class IdAllocator
 		 */
 		final int frSize = freeRangesSize;
 		final int[] fRanges = freeRanges;
-		// Range index.
-		int i = 0;
-
-		// Perform binary search to find the range this id belongs to.
-		{
-			int max = frSize;
-
-			while ( i < max )
-			{
-				/*
-				 * We're rounding down to nearest even with & -2, since thats
-				 * where range's start position is stored.
-				 */
-				final int mid = ((i + max) >> 1) & -2;
-				/*
-				 * Condition is a bit different, we're looking for the free
-				 * range start that is strictly less than the id.
-				 */
-				if ( id >= fRanges[mid] )
-				{
-					i = mid + 2;
-				}
-				else
-				{
-					max = mid;
-				}
-			}
-		}
+		// Perform search to find the range this id belongs to.
+		final int i = searchRangeIndex( fRanges, frSize, id );
 
 		final int frStart = fRanges[i];
 		// If ID is at free range start.
@@ -164,6 +137,35 @@ public final class IdAllocator
 		// Store free range.
 		nfRanges[i] = id;
 		nfRanges[i + 1] = id + 1;
+	}
+
+	private static final int searchRangeIndex ( final int[] data, int size, final int value )
+	{
+		// Range index.
+		int rangei = 0;
+
+		while ( rangei < size )
+		{
+			/*
+			 * We're rounding down to nearest even with & -2, since thats where
+			 * range's start position is stored.
+			 */
+			final int mid = ((rangei + size) >> 1) & -2;
+			/*
+			 * Condition is a bit different, we're looking for the free range start
+			 * that is strictly less than the id.
+			 */
+			if ( value >= data[mid] )
+			{
+				rangei = mid + 2;
+			}
+			else
+			{
+				size = mid;
+			}
+		}
+		// Return found index.
+		return rangei;
 	}
 
 	@Override
