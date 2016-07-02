@@ -310,6 +310,10 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 		return StreamSupport.stream( Arrays.spliterator( data, 0, size ), true );
 	}
 
+	/**
+	 * Returns an iterator over this bag. Doesn't supports modification of the bag
+	 * while in use.
+	 */
 	@Override
 	public final Iterator<T> iterator ()
 	{
@@ -396,36 +400,38 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 
 	private static final class BagIterator<T> implements Iterator<T>
 	{
-		private final ImmutableBag<T> owner;
+		private final T[] ownerData;
+		private final int ownerSize;
 		private int cursor;
 
 		public BagIterator ( final ImmutableBag<T> owner )
 		{
-			this.owner = owner;
+			this.ownerData = owner.data;
+			this.ownerSize = owner.size;
 		}
 
 		@Override
 		public final boolean hasNext ()
 		{
-			return cursor < owner.size;
+			return cursor < ownerSize;
 		}
 
 		@Override
 		public final T next ()
 		{
-			if ( cursor >= owner.size )
+			if ( cursor >= ownerSize )
 			{
 				throw new NoSuchElementException();
 			}
-			return owner.data[cursor++];
+			return ownerData[cursor++];
 		}
 
 		@Override
 		public final void forEachRemaining ( final Consumer<? super T> action )
 		{
 			Objects.requireNonNull( action );
-			final int size = owner.size;
-			final T[] data = owner.data;
+			final int size = ownerSize;
+			final T[] data = ownerData;
 
 			int i;
 
@@ -433,7 +439,7 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 			{
 				action.accept( data[i] );
 			}
-
+			// Update cursor so further 'next' calls fail.
 			cursor = i;
 		}
 
