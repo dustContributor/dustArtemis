@@ -317,7 +317,7 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 	@Override
 	public final Iterator<T> iterator ()
 	{
-		return new BagIterator<>( this );
+		return new ArrayIterator<>( this.data, this.size );
 	}
 
 	/**
@@ -398,49 +398,48 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 		return dest;
 	}
 
-	private static final class BagIterator<T> implements Iterator<T>
+	private static final class ArrayIterator<T> implements Iterator<T>
 	{
-		private final T[] ownerData;
-		private final int ownerSize;
+		private final T[] data;
+		private final int size;
+		// Always starts at zero.
 		private int cursor;
 
-		public BagIterator ( final ImmutableBag<T> owner )
+		public ArrayIterator ( final T[] data, final int size )
 		{
-			this.ownerData = owner.data;
-			this.ownerSize = owner.size;
+			this.data = Objects.requireNonNull( data );
+			this.size = size;
 		}
 
 		@Override
 		public final boolean hasNext ()
 		{
-			return cursor < ownerSize;
+			return cursor < size;
 		}
 
 		@Override
 		public final T next ()
 		{
-			if ( cursor >= ownerSize )
+			if ( cursor >= size )
 			{
 				throw new NoSuchElementException();
 			}
-			return ownerData[cursor++];
+			return data[cursor++];
 		}
 
 		@Override
 		public final void forEachRemaining ( final Consumer<? super T> action )
 		{
 			Objects.requireNonNull( action );
-			final int size = ownerSize;
-			final T[] data = ownerData;
+			final int size = this.size;
+			final T[] data = this.data;
 
-			int i;
-
-			for ( i = cursor; i < size; ++i )
+			for ( int i = cursor; i < size; ++i )
 			{
 				action.accept( data[i] );
 			}
 			// Update cursor so further 'next' calls fail.
-			cursor = i;
+			cursor = size;
 		}
 
 	}
