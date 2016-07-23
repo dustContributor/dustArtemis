@@ -46,7 +46,7 @@ final class Injector
 	 * @return an array composed of the parameters.
 	 */
 	@SafeVarargs
-	private static final <T> T[] asArray ( T... params )
+	private static final <T> T[] asArray ( final T... params )
 	{
 		return params;
 	}
@@ -233,22 +233,27 @@ final class Injector
 		}
 		try
 		{
-			// Only modify the field if it hasn't been set already.
-			if ( field.get( target ) == null )
+			if ( field.get( target ) != null )
 			{
-				// Assign the passed value.
-				field.set( target, value );
+				// Only modify the field if it hasn't been set already.
+				throw new DustException( Injector.class, "The FIELD already has a value!" );
 			}
+
+			// Assign the passed value.
+			field.set( target, value );
 		}
-		catch ( IllegalArgumentException | IllegalAccessException e )
+		catch ( final IllegalArgumentException | IllegalAccessException | DustException e )
 		{
 			final String vmsg = String.valueOf( value );
 			final String tmsg = String.valueOf( target );
 			final String fmsg = String.valueOf( field );
 			// Compose error message and throw exception.
-			final String emsg = "While injecting object: " + vmsg +
-					", in field: " + fmsg +
-					", in instance: " + tmsg;
+			final String emsg = "While INJECTING object instance: " + System.lineSeparator()
+					+ vmsg + System.lineSeparator()
+					+ "In the field: " + System.lineSeparator()
+					+ fmsg + System.lineSeparator()
+					+ "Of the object: " + System.lineSeparator()
+					+ tmsg;
 			throw new DustException( Injector.class, emsg, e );
 		}
 		finally
