@@ -8,7 +8,7 @@ import com.artemis.utils.IntBag;
 /**
  * Defined to group some shared functionality between {@link EntityWatcher} and
  * {@link EntitySystem}.
- * 
+ *
  * @author dustContributor
  */
 abstract class AbstractEntitySystem extends EntityObserver
@@ -19,18 +19,6 @@ abstract class AbstractEntitySystem extends EntityObserver
 	protected final IntBag removed;
 
 	protected final OpenBitSet activeBits;
-
-	/**
-	 * Creates an entity observer that builds an {@link Aspect} instance using the
-	 * passed {@link Aspect.Builder}, and uses that Aspect as a matcher against
-	 * entities.
-	 *
-	 * @param builder to create an {@link Aspect} to match against entities.
-	 */
-	public AbstractEntitySystem ( final Aspect.Builder builder )
-	{
-		this( DustException.enforceNonNull( AbstractEntitySystem.class, builder, "builder" ).build() );
-	}
 
 	/**
 	 * Creates an entity observer that uses the specified aspect as a matcher
@@ -133,7 +121,7 @@ abstract class AbstractEntitySystem extends EntityObserver
 		final Aspect asp = aspect;
 		final OpenBitSet acBits = activeBits;
 		final IntBag insrts = inserted;
-		final long[] cmpBits = world.componentManager().componentBits();
+		final long[] cmpBits = world().componentManager().componentBits();
 		final int[] array = ((IntBag) entities).data();
 		final int size = entities.size();
 
@@ -165,7 +153,7 @@ abstract class AbstractEntitySystem extends EntityObserver
 		final OpenBitSet acBits = activeBits;
 		final IntBag insrts = inserted;
 		final IntBag removs = removed;
-		final long[] cmpBits = world.componentManager().componentBits();
+		final long[] cmpBits = world().componentManager().componentBits();
 		final int[] array = ((IntBag) entities).data();
 		final int size = entities.size();
 

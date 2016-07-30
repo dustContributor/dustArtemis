@@ -18,18 +18,6 @@ import com.artemis.utils.IntBag;
 public abstract class EntityWatcher extends AbstractEntitySystem
 {
 	/**
-	 * Creates an entity observer that builds an {@link Aspect} instance using the
-	 * passed {@link Aspect.Builder}, and uses that Aspect as a matcher against
-	 * entities.
-	 *
-	 * @param builder to create an {@link Aspect} to match against entities.
-	 */
-	public EntityWatcher ( final Aspect.Builder builder )
-	{
-		super( builder );
-	}
-
-	/**
 	 * Creates an entity observer that uses the specified aspect as a matcher
 	 * against entities.
 	 *

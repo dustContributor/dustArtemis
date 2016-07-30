@@ -1,8 +1,9 @@
 package com.artemis;
 
-import org.apache.lucene.util.BitUtil;
+import java.util.HashSet;
+import java.util.Objects;
 
-import com.artemis.utils.ClassIndexer;
+import org.apache.lucene.util.BitUtil;
 
 /**
  * <p>
@@ -50,22 +51,24 @@ import com.artemis.utils.ClassIndexer;
  */
 public final class Aspect
 {
+	private final int wordCount;
 	// Bit sets marking the components this aspect is interested in.
-	private final long[] allSet;
-	private final long[] noneSet;
-	private final long[] oneSet;
+	private final long[] all;
+	private final long[] none;
+	private final long[] one;
 
-	Aspect ( final long[] all, final long[] none, final long[] one )
+	Aspect ( final long[] all, final long[] none, final long[] one, final int wordCount )
 	{
-		// If any of the bit sets is empty, do not store them.
 		DustException.enforceNonNull( Aspect.class, all, "all" );
-		allSet = BitUtil.isEmpty( all ) ? null : all;
-
 		DustException.enforceNonNull( Aspect.class, none, "none" );
-		noneSet = BitUtil.isEmpty( none ) ? null : none;
-
 		DustException.enforceNonNull( Aspect.class, one, "one" );
-		oneSet = BitUtil.isEmpty( one ) ? null : one;
+
+		// If any of the bit sets is empty, do not store them.
+		this.all = BitUtil.isEmpty( all ) ? null : all;
+		this.none = BitUtil.isEmpty( none ) ? null : none;
+		this.one = BitUtil.isEmpty( one ) ? null : one;
+
+		this.wordCount = wordCount;
 	}
 
 	/**
@@ -79,12 +82,11 @@ public final class Aspect
 	public final boolean isInteresting ( final int id, final long[] bits )
 	{
 		// A bit of global access never hurt anyone.
-		final int wordCount = DAConstants.COMPONENT_BITS_WORD_COUNT;
 		final int start = id * wordCount;
 
-		return checkNone( bits, start, wordCount )
-				& checkOne( bits, start, wordCount )
-				& checkAll( bits, start, wordCount );
+		return checkNone( bits, start )
+				& checkOne( bits, start )
+				& checkAll( bits, start );
 	}
 
 	/**
@@ -93,14 +95,14 @@ public final class Aspect
 	 * @param bits to check.
 	 * @return true if the two bit sets don't intersect, false otherwise.
 	 */
-	private final boolean checkNone ( final long[] other, final int otherStart, final int wordCount )
+	private final boolean checkNone ( final long[] other, final int otherStart )
 	{
-		if ( noneSet == null )
+		if ( none == null )
 		{
 			return true;
 		}
 		// Reject entity if it has any of 'none' bits.
-		return !BitUtil.intersects( noneSet, 0, other, otherStart, wordCount );
+		return !BitUtil.intersects( none, 0, other, otherStart, wordCount );
 	}
 
 	/**
@@ -109,14 +111,14 @@ public final class Aspect
 	 * @param bits to check.
 	 * @return true if the two bit sets intersect, false otherwise.
 	 */
-	private final boolean checkOne ( final long[] other, final int otherStart, final int wordCount )
+	private final boolean checkOne ( final long[] other, final int otherStart )
 	{
-		if ( oneSet == null )
+		if ( one == null )
 		{
 			return true;
 		}
 		// Reject entity if it has none of 'one' bits.
-		return BitUtil.intersects( oneSet, 0, other, otherStart, wordCount );
+		return BitUtil.intersects( one, 0, other, otherStart, wordCount );
 	}
 
 	/**
@@ -125,9 +127,9 @@ public final class Aspect
 	 * @param bits to check.
 	 * @return true if bits has all the set bits in allSet, false otherwise.
 	 */
-	private final boolean checkAll ( final long[] other, final int otherStart, final int wordCount )
+	private final boolean checkAll ( final long[] other, final int otherStart )
 	{
-		if ( allSet == null )
+		if ( all == null )
 		{
 			return true;
 		}
@@ -136,7 +138,7 @@ public final class Aspect
 		 * passed bit set has all of allSet's bits set. Otherwise, reject the
 		 * entity.
 		 */
-		return BitUtil.intersectionEqual( allSet, 0, other, otherStart, wordCount );
+		return BitUtil.intersectionEqual( all, 0, other, otherStart, wordCount );
 	}
 
 	/**
@@ -148,7 +150,7 @@ public final class Aspect
 	 */
 	public final boolean isEmpty ()
 	{
-		return (allSet == null && noneSet == null && allSet == null);
+		return (all == null && none == null && all == null);
 	}
 
 	/**
@@ -218,20 +220,15 @@ public final class Aspect
 	 */
 	public static final class Builder
 	{
-		private final long[] all;
-		private final long[] none;
-		private final long[] one;
+		private final HashSet<Class<? extends Component>> all;
+		private final HashSet<Class<? extends Component>> none;
+		private final HashSet<Class<? extends Component>> one;
 
-		public Builder ()
+		Builder ()
 		{
-			this( DAConstants.COMPONENT_BITS_WORD_COUNT );
-		}
-
-		private Builder ( final int wordCount )
-		{
-			this.all = new long[wordCount];
-			this.none = new long[wordCount];
-			this.one = new long[wordCount];
+			this.all = new HashSet<>();
+			this.none = new HashSet<>();
+			this.one = new HashSet<>();
 		}
 
 		/**
@@ -244,7 +241,7 @@ public final class Aspect
 		@SafeVarargs
 		public final Builder all ( final Class<? extends Component>... types )
 		{
-			setBits( this.all, types );
+			addAll( all, types );
 			return this;
 		}
 
@@ -259,7 +256,7 @@ public final class Aspect
 		@SafeVarargs
 		public final Builder exclude ( final Class<? extends Component>... types )
 		{
-			setBits( this.none, types );
+			addAll( none, types );
 			return this;
 		}
 
@@ -273,19 +270,40 @@ public final class Aspect
 		@SafeVarargs
 		public final Builder one ( final Class<? extends Component>... types )
 		{
-			setBits( this.one, types );
+			addAll( one, types );
 			return this;
 		}
 
-		@SafeVarargs
-		private static final void setBits (
-				final long[] bits,
-				final Class<? extends Component>... types )
+		private static final <T> void addAll ( final HashSet<T> dest, final T[] items )
 		{
-			for ( int i = types.length; i-- > 0; )
+			for ( final T item : items )
 			{
-				BitUtil.set( bits, ClassIndexer.getIndexFor( types[i], Component.class ) );
+				dest.add( Objects.requireNonNull( item ) );
 			}
+		}
+
+		private static final long[] composeBitSet (
+				final ComponentManager cm,
+				final Iterable<Class<? extends Component>> types )
+		{
+			final long[] dest = new long[cm.wordsPerEntity()];
+
+			for ( final Class<? extends Component> type : types )
+			{
+				final int componentIndex = cm.indexFor( type );
+
+				if ( componentIndex < 0 )
+				{
+					final String msg = "Missing index for component of type: " + System.lineSeparator()
+							+ type.toString() + System.lineSeparator()
+							+ "Types need to be present in the world builder for aspects to use them!";
+					throw new DustException( Aspect.class, msg );
+				}
+
+				BitUtil.set( dest, componentIndex );
+			}
+
+			return dest;
 		}
 
 		/**
@@ -293,9 +311,12 @@ public final class Aspect
 		 *
 		 * @return Aspect based on this {@link Builder} configuration.
 		 */
-		public final Aspect build ()
+		final Aspect build ( final ComponentManager cm )
 		{
-			return new Aspect( this.all, this.none, this.one );
+			final long[] all = composeBitSet( cm, this.all );
+			final long[] none = composeBitSet( cm, this.none );
+			final long[] one = composeBitSet( cm, this.one );
+			return new Aspect( all, none, one, cm.wordsPerEntity() );
 		}
 	}
 

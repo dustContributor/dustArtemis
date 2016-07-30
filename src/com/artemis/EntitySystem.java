@@ -21,18 +21,6 @@ public abstract class EntitySystem extends AbstractEntitySystem
 	private final MutableBitIterator bitIterator = new MutableBitIterator();
 
 	/**
-	 * Creates an entity observer that builds an {@link Aspect} instance using the
-	 * passed {@link Aspect.Builder}, and uses that Aspect as a matcher against
-	 * entities.
-	 *
-	 * @param builder to create an {@link Aspect} to match against entities.
-	 */
-	public EntitySystem ( final Aspect.Builder builder )
-	{
-		super( builder );
-	}
-
-	/**
 	 * Creates an entity observer that uses the specified aspect as a matcher
 	 * against entities.
 	 *

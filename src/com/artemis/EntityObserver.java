@@ -12,7 +12,7 @@ public abstract class EntityObserver
 	/** Active by default. */
 	private boolean active = true;
 
-	protected World world;
+	private World world;
 
 	public void init ()
 	{
@@ -29,29 +29,42 @@ public abstract class EntityObserver
 		// Empty by default.
 	}
 
-	public void added ( ImmutableIntBag entities )
+	public void added ( final ImmutableIntBag entities )
 	{
 		// Empty by default.
 	}
 
-	public void changed ( ImmutableIntBag entities )
+	public void changed ( final ImmutableIntBag entities )
 	{
 		// Empty by default.
 	}
 
-	public void deleted ( ImmutableIntBag entities )
+	public void deleted ( final ImmutableIntBag entities )
 	{
 		// Empty by default.
 	}
 
-	public void enabled ( ImmutableIntBag entities )
+	public void enabled ( final ImmutableIntBag entities )
 	{
 		// Empty by default.
 	}
 
-	public void disabled ( ImmutableIntBag entities )
+	public void disabled ( final ImmutableIntBag entities )
 	{
 		// Empty by default.
+	}
+
+	/**
+	 * @return the {@link World} instance that owns this observer.
+	 */
+	protected World world ()
+	{
+		return this.world;
+	}
+
+	void world ( final World world )
+	{
+		this.world = world;
 	}
 
 	/**
@@ -65,7 +78,7 @@ public abstract class EntityObserver
 
 	/**
 	 * Returns the state of this observer
-	 * 
+	 *
 	 * @return {@code true} if its active and will get processed, {@code false}
 	 *         otherwise.
 	 */
@@ -76,11 +89,11 @@ public abstract class EntityObserver
 
 	/**
 	 * Sets the state of this observer.
-	 * 
+	 *
 	 * @param active {@code true} if its active and will get processed,
 	 *          {@code false} otherwise.
 	 */
-	public void setActive ( final boolean active )
+	public void active ( final boolean active )
 	{
 		this.active = active;
 	}
