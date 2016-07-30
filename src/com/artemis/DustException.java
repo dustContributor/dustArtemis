@@ -59,8 +59,10 @@ final class DustException extends RuntimeException
 	{
 		final String indented = INDENTER.matcher( message ).replaceAll( INDENTATION );
 		// Compute size of the message.
-		final int size = ERROR_TAG_START.length()
+		final int size = 32
+				+ ERROR_TAG_START.length()
 				+ ERROR_TAG_END.length()
+				+ INDENTATION.length()
 				+ sourceName.length()
 				+ indented.length();
 		// Initialize message builder.
