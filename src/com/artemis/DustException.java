@@ -1,9 +1,13 @@
 package com.artemis;
 
+import java.util.regex.Pattern;
+
 final class DustException extends RuntimeException
 {
 	private static final String ERROR_TAG_START = "[dustArtemis:";
 	private static final String ERROR_TAG_END = ":ERROR] ";
+	private static final String INDENTATION = System.lineSeparator() + " - ";
+	private static final Pattern INDENTER = Pattern.compile( System.lineSeparator() );
 
 	private static final long serialVersionUID = 1L;
 
@@ -53,16 +57,20 @@ final class DustException extends RuntimeException
 
 	private static final String makeMessage ( final String sourceName, final String message )
 	{
+		final String indented = INDENTER.matcher( message ).replaceAll( INDENTATION );
 		// Compute size of the message.
-		final int size = ERROR_TAG_START.length() + ERROR_TAG_END.length() +
-				sourceName.length() + message.length();
+		final int size = ERROR_TAG_START.length()
+				+ ERROR_TAG_END.length()
+				+ sourceName.length()
+				+ indented.length();
 		// Initialize message builder.
 		final StringBuilder sb = new StringBuilder( size );
 		// Compose message.
 		sb.append( ERROR_TAG_START );
 		sb.append( sourceName );
 		sb.append( ERROR_TAG_END );
-		sb.append( message );
+		sb.append( INDENTATION );
+		sb.append( indented );
 		// And convert to string.
 		return sb.toString();
 	}
