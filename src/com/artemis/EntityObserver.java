@@ -73,7 +73,7 @@ public abstract class EntityObserver
 	 * @see World#data()
 	 * @return arbitrary data object retrieved from the world instance.
 	 */
-	public <T> T data ()
+	protected <T> T data ()
 	{
 		return this.world.data();
 	}
