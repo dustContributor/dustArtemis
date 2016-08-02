@@ -2,6 +2,7 @@ package com.artemis;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.function.Function;
@@ -353,10 +354,10 @@ public class World
 	 */
 	private static final class WorldParams
 	{
-		public final ComponentManager componentManager;
-		public final EntityManager entityManager;
-		public final EntityObserver[] observers;
-		public final Object data;
+		final ComponentManager componentManager;
+		final EntityManager entityManager;
+		final EntityObserver[] observers;
+		final Object data;
 
 		WorldParams ( final ComponentManager cm, final EntityManager em, final EntityObserver[] observers,
 				final Object data )
@@ -401,14 +402,12 @@ public class World
 		 */
 		private final HashSet<Class<? extends Component>> componentTypes;
 		/**
-		 * Observers and their aspect builders, matched by order.
+		 * Observers, their aspect builders and their priorities/orders, matched by
+		 * position.
 		 */
 		private final ArrayList<Function<Aspect, EntityObserver>> observers;
 		private final ArrayList<Aspect.Builder> aspects;
-		/**
-		 * The order, or priority of each observer.
-		 */
-		private final IdentityHashMap<Function<Aspect, EntityObserver>, Integer> orders;
+		private final IntBag orders;
 		/**
 		 * Either the default world constructor, or an alternative one for a
 		 * subclass.
@@ -435,7 +434,7 @@ public class World
 			this.componentTypes = new HashSet<>();
 			this.observers = new ArrayList<>( 16 );
 			this.aspects = new ArrayList<>( 16 );
-			this.orders = new IdentityHashMap<>( 16 );
+			this.orders = new IntBag( 16 );
 		}
 
 		/**
@@ -607,7 +606,7 @@ public class World
 			DustException.enforceNonNull( this, aspect, "aspect" );
 			this.observers.add( observer );
 			this.aspects.add( aspect );
-			this.orders.put( observer, Integer.valueOf( order ) );
+			this.orders.add( order );
 			return this;
 		}
 
@@ -664,34 +663,31 @@ public class World
 		public final World build ()
 		{
 			/*
+			 * Mapping from observer to order, we fill it later by passing it to the
+			 * method that creates observers. The usage is a bit messy, maybe it could
+			 * be refined.
+			 */
+			final IdentityHashMap<EntityObserver, Integer> orderMap = new IdentityHashMap<>( observers.size() );
+			// Capture the map and use it for sorter by order later.
+			final Comparator<EntityObserver> compareByOrder = ( a, b ) -> orderMap.get( a ).compareTo( orderMap.get( b ) );
+			/*
 			 * Construct component manager, used by world instance and aspect
 			 * creation.
 			 */
 			final ComponentManager cm = new ComponentManager( componentTypes );
 			// Use all the constructors to create the observers.
-			final EntityObserver[] observers = createObservers( cm );
+			final EntityObserver[] observers = createObservers( cm, orderMap );
 			// Compose world parameters and construct it.
-			final World world = constructor.apply( composeWorldParams( observers, cm ) );
+			final World world = constructor.apply( composeWorldParams( observers, compareByOrder, cm ) );
 			// Do the init step on observers.
-			observerInitialization( observers, world );
+			observerInitialization( observers, compareByOrder, world );
 			// Now return fully constructed world instance.
 			return world;
 		}
 
-		/**
-		 * Compares entity observers by the specified order during builder's
-		 * configuration.
-		 *
-		 * @param a observer to be compared.
-		 * @param b observer to be compared.
-		 * @return result as seen in {@link Comparable#compareTo(Object)}
-		 */
-		private final int compareByOrder ( final EntityObserver a, final EntityObserver b )
-		{
-			return orders.get( a ).compareTo( orders.get( b ) );
-		}
-
-		private final EntityObserver[] createObservers ( final ComponentManager cm )
+		private final EntityObserver[] createObservers (
+				final ComponentManager cm,
+				final IdentityHashMap<EntityObserver, Integer> observerToOrder )
 		{
 			final int size = observers.size();
 
@@ -712,6 +708,8 @@ public class World
 				final Function<Aspect, EntityObserver> ctor = observers.get( i );
 				// Fetch the aspect builder for that observer.
 				final Aspect.Builder aspectBuilder = aspects.get( i );
+				// Fetch the priority/order.
+				final int order = orders.getUnsafe( i );
 				/*
 				 * If its the dummy builder, just use the empty aspect, otherwise build
 				 * the new aspect to use.
@@ -719,12 +717,17 @@ public class World
 				final Aspect aspect = aspectBuilder == dummyAspectBuilder ? emptyAspect : aspectBuilder.build( cm );
 				// Construct observer and set it on the same position.
 				result[i] = ctor.apply( aspect );
+				// Map its order.
+				observerToOrder.put( result[i], Integer.valueOf( order ) );
 			}
 
 			return result;
 		}
 
-		private final WorldParams composeWorldParams ( final EntityObserver[] observers, final ComponentManager cm )
+		private final WorldParams composeWorldParams (
+				final EntityObserver[] observers,
+				final Comparator<EntityObserver> comparator,
+				final ComponentManager cm )
 		{
 			// Make a defensive copy.
 			final EntityObserver[] processObservers = observers.clone();
@@ -732,7 +735,7 @@ public class World
 			if ( processByOrder )
 			{
 				// Sort if there was an order specified.
-				Arrays.sort( processObservers, this::compareByOrder );
+				Arrays.sort( processObservers, comparator );
 			}
 
 			// Construct entity manager, used by the world instance.
@@ -745,7 +748,10 @@ public class World
 			return new WorldParams( cm, em, processObservers, data );
 		}
 
-		private final void observerInitialization ( final EntityObserver[] observers, final World world )
+		private final void observerInitialization (
+				final EntityObserver[] observers,
+				final Comparator<EntityObserver> comparator,
+				final World world )
 		{
 			// Make a defensive copy.
 			final EntityObserver[] initializeObservers = observers.clone();
@@ -753,7 +759,7 @@ public class World
 			if ( initializeByOrder )
 			{
 				// Sort if there was an order specified.
-				Arrays.sort( initializeObservers, this::compareByOrder );
+				Arrays.sort( initializeObservers, comparator );
 			}
 
 			// First step is to inject the observers.

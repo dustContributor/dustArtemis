@@ -68,6 +68,17 @@ public abstract class EntityObserver
 	}
 
 	/**
+	 * A convenience method that delegates to {@link World#data()}.
+	 * 
+	 * @see World#data()
+	 * @return arbitrary data object retrieved from the world instance.
+	 */
+	protected <T> T data ()
+	{
+		return this.world.data();
+	}
+
+	/**
 	 * Processes all entities that were inserted or removed fin this particular
 	 * observer.
 	 */
