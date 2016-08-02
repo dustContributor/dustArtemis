@@ -1,9 +1,8 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.dustContributor.dustArtemis</groupId>
 	<artifactId>dustArtemis</artifactId>
-	<version>1.1.4-SNAPSHOT</version>
+	<version>1.1.4-maven</version>
 	<packaging>jar</packaging>
 	<name>dustArtemis</name>
 	<description>dustArtemis is a Java entity-component-system framework for videogames, orignally forked from Artemis.</description>
@@ -64,12 +63,12 @@
 			</plugin>
 		</plugins>
 	</build>
-	<scm>
-		<connection>scm:git:https://github.com/dustContributor/dustArtemis.git</connection>
-		<developerConnection>scm:git:git@github.com:dustContributor/dustArtemis.git</developerConnection>
-		<url>https://github.com/dustContributor/dustArtemis</url>
-		<tag>HEAD</tag>
-	</scm>
+<!-- 	<scm> -->
+<!-- 		<connection>scm:git:https://github.com/dustContributor/dustArtemis.git</connection> -->
+<!-- 		<developerConnection>scm:git:git@github.com:dustContributor/dustArtemis.git</developerConnection> -->
+<!-- 		<url>https://github.com/dustContributor/dustArtemis</url> -->
+<!-- 		<tag>HEAD</tag> -->
+<!-- 	</scm> -->
 	<distributionManagement>
 		<repository>
 			<id>bintray</id>
