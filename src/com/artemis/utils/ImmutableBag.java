@@ -3,8 +3,6 @@ package com.artemis.utils;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.ObjIntConsumer;
@@ -396,52 +394,6 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 			System.arraycopy( dest, 0, dest, i, ((limit - i) < i) ? (limit - i) : i );
 		}
 		return dest;
-	}
-
-	private static final class ArrayIterator<T> implements Iterator<T>
-	{
-		private final T[] data;
-		private final int size;
-		// Always starts at zero.
-		private int cursor;
-
-		public ArrayIterator ( final T[] data, final int size )
-		{
-			this.data = Objects.requireNonNull( data );
-			this.size = size;
-		}
-
-		@Override
-		public final boolean hasNext ()
-		{
-			return cursor < size;
-		}
-
-		@Override
-		public final T next ()
-		{
-			if ( cursor >= size )
-			{
-				throw new NoSuchElementException();
-			}
-			return data[cursor++];
-		}
-
-		@Override
-		public final void forEachRemaining ( final Consumer<? super T> action )
-		{
-			Objects.requireNonNull( action );
-			final int size = this.size;
-			final T[] data = this.data;
-
-			for ( int i = cursor; i < size; ++i )
-			{
-				action.accept( data[i] );
-			}
-			// Update cursor so further 'next' calls fail.
-			cursor = size;
-		}
-
 	}
 
 }
