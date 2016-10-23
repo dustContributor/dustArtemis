@@ -21,7 +21,7 @@ import com.artemis.utils.IntBag;
  * @author dustContributor
  *
  */
-public class World
+public final class World
 {
 	/** Managers for all entities this instance created. */
 	private final EntityManager em;
@@ -45,30 +45,51 @@ public class World
 	private final ImmutableBag<EntityObserver> immutableObservers;
 
 	/**
-	 * World instance constructor. Will set itself in all the passed observers.
+	 * Tiny internal class to pass parameters to the {@link World}'s constructor.
+	 * It pre-validates the parameters so {@link World} can use them directly.
 	 *
-	 * @param worldParameters to use to initialize the instance, can't be null.
+	 * @author dustContributor
 	 */
-	protected World ( final Object worldParameters )
+	private static final class WorldParams
 	{
-		DustException.enforceNonNull( this, worldParameters, "worldParameters" );
+		final ComponentManager componentManager;
+		final EntityManager entityManager;
+		final EntityObserver[] observers;
+		final Object data;
 
-		if ( !(worldParameters instanceof WorldParams) )
+		WorldParams (
+				final ComponentManager componentManager,
+				final EntityManager entityManager,
+				final EntityObserver[] observers,
+				final Object data )
 		{
-			throw new DustException( this, "Wrong class for 'worldParameters'!" );
+			super();
+			this.componentManager = DustException.enforceNonNull( this, componentManager, "componentManager" );
+			this.entityManager = DustException.enforceNonNull( this, entityManager, "entityManager" );
+			this.observers = DustException.enforceNonNull( this, observers, "observers" );
+			// This one can be null. User-defined.
+			this.data = data;
 		}
 
-		final WorldParams params = (WorldParams) worldParameters;
-		final EntityObserver[] observers = DustException.enforceNonNull( this, params.observers, "observers" );
+	}
 
-		cm = DustException.enforceNonNull( this, params.componentManager, "componentManager" );
-		em = DustException.enforceNonNull( this, params.entityManager, "entityManager" );
+	/**
+	 * World instance constructor. Will set itself in all the passed observers.
+	 *
+	 * @param params to use to initialize the instance, can't be null.
+	 */
+	World ( final WorldParams params )
+	{
+		DustException.enforceNonNull( this, params, "params" );
+
+		cm = params.componentManager;
+		em = params.entityManager;
 
 		// We don't validate arbitrary data.
-		this.data = params.data;
+		data = params.data;
 
 		// Store observers.
-		this.observers = observers;
+		observers = params.observers;
 
 		// Create immutable view of the observer array.
 		final Bag<EntityObserver> obag = new Bag<>( observers );
@@ -85,7 +106,7 @@ public class World
 	 *
 	 * @return entity manager.
 	 */
-	public EntityManager entityManager ()
+	public final EntityManager entityManager ()
 	{
 		return em;
 	}
@@ -95,7 +116,7 @@ public class World
 	 *
 	 * @return component manager.
 	 */
-	public ComponentManager componentManager ()
+	public final ComponentManager componentManager ()
 	{
 		return cm;
 	}
@@ -116,7 +137,7 @@ public class World
 	 * @see Builder#data(Object)
 	 */
 	@SuppressWarnings( "unchecked" )
-	public <T> T data ()
+	public final <T> T data ()
 	{
 		return (T) data;
 	}
@@ -126,7 +147,7 @@ public class World
 	 *
 	 * @return all entity observer in world.
 	 */
-	public ImmutableBag<EntityObserver> observers ()
+	public final ImmutableBag<EntityObserver> observers ()
 	{
 		return immutableObservers;
 	}
@@ -139,7 +160,7 @@ public class World
 	 *         {@code null} if there is none.
 	 */
 	@SuppressWarnings( "unchecked" )
-	public <T extends EntityObserver> T observer ( final Class<T> type )
+	public final <T extends EntityObserver> T observer ( final Class<T> type )
 	{
 		for ( int i = 0; i < observers.length; ++i )
 		{
@@ -158,7 +179,7 @@ public class World
 	 *
 	 * @param eid entity id.
 	 */
-	public void addEntity ( final int eid )
+	public final void addEntity ( final int eid )
 	{
 		added.add( eid );
 	}
@@ -170,7 +191,7 @@ public class World
 	 * @param eid entity id to look for.
 	 * @return true if it was added recently, false otherwise.
 	 */
-	public boolean isAdded ( final int eid )
+	public final boolean isAdded ( final int eid )
 	{
 		return added.contains( eid ) > -1;
 	}
@@ -182,7 +203,7 @@ public class World
 	 *
 	 * @param eid entity id.
 	 */
-	public void changedEntity ( final int eid )
+	public final void changedEntity ( final int eid )
 	{
 		changed.add( eid );
 	}
@@ -194,7 +215,7 @@ public class World
 	 * @param eid entity id to look for.
 	 * @return true if it was changed recently, false otherwise.
 	 */
-	public boolean isChanged ( final int eid )
+	public final boolean isChanged ( final int eid )
 	{
 		return changed.contains( eid ) > -1;
 	}
@@ -204,7 +225,7 @@ public class World
 	 *
 	 * @param eid entity id.
 	 */
-	public void deleteEntity ( final int eid )
+	public final void deleteEntity ( final int eid )
 	{
 		deleted.add( eid );
 	}
@@ -216,7 +237,7 @@ public class World
 	 * @param eid entity id to look for.
 	 * @return true if it was deleted recently, false otherwise.
 	 */
-	public boolean isDeleted ( final int eid )
+	public final boolean isDeleted ( final int eid )
 	{
 		return deleted.contains( eid ) > -1;
 	}
@@ -227,7 +248,7 @@ public class World
 	 *
 	 * @param eid entity id.
 	 */
-	public void enable ( final int eid )
+	public final void enable ( final int eid )
 	{
 		enabled.add( eid );
 	}
@@ -238,7 +259,7 @@ public class World
 	 *
 	 * @param eid entity id.
 	 */
-	public void disable ( final int eid )
+	public final void disable ( final int eid )
 	{
 		disabled.add( eid );
 	}
@@ -249,7 +270,7 @@ public class World
 	 *
 	 * @return entity
 	 */
-	public int createEntity ()
+	public final int createEntity ()
 	{
 		final int eid = em.createEntityInstance();
 		cm.registerEntity( eid );
@@ -309,7 +330,7 @@ public class World
 	/**
 	 * Process all active observers.
 	 */
-	public void process ()
+	public final void process ()
 	{
 		checkAll();
 
@@ -331,7 +352,7 @@ public class World
 	 * @param type of component to get handler for.
 	 * @return handler for specified component type.
 	 */
-	public <T extends Component> ComponentHandler<T> getHandler ( final Class<T> type )
+	public final <T extends Component> ComponentHandler<T> getHandler ( final Class<T> type )
 	{
 		return cm.getHandlerFor( type );
 	}
@@ -345,30 +366,6 @@ public class World
 	public static final Builder builder ()
 	{
 		return new Builder();
-	}
-
-	/**
-	 * Tiny internal class to pass parameters to the {@link World}'s constructor.
-	 *
-	 * @author dustContributor
-	 */
-	private static final class WorldParams
-	{
-		final ComponentManager componentManager;
-		final EntityManager entityManager;
-		final EntityObserver[] observers;
-		final Object data;
-
-		WorldParams ( final ComponentManager cm, final EntityManager em, final EntityObserver[] observers,
-				final Object data )
-		{
-			super();
-			this.componentManager = cm;
-			this.entityManager = em;
-			this.observers = observers;
-			this.data = data;
-		}
-
 	}
 
 	/**
@@ -409,11 +406,6 @@ public class World
 		private final ArrayList<Aspect.Builder> aspects;
 		private final IntBag orders;
 		/**
-		 * Either the default world constructor, or an alternative one for a
-		 * subclass.
-		 */
-		private Function<Object, World> constructor;
-		/**
 		 * Arbitrary data parameter for the world.
 		 */
 		private Object data;
@@ -428,50 +420,12 @@ public class World
 
 		Builder ()
 		{
-			this.constructor = World::new;
 			this.initializeByOrder = false;
 			this.processByOrder = false;
 			this.componentTypes = new HashSet<>();
 			this.observers = new ArrayList<>( 16 );
 			this.aspects = new ArrayList<>( 16 );
 			this.orders = new IntBag( 16 );
-		}
-
-		/**
-		 * In case you want to override the default {@link World} constructor call,
-		 * useful for when you want to build your subclass of {@link World}.
-		 *
-		 * <p>
-		 * For example: <br>
-		 *
-		 * <pre>
-		 * builder.constructor( SomeWorldSubclass::new );
-		 * </pre>
-		 * </p>
-		 *
-		 * {@link World}'s constructor receives an opaque {@link Object} parameter
-		 * that contains data for initialization, inside your subclass's constructor
-		 * your're only expected to call it like:
-		 *
-		 * <pre>
-		 * public SomeWorldSubclass ( final Object worldParameters )
-		 * {
-		 * 	super( worldParameters );
-		 * 	// Here below would go your class initialization.
-		 * }
-		 * </pre>
-		 *
-		 * 'worldParameters' is an instance of an internal class, if you pass
-		 * anything else it will probably raise a validation exception. So don't do
-		 * that.
-		 *
-		 * @param constructor to construct a {@link World} from.
-		 * @return this builder instance.
-		 */
-		public final Builder constructor ( final Function<Object, World> constructor )
-		{
-			this.constructor = DustException.enforceNonNull( this, constructor, "constructor" );
-			return this;
 		}
 
 		/**
@@ -678,7 +632,7 @@ public class World
 			// Use all the constructors to create the observers.
 			final EntityObserver[] observers = createObservers( cm, orderMap );
 			// Compose world parameters and construct it.
-			final World world = constructor.apply( composeWorldParams( observers, compareByOrder, cm ) );
+			final World world = new World( composeWorldParams( observers, compareByOrder, cm ) );
 			// Do the init step on observers.
 			observerInitialization( observers, compareByOrder, world );
 			// Now return fully constructed world instance.
