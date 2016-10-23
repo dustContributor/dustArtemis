@@ -63,12 +63,7 @@
 
 		</plugins>
 	</build>
-	<scm>
-		<connection>scm:git:https://github.com/dustContributor/dustArtemis.git</connection>
-		<developerConnection>scm:git:git@github.com:dustContributor/dustArtemis.git</developerConnection>
-		<url>https://github.com/dustContributor/dustArtemis</url>
-		<tag>HEAD</tag>
-	</scm>
+
 	<distributionManagement>
 		<repository>
 			<id>jitpack</id>
