@@ -3,12 +3,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.dustContributor.dustArtemis</groupId>
 	<artifactId>dustArtemis</artifactId>
-	<version>1.1.4-maven</version>
+	<version>1.1.4</version>
 	<packaging>jar</packaging>
 
 	<name>dustArtemis</name>
-	<description>dustArtemis is a Java entity-component-system framework for videogames, orignally forked from Artemis.</description>
-	<url>https://jitpack.io/#dustContributor/dustArtemis/1.1.4-maven</url>
+	<description>dustArtemis is a Java entity-component-system framework for videogames, originally forked from Artemis.</description>
+	<url>https://jitpack.io/#dustContributor/dustArtemis/1.1.4</url>
 
 	<build>
 		<sourceDirectory>src</sourceDirectory>
@@ -21,18 +21,20 @@
 			</resource>
 		</resources>
 		<plugins>
-		
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.2</version>
-				<configuration> <!-- Compile java 7 compatible bytecode -->
+				<!-- Compile Java 8 compatible bytecode -->
+				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
 				</configuration>
 			</plugin>
 
-			<plugin>  <!-- Create sources.jar -->
+			<plugin>
+				<!-- Create sources.jar -->
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
 				<executions>
@@ -46,6 +48,7 @@
 			</plugin>
 
 			<plugin>
+				<!-- Create javadocs.jar -->
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<executions>
@@ -57,15 +60,15 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 		</plugins>
 	</build>
-	<!-- <scm> -->
-	<!-- <connection>scm:git:https://github.com/dustContributor/dustArtemis.git</connection> -->
-	<!-- <developerConnection>scm:git:git@github.com:dustContributor/dustArtemis.git</developerConnection> -->
-	<!-- <url>https://github.com/dustContributor/dustArtemis</url> -->
-	<!-- <tag>HEAD</tag> -->
-	<!-- </scm> -->
+	<scm>
+		<connection>scm:git:https://github.com/dustContributor/dustArtemis.git</connection>
+		<developerConnection>scm:git:git@github.com:dustContributor/dustArtemis.git</developerConnection>
+		<url>https://github.com/dustContributor/dustArtemis</url>
+		<tag>HEAD</tag>
+	</scm>
 	<distributionManagement>
 		<repository>
 			<id>jitpack</id>
