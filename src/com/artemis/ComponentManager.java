@@ -61,7 +61,7 @@ public final class ComponentManager
 		// Init all the component handlers.
 		for ( int i = componentHandlers.length; i-- > 0; )
 		{
-			componentHandlers[i] = new ComponentHandler( types[i], this, i, handlerCap );
+			componentHandlers[i] = new ArrayComponentHandler( types[i], this, i, handlerCap );
 		}
 		// Fetch the constant.
 		final int wordsPerEntity = computeWordsPerEntity( types.length );
@@ -155,6 +155,18 @@ public final class ComponentManager
 	final void notifyAddedComponent ( final int id, final int typeIndex )
 	{
 		BitUtil.setRelative( componentBits(), typeIndex, id, wordsPerEntity );
+	}
+
+	/**
+	 * Checks if a component type is registered for an entity in this manager.
+	 *
+	 * @param id of the entity.
+	 * @param typeIndex of the component.
+	 * @return 'true' if it is registered, 'false' otherwise.
+	 */
+	final boolean hasComponent ( final int id, final int typeIndex )
+	{
+		return BitUtil.getRelative( componentBits(), typeIndex, id, wordsPerEntity );
 	}
 
 	/**

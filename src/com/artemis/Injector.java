@@ -14,7 +14,7 @@ import com.artemis.utils.ImmutableIntBag;
  * {@link EntityObserver}s. <br>
  * It just plain initializes any {@link ComponentHandler} or
  * {@link EntityObserver} field it comes across in each object.
- * 
+ *
  * @author dustContributor
  */
 final class Injector
@@ -41,7 +41,7 @@ final class Injector
 
 	/**
 	 * Just to get around the generic array initializer limitation.
-	 * 
+	 *
 	 * @param params to convert to array.
 	 * @return an array composed of the parameters.
 	 */
@@ -55,7 +55,7 @@ final class Injector
 	 * For each of the objects provided, they will get assigned an instance of
 	 * their {@link EntityObserver}, {@link ComponentHandler} or entity
 	 * {@link ImmutableIntBag} fields.
-	 * 
+	 *
 	 * @param objects that you need initialized.
 	 */
 	static final void init ( final World world, final Object[] objects )
@@ -94,7 +94,7 @@ final class Injector
 	/**
 	 * Initializes all the fields in the bag, if they match a test, to the value
 	 * produced by its respective supplier.
-	 * 
+	 *
 	 * @param fields to initialize.
 	 * @param obj owner of these fields.
 	 * @param tests to try on each field.
@@ -190,19 +190,19 @@ final class Injector
 	}
 
 	/**
-	 * Tests if the passed field is a {@link ComponentHandler}.
-	 * 
+	 * Tests if the passed field is subclass of {@link ComponentHandler}.
+	 *
 	 * @param field to test.
 	 * @return 'true' if it is, 'false' otherwise.
 	 */
 	private static final boolean testForHandler ( final Field field )
 	{
-		return ComponentHandler.class == field.getType();
+		return ComponentHandler.class.isAssignableFrom( field.getType() );
 	}
 
 	/**
 	 * Tests if the passed field is a subclass of {@link EntityObserver}.
-	 * 
+	 *
 	 * @param field to test.
 	 * @return 'true' if it is, 'false' otherwise.
 	 */
@@ -213,7 +213,7 @@ final class Injector
 
 	/**
 	 * Tests if the passed field possesses the annotation {@link EntitiesOf}.
-	 * 
+	 *
 	 * @param field to test.
 	 * @return 'true' if it has it, 'false' otherwise.
 	 */
