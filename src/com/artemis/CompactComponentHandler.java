@@ -274,6 +274,32 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 		return Range.end( ranges[rangesSize - 1] ) - Range.start( ranges[0] );
 	}
 
+	/**
+	 * @return the logical index this handler starts at.
+	 */
+	public final int rangeStart ()
+	{
+		if ( rangesSize < 1 )
+		{
+			return 0;
+		}
+
+		return Range.start( ranges[0] );
+	}
+
+	/**
+	 * @return the logical index this handler ends at.
+	 */
+	public final int rangeEnd ()
+	{
+		if ( rangesSize < 1 )
+		{
+			return 0;
+		}
+
+		return Range.end( ranges[rangesSize - 1] );
+	}
+
 	private final void insertItem ( final int index, final T item )
 	{
 		final int size = size();
@@ -370,23 +396,26 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 	@SuppressWarnings( "unused" )
 	private static final class Range
 	{
-		// @formatter:off
-		// Bits dedicated to each field.
-		private static final int BTS_COUNT = 20;
+		// Bits dedicated to each field. Can't be bigger than 32.
+		private static final int BTS_OFFSET = 20;
 		private static final int BTS_START = 20;
 		private static final int BTS_END = 20;
 		private static final int BTS_UNUSED = 4;
 		// Shift to the start of each field.
-		private static final int SHF_COUNT 	= 0;
-		private static final int SHF_START 	= SHF_COUNT + BTS_COUNT;
-		private static final int SHF_END 		= SHF_START + BTS_START;
-		private static final int SHF_UNUSED =	SHF_END + BTS_END;
+		private static final int SHF_OFFSET = 0;
+		private static final int SHF_START = SHF_OFFSET + BTS_OFFSET;
+		private static final int SHF_END = SHF_START + BTS_START;
+		private static final int SHF_UNUSED = SHF_END + BTS_END;
 		// Masks to retrieve each field.
-		private static final long MSK_COUNT 	= ((1L << BTS_COUNT) - 1L) << SHF_COUNT;
-		private static final long MSK_START 	= ((1L << BTS_START) - 1L) << SHF_START;
-		private static final long MSK_END 		= ((1L << BTS_END) - 1L) << SHF_END;
-		private static final long MSK_UNUSED 	= ((1L << BTS_UNUSED) - 1L) << SHF_UNUSED;
-		//@formatter:on
+		private static final int MSK_OFFSET = ((1 << BTS_OFFSET) - 1);
+		private static final int MSK_START = ((1 << BTS_START) - 1);
+		private static final int MSK_END = ((1 << BTS_END) - 1);
+		private static final int MSK_UNUSED = ((1 << BTS_UNUSED) - 1);
+		// Masks to overwrite each field in an existing value.
+		private static final long MSK_PCK_OFFSET = ((long) MSK_OFFSET) << SHF_OFFSET;
+		private static final long MSK_PCK_START = ((long) MSK_START) << SHF_START;
+		private static final long MSK_PCK_END = ((long) MSK_END) << SHF_END;
+		private static final long MSK_PCK_UNUSED = ((long) MSK_UNUSED) << SHF_UNUSED;
 
 		static final void updateOffsets ( final int start, final long[] ranges, final int size )
 		{
@@ -411,7 +440,7 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 
 		static final long of ( final int offset, final int start, final int end )
 		{
-			final long lc = ((long) offset) << SHF_COUNT;
+			final long lc = ((long) offset) << SHF_OFFSET;
 			final long ls = ((long) start) << SHF_START;
 			final long le = ((long) end) << SHF_END;
 			return lc | ls | le;
@@ -419,35 +448,43 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 
 		static final long offset ( final int offset, final long dest )
 		{
-			final long lc = ((long) offset) << SHF_COUNT;
-			return (dest & ~MSK_COUNT) | lc;
+			final long erased = dest & ~MSK_PCK_OFFSET;
+			final long placed = ((long) offset) << SHF_OFFSET;
+			return erased | placed;
 		}
 
 		static final long start ( final int start, final long dest )
 		{
-			final long ls = ((long) start) << SHF_START;
-			return (dest & ~MSK_START) | ls;
+			final long erased = dest & ~MSK_PCK_START;
+			final long placed = ((long) start) << SHF_START;
+			return erased | placed;
 		}
 
 		static final long end ( final int end, final long dest )
 		{
-			final long le = ((long) end) << SHF_END;
-			return (dest & ~MSK_END) | le;
+			final long erased = dest & ~MSK_PCK_END;
+			final long placed = ((long) end) << SHF_END;
+			return erased | placed;
 		}
 
 		static final int offset ( final long packed )
 		{
-			return (int) ((packed & MSK_COUNT) >>> SHF_COUNT);
+			return ((int) (packed >>> SHF_OFFSET)) & MSK_OFFSET;
 		}
 
 		static final int start ( final long packed )
 		{
-			return (int) ((packed & MSK_START) >>> SHF_START);
+			return ((int) (packed >>> SHF_START)) & MSK_START;
 		}
 
 		static final int end ( final long packed )
 		{
-			return (int) ((packed & MSK_END) >>> SHF_END);
+			return ((int) (packed >>> SHF_END)) & MSK_END;
+		}
+
+		private static final int unpack ( final long packed, final int shift, final int mask )
+		{
+			return ((int) (packed >>> shift)) & mask;
 		}
 
 		static final int size ( final long packed )
