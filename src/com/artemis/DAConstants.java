@@ -1,8 +1,8 @@
 package com.artemis;
 
+import java.io.File;
 import java.io.FileReader;
 import java.nio.file.FileSystems;
-import java.nio.file.Path;
 import java.util.Properties;
 
 /**
@@ -62,7 +62,7 @@ public final class DAConstants
 	/** Non-instantiable class. */
 	private DAConstants ()
 	{
-		// Empty.
+		throw new DustException( DAConstants.class, "Can't create an instance of this class!" );
 	}
 
 	/** Name of the property that will be used to fetch config file path from. */
@@ -81,19 +81,10 @@ public final class DAConstants
 	{
 		final Properties props = loadCfgFile();
 
-		int itmp = 0;
-
-		itmp = getIntOrDefault( props, "BAG_DEFAULT_CAPACITY", 16 );
-		BAG_DEFAULT_CAPACITY = Math.max( itmp, 4 );
-
-		itmp = getIntOrDefault( props, "BAG_GROW_RATE_THRESHOLD", 2048 );
-		BAG_GROW_RATE_THRESHOLD = Math.max( itmp, 256 );
-
-		itmp = getIntOrDefault( props, "APPROX_LIVE_ENTITIES", 1024 );
-		APPROX_LIVE_ENTITIES = Math.max( itmp, 64 );
-
-		itmp = getIntOrDefault( props, "APPROX_ENTITIES_PER_SYSTEM", 1024 );
-		APPROX_ENTITIES_PER_SYSTEM = Math.max( itmp, 16 );
+		BAG_DEFAULT_CAPACITY = Math.max( getIntOrDefault( props, "BAG_DEFAULT_CAPACITY", 16 ), 4 );
+		BAG_GROW_RATE_THRESHOLD = Math.max( getIntOrDefault( props, "BAG_GROW_RATE_THRESHOLD", 2048 ), 256 );
+		APPROX_LIVE_ENTITIES = Math.max( getIntOrDefault( props, "APPROX_LIVE_ENTITIES", 1024 ), 64 );
+		APPROX_ENTITIES_PER_SYSTEM = Math.max( getIntOrDefault( props, "APPROX_ENTITIES_PER_SYSTEM", 1024 ), 16 );
 	}
 
 	/**
@@ -102,20 +93,15 @@ public final class DAConstants
 	 */
 	private static final int getIntOrDefault ( final Properties props, final String key, final int defValue )
 	{
-		final String tmp = props.getProperty( key );
-		if ( tmp != null )
+		try
 		{
-			try
-			{
-				return Integer.parseInt( tmp );
-			}
-			// Prolly the only exception type that could be raised here.
-			catch ( final NumberFormatException ex )
-			{
-				// Fail silently.
-			}
+			return Integer.parseInt( props.getProperty( key ) );
 		}
-
+		// Prolly the only exception type that could be raised here.
+		catch ( final Exception ex )
+		{
+			// Fail silently.
+		}
 		return defValue;
 	}
 
@@ -125,20 +111,14 @@ public final class DAConstants
 	 */
 	private static final boolean getBoolOrDefault ( final Properties props, final String key, final boolean defValue )
 	{
-		final String tmp = props.getProperty( key );
-		if ( tmp != null )
+		try
 		{
-			try
-			{
-				return Boolean.parseBoolean( tmp );
-			}
-			// Prolly the only exception type that could be raised here.
-			catch ( final NumberFormatException ex )
-			{
-				// Fail silently.
-			}
+			return Boolean.parseBoolean( props.getProperty( key ) );
 		}
-
+		catch ( final Exception ex )
+		{
+			// Fail silently.
+		}
 		return defValue;
 	}
 
@@ -148,35 +128,21 @@ public final class DAConstants
 	 */
 	private static final Properties loadCfgFile ()
 	{
-		final String dir = System.getProperty( CFG_FILE_PROPERTY_NAME );
 		final Properties props = new Properties();
 
-		if ( dir != null )
+		try
 		{
-			Path path = null;
-
-			try
+			final String dir = System.getProperty( CFG_FILE_PROPERTY_NAME );
+			final File file = FileSystems.getDefault().getPath( dir ).toFile();
+			// Try load the constants configuration from the file.
+			try ( final FileReader fr = new FileReader( file ) )
 			{
-				path = FileSystems.getDefault().getPath( dir );
+				props.load( fr );
 			}
-			// Don't care about the exception type.
-			catch ( final Exception e )
-			{
-				// Fail silently.
-			}
-
-			if ( path != null )
-			{
-				try ( FileReader fr = new FileReader( path.toFile() ) )
-				{
-					props.load( fr );
-				}
-				// Don't care about the exception type.
-				catch ( final Exception e )
-				{
-					// Fail silently.
-				}
-			}
+		}
+		catch ( final Exception ex )
+		{
+			// Fail silently.
 		}
 
 		return props;
