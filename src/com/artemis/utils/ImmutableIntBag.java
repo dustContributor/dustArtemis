@@ -1,5 +1,6 @@
 package com.artemis.utils;
 
+import java.util.Objects;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.function.IntConsumer;
@@ -31,9 +32,11 @@ public abstract class ImmutableIntBag
 	/**
 	 * Constructs an empty Bag with the defined initial capacity.
 	 * 
-	 * <p> NOTE: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY},
-	 * the Bag will be created with a capacity of
-	 * {@value #MINIMUM_WORKING_CAPACITY} instead.</p>
+	 * <p>
+	 * NOTE: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY}, the Bag
+	 * will be created with a capacity of {@value #MINIMUM_WORKING_CAPACITY}
+	 * instead.
+	 * </p>
 	 * 
 	 * @param capacity of the Bag.
 	 */
@@ -82,9 +85,10 @@ public abstract class ImmutableIntBag
 	 */
 	public int contains ( final int item )
 	{
-		final int iSize = size;
+		final int size = this.size;
+		final int[] data = this.data;
 
-		for ( int i = 0; i < iSize; ++i )
+		for ( int i = 0; i < size; ++i )
 		{
 			if ( data[i] == item )
 			{
@@ -106,9 +110,12 @@ public abstract class ImmutableIntBag
 	 */
 	public int contains ( final IntPredicate criteria )
 	{
-		final int iSize = size;
+		Objects.requireNonNull( criteria, "criteria" );
 
-		for ( int i = 0; i < iSize; ++i )
+		final int size = this.size;
+		final int[] data = this.data;
+
+		for ( int i = 0; i < size; ++i )
 		{
 			if ( criteria.test( data[i] ) )
 			{
@@ -131,6 +138,8 @@ public abstract class ImmutableIntBag
 	 */
 	public int find ( final IntPredicate criteria, final int defaultValue )
 	{
+		Objects.requireNonNull( criteria, "criteria" );
+
 		final int index = contains( criteria );
 
 		if ( index > -1 )
@@ -142,16 +151,18 @@ public abstract class ImmutableIntBag
 	}
 
 	/**
-	 * Iterates over each element of this bag and applying the supplied
-	 * operation.
+	 * Iterates over each element of this bag and applying the supplied operation.
 	 * 
 	 * @param operation to be performed on each element of this bag.
 	 */
 	public void forEach ( final IntConsumer operation )
 	{
-		final int iSize = size;
+		Objects.requireNonNull( operation, "operation" );
 
-		for ( int i = 0; i < iSize; ++i )
+		final int size = this.size;
+		final int[] data = this.data;
+
+		for ( int i = 0; i < size; ++i )
 		{
 			operation.accept( data[i] );
 		}
@@ -177,7 +188,9 @@ public abstract class ImmutableIntBag
 	/**
 	 * Returns the item at the specified position in Bag.
 	 * 
-	 * <p> <b>UNSAFE: Avoids doing any bounds check.</b> </p>
+	 * <p>
+	 * <b>UNSAFE: Avoids doing any bounds check.</b>
+	 * </p>
 	 * 
 	 * @param index of the item to return
 	 * @return item at the specified position in bag
@@ -188,8 +201,8 @@ public abstract class ImmutableIntBag
 	}
 
 	/**
-	 * Checks if the index is within the capacity of the Bag (ie, if its bigger
-	 * or equal than 0 and less than the length of the backing array).
+	 * Checks if the index is within the capacity of the Bag (ie, if its bigger or
+	 * equal than 0 and less than the length of the backing array).
 	 * 
 	 * @param index that needs to be checked.
 	 * @return <code>true</code> if the index is within the bounds of the Bag,

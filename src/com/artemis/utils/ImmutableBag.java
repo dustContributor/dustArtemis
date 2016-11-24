@@ -3,6 +3,7 @@ package com.artemis.utils;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.ObjIntConsumer;
@@ -136,9 +137,10 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 	 */
 	public int contains ( final T item )
 	{
-		final int iSize = size;
+		final int size = this.size;
+		final T[] data = this.data;
 
-		for ( int i = 0; i < iSize; ++i )
+		for ( int i = 0; i < size; ++i )
 		{
 			if ( data[i] == item )
 			{
@@ -160,9 +162,12 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 	 */
 	public int contains ( final Predicate<T> criteria )
 	{
-		final int iSize = size;
+		Objects.requireNonNull( criteria, "criteria" );
 
-		for ( int i = 0; i < iSize; ++i )
+		final int size = this.size;
+		final T[] data = this.data;
+
+		for ( int i = 0; i < size; ++i )
 		{
 			if ( criteria.test( data[i] ) )
 			{
@@ -203,9 +208,12 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 	@Override
 	public void forEach ( final Consumer<? super T> operation )
 	{
-		final int iSize = size;
+		Objects.requireNonNull( operation, "operation" );
 
-		for ( int i = 0; i < iSize; ++i )
+		final int size = this.size;
+		final T[] data = this.data;
+
+		for ( int i = 0; i < size; ++i )
 		{
 			operation.accept( data[i] );
 		}
@@ -219,9 +227,12 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 	 */
 	public void forEach ( final ObjIntConsumer<T> operation )
 	{
-		final int iSize = size;
+		Objects.requireNonNull( operation, "operation" );
 
-		for ( int i = 0; i < iSize; ++i )
+		final int size = this.size;
+		final T[] data = this.data;
+
+		for ( int i = 0; i < size; ++i )
 		{
 			operation.accept( data[i], i );
 		}

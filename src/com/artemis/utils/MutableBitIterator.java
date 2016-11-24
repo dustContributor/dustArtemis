@@ -20,7 +20,7 @@ public final class MutableBitIterator
 {
 	private long[] bits;
 	private long word;
-
+	private int length;
 	private int wordi;
 
 	public MutableBitIterator ()
@@ -35,6 +35,7 @@ public final class MutableBitIterator
 
 	public final void setBits ( final long[] bits )
 	{
+		this.length = bits.length;
 		this.bits = bits;
 	}
 
@@ -48,7 +49,7 @@ public final class MutableBitIterator
 	{
 		final long msk = -1L << (index & 63);
 		// Computing starting word index.
-		final int wordIndex = index >> 6;
+		final int wordIndex = index >>> 6;
 		// Masking unwanted bits from that word.
 		word = bits[wordIndex] & msk;
 		// Storing index.
@@ -66,7 +67,7 @@ public final class MutableBitIterator
 
 	public final int nextSetBit ()
 	{
-		return nextSetBit( bits.length );
+		return nextSetBit( length );
 	}
 
 	/**
