@@ -18,11 +18,9 @@ import com.artemis.utils.MutableBitIterator;
  */
 public final class ComponentManager
 {
-	/** Mutable iterator for component bits. */
-	private final MutableBitIterator bitIterator = new MutableBitIterator();
-
+	/* 64 bit words per entity. */
 	private final int wordsPerEntity;
-
+	/* Class hash codes for each component type. */
 	private final int[] componentHashCodes;
 	/** Component bags by type index. */
 	private final ComponentHandler<Component>[] componentHandlers;
@@ -75,7 +73,6 @@ public final class ComponentManager
 		this.componentHandlers = componentHandlers;
 		this.wordsPerEntity = wordsPerEntity;
 		this.componentBits = componentBits;
-		this.bitIterator.setBits( componentBits.getBits() );
 	}
 
 	private static final int computeWordsPerEntity ( final int componentTypeCount )
@@ -109,7 +106,7 @@ public final class ComponentManager
 	public final Bag<Component> getComponentsFor ( final int id, final Bag<Component> dest )
 	{
 		final ComponentHandler<Component>[] cmpBags = componentHandlers;
-		final MutableBitIterator it = bitIterator;
+		final MutableBitIterator it = new MutableBitIterator( componentBits() );
 		final int start = id * wordsPerEntity;
 		final int end = start + wordsPerEntity;
 		it.selectWord( start );
@@ -142,7 +139,6 @@ public final class ComponentManager
 		if ( index >= componentBits.length() )
 		{
 			componentBits.resizeWords( index + 1 );
-			bitIterator.setBits( componentBits() );
 		}
 	}
 
@@ -196,7 +192,7 @@ public final class ComponentManager
 	{
 		final ComponentHandler<Component>[] cmpBags = componentHandlers;
 		final long[] bits = componentBits();
-		final MutableBitIterator it = bitIterator;
+		final MutableBitIterator it = new MutableBitIterator( componentBits() );
 		final int wordCount = wordsPerEntity;
 
 		for ( int i = size; i-- > 0; )

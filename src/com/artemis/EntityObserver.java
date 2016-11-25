@@ -14,42 +14,51 @@ public abstract class EntityObserver
 
 	private World world;
 
-	public void init ()
+	protected void init ()
 	{
 		// Empty by default.
 	}
 
-	public void process ()
+	protected void process ()
 	{
 		// Empty by default.
 	}
 
-	public void dispose ()
+	protected void dispose ()
 	{
 		// Empty by default.
 	}
 
-	public void added ( final ImmutableIntBag entities )
+	protected void added ( final ImmutableIntBag entities )
 	{
 		// Empty by default.
 	}
 
-	public void changed ( final ImmutableIntBag entities )
+	protected void changed ( final ImmutableIntBag entities )
 	{
 		// Empty by default.
 	}
 
-	public void deleted ( final ImmutableIntBag entities )
+	protected void deleted ( final ImmutableIntBag entities )
 	{
 		// Empty by default.
 	}
 
-	public void enabled ( final ImmutableIntBag entities )
+	protected void enabled ( final ImmutableIntBag entities )
 	{
 		// Empty by default.
 	}
 
-	public void disabled ( final ImmutableIntBag entities )
+	protected void disabled ( final ImmutableIntBag entities )
+	{
+		// Empty by default.
+	}
+
+	/**
+	 * Processes all entities that were inserted or removed in this particular
+	 * observer.
+	 */
+	protected void processModifiedEntities ()
 	{
 		// Empty by default.
 	}
@@ -57,12 +66,12 @@ public abstract class EntityObserver
 	/**
 	 * @return the {@link World} instance that owns this observer.
 	 */
-	protected World world ()
+	protected final World world ()
 	{
 		return this.world;
 	}
 
-	void world ( final World world )
+	final void world ( final World world )
 	{
 		this.world = world;
 	}
@@ -73,18 +82,9 @@ public abstract class EntityObserver
 	 * @see World#data()
 	 * @return arbitrary data object retrieved from the world instance.
 	 */
-	protected <T> T data ()
+	protected final <T> T data ()
 	{
 		return this.world.data();
-	}
-
-	/**
-	 * Processes all entities that were inserted or removed fin this particular
-	 * observer.
-	 */
-	void processModifiedEntities ()
-	{
-		// Empty by default.
 	}
 
 	/**
@@ -93,7 +93,7 @@ public abstract class EntityObserver
 	 * @return {@code true} if its active and will get processed, {@code false}
 	 *         otherwise.
 	 */
-	public boolean isActive ()
+	public final boolean isActive ()
 	{
 		return active;
 	}
@@ -104,7 +104,7 @@ public abstract class EntityObserver
 	 * @param active {@code true} if its active and will get processed,
 	 *          {@code false} otherwise.
 	 */
-	public void active ( final boolean active )
+	public final void active ( final boolean active )
 	{
 		this.active = active;
 	}

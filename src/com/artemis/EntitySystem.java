@@ -18,7 +18,6 @@ import com.artemis.utils.MutableBitIterator;
 public abstract class EntitySystem extends AbstractEntitySystem
 {
 	private final IntBag actives = new IntBag( activeBits.capacity() );
-	private final MutableBitIterator bitIterator = new MutableBitIterator();
 
 	/**
 	 * Creates an entity observer that uses the specified aspect as a matcher
@@ -71,7 +70,7 @@ public abstract class EntitySystem extends AbstractEntitySystem
 	protected abstract void processEntities ( final ImmutableIntBag entities );
 
 	@Override
-	final void processModifiedEntities ()
+	protected final void processModifiedEntities ()
 	{
 		// Now start checking of something actually changed.
 		final int minIdRemoved = processIfModified( removed, EntitySystem::removed );
@@ -132,8 +131,7 @@ public abstract class EntitySystem extends AbstractEntitySystem
 
 		final int[] ids = actives.data();
 
-		final MutableBitIterator mbi = bitIterator;
-		mbi.setBits( activeBits.getBits() );
+		final MutableBitIterator mbi = new MutableBitIterator( activeBits.getBits() );
 		mbi.selectIndex( startId );
 
 		int j = Arrays.binarySearch( ids, 0, oldSize, startId );

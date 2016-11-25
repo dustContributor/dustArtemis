@@ -29,7 +29,7 @@ public abstract class EntityWatcher extends AbstractEntitySystem
 	}
 
 	@Override
-	final void processModifiedEntities ()
+	protected final void processModifiedEntities ()
 	{
 		// Now start checking of something actually changed.
 		processIfModified( removed, EntityWatcher::removed );
