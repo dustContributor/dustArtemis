@@ -1,18 +1,31 @@
 package com.artemis;
 
-import com.artemis.utils.ImmutableIntBag;
-
 /**
  * @author Arni Arent
  * @author dustContributor
  */
-@SuppressWarnings( "unused" )
 public abstract class EntityObserver
 {
 	/** Active by default. */
 	private boolean active = true;
 
 	private World world;
+
+	/**
+	 * This will be called with the entity groups present in the world. You can
+	 * ask it for entity groups matching a certain filter.
+	 *
+	 * <p>
+	 * <b>NOTE:</b> 'world' instance isn't present at this point in the observer
+	 * yet.
+	 * </p>
+	 *
+	 * @param groups to fetch matching entities from.
+	 */
+	protected void groups ( final EntityGroups groups )
+	{
+		// Empty by default.
+	}
 
 	protected void init ()
 	{
@@ -25,40 +38,6 @@ public abstract class EntityObserver
 	}
 
 	protected void dispose ()
-	{
-		// Empty by default.
-	}
-
-	protected void added ( final ImmutableIntBag entities )
-	{
-		// Empty by default.
-	}
-
-	protected void changed ( final ImmutableIntBag entities )
-	{
-		// Empty by default.
-	}
-
-	protected void deleted ( final ImmutableIntBag entities )
-	{
-		// Empty by default.
-	}
-
-	protected void enabled ( final ImmutableIntBag entities )
-	{
-		// Empty by default.
-	}
-
-	protected void disabled ( final ImmutableIntBag entities )
-	{
-		// Empty by default.
-	}
-
-	/**
-	 * Processes all entities that were inserted or removed in this particular
-	 * observer.
-	 */
-	protected void processModifiedEntities ()
 	{
 		// Empty by default.
 	}
@@ -78,7 +57,7 @@ public abstract class EntityObserver
 
 	/**
 	 * A convenience method that delegates to {@link World#data()}.
-	 * 
+	 *
 	 * @see World#data()
 	 * @return arbitrary data object retrieved from the world instance.
 	 */

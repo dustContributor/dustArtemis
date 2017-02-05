@@ -29,7 +29,7 @@ public final class EntityManager
 	EntityManager ()
 	{
 		// Fetch approximate live entities.
-		int eSize = DAConstants.APPROX_LIVE_ENTITIES;
+		final int eSize = DAConstants.APPROX_LIVE_ENTITIES;
 
 		this.entities = new OpenBitSet( eSize );
 		this.disabled = new OpenBitSet( eSize );
@@ -101,7 +101,7 @@ public final class EntityManager
 
 	/**
 	 * Returns the destination bag with all the current alive entities that exist.
-	 * 
+	 *
 	 * @param dest bag to hold the values.
 	 * @return the bag passed as parameter holding all the entities that are
 	 *         alive.
@@ -115,7 +115,7 @@ public final class EntityManager
 	/**
 	 * Check if this entity is active. Active means the entity is being actively
 	 * processed.
-	 * 
+	 *
 	 * @param entityId of the entity that will be checked.
 	 * @return true if active, false if not.
 	 */
@@ -126,7 +126,7 @@ public final class EntityManager
 
 	/**
 	 * Check if the specified entity is enabled.
-	 * 
+	 *
 	 * @param entityId of the entity that will be checked.
 	 * @return true if the entity is enabled, false if it is disabled.
 	 */
@@ -137,7 +137,7 @@ public final class EntityManager
 
 	/**
 	 * Get how many entities are active in this world.
-	 * 
+	 *
 	 * @return how many entities are currently active.
 	 */
 	public final long totalActive ()
@@ -149,7 +149,7 @@ public final class EntityManager
 	 * Get how many entities have been created in the world since start. Note: A
 	 * created entity may not have been added to the world, thus created count is
 	 * always equal or larger than added count.
-	 * 
+	 *
 	 * @return how many entities have been created since start.
 	 */
 	public final long totalCreated ()
@@ -159,7 +159,7 @@ public final class EntityManager
 
 	/**
 	 * Get how many entities have been added to the world since start.
-	 * 
+	 *
 	 * @return how many entities have been added.
 	 */
 	public final long totalAdded ()
@@ -169,7 +169,7 @@ public final class EntityManager
 
 	/**
 	 * Get how many entities have been deleted from the world since start.
-	 * 
+	 *
 	 * @return how many entities have been deleted since start.
 	 */
 	public final long totalDeleted ()

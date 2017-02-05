@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import com.artemis.utils.Bag;
@@ -39,6 +38,8 @@ public final class World
 	private final IntBag enabled = new IntBag();
 	private final IntBag disabled = new IntBag();
 
+	/** These are the entity group filters to match against the entities. */
+	private final EntityGroup[] entityFilters;
 	/** All the observers this instance owns. */
 	private final EntityObserver[] observers;
 	/** An immutable view of the observers. */
@@ -55,18 +56,21 @@ public final class World
 		final ComponentManager componentManager;
 		final EntityManager entityManager;
 		final EntityObserver[] observers;
+		final EntityGroup[] entityFilters;
 		final Object data;
 
 		WorldParams (
 				final ComponentManager componentManager,
 				final EntityManager entityManager,
 				final EntityObserver[] observers,
+				final EntityGroup[] entityFilters,
 				final Object data )
 		{
 			super();
 			this.componentManager = DustException.enforceNonNull( this, componentManager, "componentManager" );
 			this.entityManager = DustException.enforceNonNull( this, entityManager, "entityManager" );
 			this.observers = DustException.enforceNonNull( this, observers, "observers" );
+			this.entityFilters = DustException.enforceNonNull( this, entityFilters, "entityFilters" );
 			// This one can be null. User-defined.
 			this.data = data;
 		}
@@ -90,6 +94,9 @@ public final class World
 
 		// Store observers.
 		observers = params.observers;
+
+		// Store entity filters.
+		entityFilters = params.entityFilters;
 
 		// Create immutable view of the observer array.
 		final Bag<EntityObserver> obag = new Bag<>( observers );
@@ -284,8 +291,8 @@ public final class World
 	 */
 	private final void checkAll ()
 	{
-		// Checking all affected entities in all EntityObservers.
-		notifyObservers();
+		// Checking all affected entities in all of the filters.
+		notifyFilters();
 
 		notifyComponentManager();
 		notifyEntityManager();
@@ -298,17 +305,18 @@ public final class World
 		deleted.setSize( 0 );
 	}
 
-	private final void notifyObservers ()
+	private final void notifyFilters ()
 	{
-		for ( int i = 0; i < observers.length; ++i )
+		for ( int i = 0; i < entityFilters.length; ++i )
 		{
-			final EntityObserver o = observers[i];
-			o.added( added );
-			o.changed( changed );
-			o.disabled( disabled );
-			o.enabled( enabled );
-			o.deleted( deleted );
-			o.processModifiedEntities();
+			final EntityGroup group = entityFilters[i];
+			group.clear();
+			group.added( added );
+			group.added( enabled );
+			group.removed( disabled );
+			group.removed( deleted );
+			group.mutated( changed );
+			group.updateActiveList();
 		}
 	}
 
@@ -370,7 +378,8 @@ public final class World
 
 	/**
 	 * <p>
-	 * Builder class to configure and construct {@link World} instances from.
+	 * {@link Builder} class to configure and construct {@link World} instances
+	 * from.
 	 * </p>
 	 *
 	 * <p>
@@ -391,19 +400,14 @@ public final class World
 	public static final class Builder
 	{
 		/**
-		 * Dummy builder to use for when an observer without aspects is passed.
-		 */
-		private final Aspect.Builder dummyAspectBuilder = Aspect.builder();
-		/**
 		 * Types that will be present in all entities of the world.
 		 */
 		private final HashSet<Class<? extends Component>> componentTypes;
 		/**
-		 * Observers, their aspect builders and their priorities/orders, matched by
+		 * Observers, their filter builders and their priorities/orders, matched by
 		 * position.
 		 */
-		private final ArrayList<Function<Aspect, EntityObserver>> observers;
-		private final ArrayList<Aspect.Builder> aspects;
+		private final ArrayList<Supplier<EntityObserver>> observers;
 		private final IntBag orders;
 		/**
 		 * Arbitrary data parameter for the world.
@@ -424,7 +428,6 @@ public final class World
 			this.processByOrder = false;
 			this.componentTypes = new HashSet<>();
 			this.observers = new ArrayList<>( 16 );
-			this.aspects = new ArrayList<>( 16 );
 			this.orders = new IntBag( 16 );
 		}
 
@@ -435,7 +438,7 @@ public final class World
 		 * choice here.
 		 *
 		 * @param data to set in the world instance.
-		 * @return this builder instance.
+		 * @return this {@link Builder} instance.
 		 */
 		public final Builder data ( final Object data )
 		{
@@ -460,7 +463,7 @@ public final class World
 		 * </p>
 		 *
 		 * @param initializeByOrder value.
-		 * @return this builder instance.
+		 * @return this {@link Builder} instance.
 		 */
 		public final Builder initializeByOrder ( final boolean initializeByOrder )
 		{
@@ -483,7 +486,7 @@ public final class World
 		 * </p>
 		 *
 		 * @param processByOrder value.
-		 * @return this builder instance.
+		 * @return this {@link Builder} instance.
 		 */
 		public final Builder processByOrder ( final boolean processByOrder )
 		{
@@ -514,52 +517,12 @@ public final class World
 		 *
 		 * @param observer to add.
 		 * @param order of the observer.
-		 * @return this builder instance.
+		 * @return this {@link Builder} instance.
 		 */
 		public final Builder observer ( final Supplier<EntityObserver> observer, final int order )
 		{
-			return observer( a -> observer.get(), dummyAspectBuilder, order );
-		}
-
-		/**
-		 * Add an observer constructor into this world {@link Builder}. The
-		 * constructor will be called with the {@link Aspect} created with the
-		 * passed aspect builder. Once constructed, the observer can be retrieved
-		 * later via the world instance. The {@link World} instance constructed with
-		 * this {@link Builder} will notify the {@link EntityObserver} of any entity
-		 * changes. <b>Its order will be set to 0.</b>
-		 *
-		 * @param observer to add.
-		 * @param aspect builder to use when constructing the observer.
-		 * @return this builder instance.
-		 */
-		public final Builder observer ( final Function<Aspect, EntityObserver> observer, final Aspect.Builder aspect )
-		{
-			return observer( observer, aspect, 0 );
-		}
-
-		/**
-		 * Add an observer constructor into this world {@link Builder}. The
-		 * constructor will be called with the {@link Aspect} created with the
-		 * passed aspect builder. Once constructed, the observer can be retrieved
-		 * later via the world instance. The {@link World} instance constructed with
-		 * this {@link Builder} will notify the {@link EntityObserver} of any entity
-		 * changes.
-		 *
-		 * @param observer to add.
-		 * @param aspect builder to use when constructing the observer.
-		 * @param order of the observer.
-		 * @return this builder instance.
-		 */
-		public final Builder observer (
-				final Function<Aspect, EntityObserver> observer,
-				final Aspect.Builder aspect,
-				final int order )
-		{
 			DustException.enforceNonNull( this, observer, "observer" );
-			DustException.enforceNonNull( this, aspect, "aspect" );
 			this.observers.add( observer );
-			this.aspects.add( aspect );
 			this.orders.add( order );
 			return this;
 		}
@@ -569,7 +532,7 @@ public final class World
 		 * {@link Builder} will be able to handle.
 		 *
 		 * @param type of the {@link Component}.
-		 * @return this builder instance.
+		 * @return this {@link Builder} instance.
 		 */
 		public final Builder componentType ( final Class<? extends Component> type )
 		{
@@ -581,7 +544,7 @@ public final class World
 		 * Bulk varargs version of {@link #componentType(Class)}.
 		 *
 		 * @param types of the {@link Component}s.
-		 * @return this builder instance.
+		 * @return this {@link Builder} instance.
 		 */
 		@SafeVarargs
 		public final Builder componentTypes ( final Class<? extends Component>... types )
@@ -597,7 +560,7 @@ public final class World
 		 * Bulk {@link Iterable} version of {@link #componentType(Class)}.
 		 *
 		 * @param types of the {@link Component}s.
-		 * @return this builder instance.
+		 * @return this {@link Builder} instance.
 		 */
 		public final Builder componentTypes ( final Iterable<Class<? extends Component>> types )
 		{
@@ -625,52 +588,47 @@ public final class World
 			// Capture the map and use it for sorter by order later.
 			final Comparator<EntityObserver> compareByOrder = ( a, b ) -> orderMap.get( a ).compareTo( orderMap.get( b ) );
 			/*
-			 * Construct component manager, used by world instance and aspect
+			 * Construct component manager, used by world instance and filter
 			 * creation.
 			 */
 			final ComponentManager cm = new ComponentManager( componentTypes );
 			// Use all the constructors to create the observers.
-			final EntityObserver[] observers = createObservers( cm, orderMap );
+			final EntityObserver[] observers = createObservers( orderMap );
+			// Make the filter manager which will initialize all the filter groups.
+			final EntityGroups filterManager = new EntityGroups( cm );
+
+			// We need to initialize all the observer's filters first.
+			for ( int i = 0; i < observers.length; ++i )
+			{
+				observers[i].groups( filterManager );
+			}
+
 			// Compose world parameters and construct it.
-			final World world = new World( composeWorldParams( observers, compareByOrder, cm ) );
+			final World world = new World( composeWorldParams( observers, filterManager, compareByOrder, cm ) );
 			// Do the init step on observers.
 			observerInitialization( observers, compareByOrder, world );
 			// Now return fully constructed world instance.
 			return world;
 		}
 
-		private final EntityObserver[] createObservers (
-				final ComponentManager cm,
-				final IdentityHashMap<EntityObserver, Integer> observerToOrder )
+		private final EntityObserver[] createObservers ( final IdentityHashMap<EntityObserver, Integer> observerToOrder )
 		{
 			final int size = observers.size();
-
-			if ( aspects.size() != size )
-			{
-				// Check if something went wrong, just in case.
-				throw new DustException( this, "There are different amounts of observers and aspects in the builder!" );
-			}
-
-			// Create empty aspect to pass to observers who don't actually need one.
-			final Aspect emptyAspect = dummyAspectBuilder.build( cm );
 
 			final EntityObserver[] result = new EntityObserver[size];
 
 			for ( int i = 0; i < size; ++i )
 			{
 				// Fetch the observer constructor.
-				final Function<Aspect, EntityObserver> ctor = observers.get( i );
-				// Fetch the aspect builder for that observer.
-				final Aspect.Builder aspectBuilder = aspects.get( i );
+				final Supplier<EntityObserver> ctor = observers.get( i );
 				// Fetch the priority/order.
 				final int order = orders.getUnsafe( i );
 				/*
-				 * If its the dummy builder, just use the empty aspect, otherwise build
-				 * the new aspect to use.
+				 * If its the dummy builder, just use the empty filter, otherwise build
+				 * the new filter to use.
 				 */
-				final Aspect aspect = aspectBuilder == dummyAspectBuilder ? emptyAspect : aspectBuilder.build( cm );
 				// Construct observer and set it on the same position.
-				result[i] = ctor.apply( aspect );
+				result[i] = ctor.get();
 				// Map its order.
 				observerToOrder.put( result[i], Integer.valueOf( order ) );
 			}
@@ -680,6 +638,7 @@ public final class World
 
 		private final WorldParams composeWorldParams (
 				final EntityObserver[] observers,
+				final EntityGroups filterManager,
 				final Comparator<EntityObserver> comparator,
 				final ComponentManager cm )
 		{
@@ -696,10 +655,10 @@ public final class World
 			final EntityManager em = new EntityManager();
 
 			/*
-			 * World will respect the order in which processObservers is for calling
+			 * World will respect the order in which processObservers is for calli@ng
 			 * 'process' on each of them.
 			 */
-			return new WorldParams( cm, em, processObservers, data );
+			return new WorldParams( cm, em, processObservers, filterManager.groups(), data );
 		}
 
 		private final void observerInitialization (
