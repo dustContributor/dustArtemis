@@ -31,7 +31,6 @@ final class Injector
 		this.tests = asArray(
 				Injector::testForHandler,
 				Injector::testForObserver
-		// Injector::testForEntitiesOf
 		);
 		// Suppliers for each of the fields that need to be injected.
 		this.suppliers = asArray(
