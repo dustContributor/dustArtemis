@@ -5,7 +5,6 @@ import java.lang.reflect.ParameterizedType;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import com.artemis.annotations.EntitiesOf;
 //import com.artemis.annotations.EntitiesOf;
 import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableIntBag;
@@ -37,9 +36,7 @@ final class Injector
 		// Suppliers for each of the fields that need to be injected.
 		this.suppliers = asArray(
 				this::supplyHandler,
-				this::supplyObserver
-		// this::supplyEntities
-		);
+				this::supplyObserver );
 	}
 
 	/**
@@ -157,41 +154,6 @@ final class Injector
 		return value;
 	}
 
-	// private final Object supplyEntities ( final Field field )
-	// {
-	// /*
-	// * ImmutableIntBag has no superclasses besides Object so just check
-	// * directly.
-	// */
-	// if ( !(ImmutableIntBag.class == field.getType()) )
-	// {
-	// /*
-	// * Fetch names at runtime so refactoring names wont mess up the message.
-	// */
-	// final String anName = EntitiesOf.class.getSimpleName();
-	// final String listName = ImmutableIntBag.class.getSimpleName();
-	// final String fmsg = field.toString();
-	// // Compose error message and throw exception.
-	// throw new DustException( this,
-	// "While injecting FIELD: " + fmsg + ". Can only use " + anName +
-	// " annotation on " + listName + " fields!" );
-	// }
-	//
-	// final EntitiesOf ients = field.getAnnotation( EntitiesOf.class );
-	// final Class<? extends EntitySystem> type = ients.value();
-	// final EntitySystem source = world.observer( type );
-	// // Check if the entity list source is null.
-	// if ( source == null )
-	// {
-	// final String tname = type.getSimpleName();
-	// throw new DustException( this,
-	// "Cant find OBSERVER of the type " + tname
-	// + " to fetch entity list from!" );
-	// }
-	// // Everything OK.
-	// return source.actives();
-	// }
-
 	/**
 	 * Tests if the passed field is subclass of {@link ComponentHandler}.
 	 *
@@ -213,17 +175,6 @@ final class Injector
 	{
 		return EntityObserver.class.isAssignableFrom( field.getType() );
 	}
-
-	/**
-	 * Tests if the passed field possesses the annotation {@link EntitiesOf}.
-	 *
-	 * @param field to test.
-	 * @return 'true' if it has it, 'false' otherwise.
-	 */
-	// private static final boolean testForEntitiesOf ( final Field field )
-	// {
-	// return field.getAnnotation( EntitiesOf.class ) != null;
-	// }
 
 	private static final void trySetField ( final Field field, final Object target, final Object value )
 	{
