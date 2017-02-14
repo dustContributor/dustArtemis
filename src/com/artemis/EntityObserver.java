@@ -11,22 +11,6 @@ public abstract class EntityObserver
 
 	private World world;
 
-	/**
-	 * This will be called with the entity groups present in the world. You can
-	 * ask it for entity groups matching a certain filter.
-	 *
-	 * <p>
-	 * <b>NOTE:</b> 'world' instance isn't present at this point in the observer
-	 * yet.
-	 * </p>
-	 *
-	 * @param groups to fetch matching entities from.
-	 */
-	protected void groups ( final EntityGroups groups )
-	{
-		// Empty by default.
-	}
-
 	protected void init ()
 	{
 		// Empty by default.

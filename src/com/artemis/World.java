@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import com.artemis.utils.Bag;
@@ -407,7 +408,7 @@ public final class World
 		 * Observers, their filter builders and their priorities/orders, matched by
 		 * position.
 		 */
-		private final ArrayList<Supplier<EntityObserver>> observers;
+		private final ArrayList<Function<EntityGroups, EntityObserver>> observers;
 		private final IntBag orders;
 		/**
 		 * Arbitrary data parameter for the world.
@@ -495,6 +496,37 @@ public final class World
 		}
 
 		/**
+		 * Convenience overload for {@link EntityObserver}s that need no filtered
+		 * entity lists.
+		 * 
+		 * @param observer to add.
+		 * @return this builder instance.
+		 * 
+		 * @see Builder#observer(Function)
+		 */
+		public final Builder observer ( final Supplier<EntityObserver> observer )
+		{
+			DustException.enforceNonNull( this, observer, "observer" );
+			return observer( g -> observer.get(), 0 );
+		}
+
+		/**
+		 * Convenience overload for {@link EntityObserver}s that need no filtered
+		 * entity lists.
+		 * 
+		 * @param observer to add.
+		 * @param order of the observer.
+		 * @return this builder instance.
+		 * 
+		 * @see Builder#observer(Function, int)
+		 */
+		public final Builder observer ( final Supplier<EntityObserver> observer, final int order )
+		{
+			DustException.enforceNonNull( this, observer, "observer" );
+			return observer( g -> observer.get(), order );
+		}
+
+		/**
 		 * Add an observer constructor into this world {@link Builder}. Once
 		 * constructed, the observer can be retrieved later via the world instance.
 		 * The {@link World} instance constructed with this {@link Builder} will
@@ -504,7 +536,7 @@ public final class World
 		 * @param observer to add.
 		 * @return this builder instance.
 		 */
-		public final Builder observer ( final Supplier<EntityObserver> observer )
+		public final Builder observer ( final Function<EntityGroups, EntityObserver> observer )
 		{
 			return observer( observer, 0 );
 		}
@@ -519,7 +551,7 @@ public final class World
 		 * @param order of the observer.
 		 * @return this {@link Builder} instance.
 		 */
-		public final Builder observer ( final Supplier<EntityObserver> observer, final int order )
+		public final Builder observer ( final Function<EntityGroups, EntityObserver> observer, final int order )
 		{
 			DustException.enforceNonNull( this, observer, "observer" );
 			this.observers.add( observer );
@@ -592,16 +624,10 @@ public final class World
 			 * creation.
 			 */
 			final ComponentManager cm = new ComponentManager( componentTypes );
-			// Use all the constructors to create the observers.
-			final EntityObserver[] observers = createObservers( orderMap );
 			// Make the filter manager which will initialize all the filter groups.
 			final EntityGroups filterManager = new EntityGroups( cm );
-
-			// We need to initialize all the observer's filters first.
-			for ( int i = 0; i < observers.length; ++i )
-			{
-				observers[i].groups( filterManager );
-			}
+			// Use all the constructors to create the observers.
+			final EntityObserver[] observers = createObservers( orderMap, filterManager );
 
 			// Compose world parameters and construct it.
 			final World world = new World( composeWorldParams( observers, filterManager, compareByOrder, cm ) );
@@ -611,7 +637,9 @@ public final class World
 			return world;
 		}
 
-		private final EntityObserver[] createObservers ( final IdentityHashMap<EntityObserver, Integer> observerToOrder )
+		private final EntityObserver[] createObservers (
+				final IdentityHashMap<EntityObserver, Integer> observerToOrder,
+				final EntityGroups groups )
 		{
 			final int size = observers.size();
 
@@ -620,7 +648,7 @@ public final class World
 			for ( int i = 0; i < size; ++i )
 			{
 				// Fetch the observer constructor.
-				final Supplier<EntityObserver> ctor = observers.get( i );
+				final Function<EntityGroups, EntityObserver> ctor = observers.get( i );
 				// Fetch the priority/order.
 				final int order = orders.getUnsafe( i );
 				/*
@@ -628,7 +656,7 @@ public final class World
 				 * the new filter to use.
 				 */
 				// Construct observer and set it on the same position.
-				result[i] = ctor.get();
+				result[i] = ctor.apply( groups );
 				// Map its order.
 				observerToOrder.put( result[i], Integer.valueOf( order ) );
 			}
