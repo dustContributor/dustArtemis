@@ -11,27 +11,26 @@ import com.artemis.utils.ImmutableIntBag;
 
 /**
  * Class with static method for initializing {@link ComponentHandler}s and
- * {@link EntityObserver}s. <br>
- * It just plain initializes any {@link ComponentHandler} or
- * {@link EntityObserver} field it comes across in each object.
+ * {@link DustStep}s. <br>
+ * It just plain initializes any {@link ComponentHandler} or {@link DustStep}
+ * field it comes across in each object.
  *
  * @author dustContributor
  */
 final class Injector
 {
-	private final World world;
+	private final DustContext world;
 	private final Predicate<Field>[] tests;
 	private final Function<Field, Object>[] suppliers;
 
-	private Injector ( final World world )
+	private Injector ( final DustContext world )
 	{
 		// Init all fields.
 		this.world = world;
 		// Predicates to test if the field is the appropriate one.
 		this.tests = asArray(
 				Injector::testForHandler,
-				Injector::testForObserver
-		);
+				Injector::testForObserver );
 		// Suppliers for each of the fields that need to be injected.
 		this.suppliers = asArray(
 				this::supplyHandler,
@@ -52,12 +51,12 @@ final class Injector
 
 	/**
 	 * For each of the objects provided, they will get assigned an instance of
-	 * their {@link EntityObserver}, {@link ComponentHandler} or entity
+	 * their {@link DustStep}, {@link ComponentHandler} or entity
 	 * {@link ImmutableIntBag} fields.
 	 *
 	 * @param objects that you need initialized.
 	 */
-	static final void init ( final World world, final Object[] objects )
+	static final void init ( final DustContext world, final Object[] objects )
 	{
 		// Validate params.
 		DustException.enforceNonNull( Injector.class, world, "world" );
@@ -142,7 +141,7 @@ final class Injector
 	{
 		final Class<?> type = field.getType();
 		@SuppressWarnings( "unchecked" )
-		final EntityObserver value = world.observer( (Class<EntityObserver>) type );
+		final DustStep value = world.step( (Class<DustStep>) type );
 		// Check for missing observer.
 		if ( value == null )
 		{
@@ -165,14 +164,14 @@ final class Injector
 	}
 
 	/**
-	 * Tests if the passed field is a subclass of {@link EntityObserver}.
+	 * Tests if the passed field is a subclass of {@link DustStep}.
 	 *
 	 * @param field to test.
 	 * @return 'true' if it is, 'false' otherwise.
 	 */
 	private static final boolean testForObserver ( final Field field )
 	{
-		return EntityObserver.class.isAssignableFrom( field.getType() );
+		return DustStep.class.isAssignableFrom( field.getType() );
 	}
 
 	private static final void trySetField ( final Field field, final Object target, final Object value )

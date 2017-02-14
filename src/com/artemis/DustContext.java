@@ -21,7 +21,7 @@ import com.artemis.utils.IntBag;
  * @author dustContributor
  *
  */
-public final class World
+public final class DustContext
 {
 	/** Managers for all entities this instance created. */
 	private final EntityManager em;
@@ -31,7 +31,7 @@ public final class World
 	/** Arbitrary data field. */
 	private final Object data;
 
-	// Various bags to hold entities in 'limbo' before observer processing.
+	// Various bags to hold entities in 'limbo' before step processing.
 
 	private final IntBag added = new IntBag();
 	private final IntBag changed = new IntBag();
@@ -41,14 +41,15 @@ public final class World
 
 	/** These are the entity group filters to match against the entities. */
 	private final EntityGroup[] entityFilters;
-	/** All the observers this instance owns. */
-	private final EntityObserver[] observers;
-	/** An immutable view of the observers. */
-	private final ImmutableBag<EntityObserver> immutableObservers;
+	/** All the steps this instance owns. */
+	private final DustStep[] steps;
+	/** An immutable view of the steps. */
+	private final ImmutableBag<DustStep> immutableObservers;
 
 	/**
-	 * Tiny internal class to pass parameters to the {@link World}'s constructor.
-	 * It pre-validates the parameters so {@link World} can use them directly.
+	 * Tiny internal class to pass parameters to the {@link DustContext}'s
+	 * constructor. It pre-validates the parameters so {@link DustContext} can use
+	 * them directly.
 	 *
 	 * @author dustContributor
 	 */
@@ -56,21 +57,21 @@ public final class World
 	{
 		final ComponentManager componentManager;
 		final EntityManager entityManager;
-		final EntityObserver[] observers;
+		final DustStep[] steps;
 		final EntityGroup[] entityFilters;
 		final Object data;
 
 		WorldParams (
 				final ComponentManager componentManager,
 				final EntityManager entityManager,
-				final EntityObserver[] observers,
+				final DustStep[] steps,
 				final EntityGroup[] entityFilters,
 				final Object data )
 		{
 			super();
 			this.componentManager = DustException.enforceNonNull( this, componentManager, "componentManager" );
 			this.entityManager = DustException.enforceNonNull( this, entityManager, "entityManager" );
-			this.observers = DustException.enforceNonNull( this, observers, "observers" );
+			this.steps = DustException.enforceNonNull( this, steps, "steps" );
 			this.entityFilters = DustException.enforceNonNull( this, entityFilters, "entityFilters" );
 			// This one can be null. User-defined.
 			this.data = data;
@@ -79,11 +80,12 @@ public final class World
 	}
 
 	/**
-	 * World instance constructor. Will set itself in all the passed observers.
+	 * World instance constructor. Will set itself in all the passed
+	 * {@link DustStep}s.
 	 *
 	 * @param params to use to initialize the instance, can't be null.
 	 */
-	World ( final WorldParams params )
+	DustContext ( final WorldParams params )
 	{
 		DustException.enforceNonNull( this, params, "params" );
 
@@ -93,24 +95,24 @@ public final class World
 		// We don't validate arbitrary data.
 		data = params.data;
 
-		// Store observers.
-		observers = params.observers;
+		// Store steps.
+		steps = params.steps;
 
 		// Store entity filters.
 		entityFilters = params.entityFilters;
 
-		// Create immutable view of the observer array.
-		final Bag<EntityObserver> obag = new Bag<>( observers );
-		obag.setSize( observers.length );
+		// Create immutable view of the step array.
+		final Bag<DustStep> obag = new Bag<>( steps );
+		obag.setSize( steps.length );
 		immutableObservers = obag;
 
-		// World sets itself in all its observers.
-		immutableObservers.forEach( o -> o.world( this ) );
+		// World sets itself in all its steps.
+		immutableObservers.forEach( o -> o.context( this ) );
 	}
 
 	/**
-	 * Returns a manager that takes care of all the entities in the world.
-	 * entities of this world.
+	 * Returns a manager that takes care of all the entities in the
+	 * {@link DustContext}. entities of this {@link DustContext}.
 	 *
 	 * @return entity manager.
 	 */
@@ -120,7 +122,8 @@ public final class World
 	}
 
 	/**
-	 * Returns a manager that takes care of all the components in the world.
+	 * Returns a manager that takes care of all the components in the
+	 * {@link DustContext}.
 	 *
 	 * @return component manager.
 	 */
@@ -136,7 +139,7 @@ public final class World
 	 * will fail. Used like:
 	 *
 	 * <pre>
-	 * MySharedData mySharedData = world.data();
+	 * MySharedData mySharedData = context.data();
 	 * </pre>
 	 *
 	 * @throws ClassCastException if tries to cast the data field to a wrong type.
@@ -151,28 +154,29 @@ public final class World
 	}
 
 	/**
-	 * Gives you all the entity observers in this world instance.
+	 * Gives you all the entity {@link DustStep}s in this {@link DustContext}
+	 * instance.
 	 *
-	 * @return all entity observer in world.
+	 * @return all {@link DustStep}s in {@link DustContext}.
 	 */
-	public final ImmutableBag<EntityObserver> observers ()
+	public final ImmutableBag<DustStep> steps ()
 	{
 		return immutableObservers;
 	}
 
 	/**
-	 * Retrieve an entity observer of the specified type.
+	 * Retrieve a {@link DustStep} of the specified type.
 	 *
-	 * @param type of observer.
-	 * @return instance of the observer of the specified type in this world,
-	 *         {@code null} if there is none.
+	 * @param type of {@link DustStep}.
+	 * @return instance of the {@link DustStep} of the specified type in this
+	 *         {@link DustContext}, {@code null} if there is none.
 	 */
 	@SuppressWarnings( "unchecked" )
-	public final <T extends EntityObserver> T observer ( final Class<T> type )
+	public final <T extends DustStep> T step ( final Class<T> type )
 	{
-		for ( int i = 0; i < observers.length; ++i )
+		for ( int i = 0; i < steps.length; ++i )
 		{
-			final EntityObserver obs = observers[i];
+			final DustStep obs = steps[i];
 
 			if ( obs.getClass() == type )
 			{
@@ -183,7 +187,7 @@ public final class World
 	}
 
 	/**
-	 * Adds a entity to this world.
+	 * Adds a entity to this {@link DustContext}.
 	 *
 	 * @param eid entity id.
 	 */
@@ -193,8 +197,8 @@ public final class World
 	}
 
 	/**
-	 * Checks if the entity has been added to the world since the last
-	 * {@link #process()} call.
+	 * Checks if the entity has been added to the {@link DustContext} since the
+	 * last {@link #process()} call.
 	 *
 	 * @param eid entity id to look for.
 	 * @return true if it was added recently, false otherwise.
@@ -205,9 +209,9 @@ public final class World
 	}
 
 	/**
-	 * Ensure all observers are notified of changes to this entity. If you're
-	 * adding a component to an entity after it's been added to the world, then
-	 * you need to invoke this method.
+	 * Ensure all {@link DustStep}s are notified of changes to this entity. If
+	 * you're adding a component to an entity after it's been added to the
+	 * {@link DustContext}, then you need to invoke this method.
 	 *
 	 * @param eid entity id.
 	 */
@@ -217,8 +221,8 @@ public final class World
 	}
 
 	/**
-	 * Checks if the entity has been changed in the world since the last
-	 * {@link #process()} call.
+	 * Checks if the entity has been changed in the {@link DustContext} since the
+	 * last {@link #process()} call.
 	 *
 	 * @param eid entity id to look for.
 	 * @return true if it was changed recently, false otherwise.
@@ -229,7 +233,7 @@ public final class World
 	}
 
 	/**
-	 * Delete the entity from the world.
+	 * Delete the entity from the {@link DustContext}.
 	 *
 	 * @param eid entity id.
 	 */
@@ -239,8 +243,8 @@ public final class World
 	}
 
 	/**
-	 * Checks if the entity has been deleted in the world since the last
-	 * {@link #process()} call.
+	 * Checks if the entity has been deleted in the {@link DustContext} since the
+	 * last {@link #process()} call.
 	 *
 	 * @param eid entity id to look for.
 	 * @return true if it was deleted recently, false otherwise.
@@ -251,8 +255,8 @@ public final class World
 	}
 
 	/**
-	 * (Re)enable the entity in the world, after it having being disabled. Won't
-	 * do anything unless it was already disabled.
+	 * (Re)enable the entity in the {@link DustContext}, after it having being
+	 * disabled. Won't do anything unless it was already disabled.
 	 *
 	 * @param eid entity id.
 	 */
@@ -273,8 +277,8 @@ public final class World
 	}
 
 	/**
-	 * Create and return a new entity. Will NOT add the entity to the world, use
-	 * {@link World#addEntity(int)} for that.
+	 * Create and return a new entity. Will NOT add the entity to the
+	 * {@link DustContext}, use {@link DustContext#addEntity(int)} for that.
 	 *
 	 * @return entity
 	 */
@@ -288,7 +292,7 @@ public final class World
 	/**
 	 * Iterates over all entity bags, and which each corresponding action (added,
 	 * deleted, etc), it calls it for each entity in that bag, for each entity
-	 * observer present in this World instance.
+	 * {@link DustStep} present in this World instance.
 	 */
 	private final void checkAll ()
 	{
@@ -298,7 +302,8 @@ public final class World
 		notifyComponentManager();
 		notifyEntityManager();
 
-		// Clearing all the affected entities before next world update.
+		// Clearing all the affected entities before next {@link DustContext}
+		// update.
 		added.setSize( 0 );
 		changed.setSize( 0 );
 		disabled.setSize( 0 );
@@ -337,19 +342,19 @@ public final class World
 	}
 
 	/**
-	 * Process all active observers.
+	 * Process all active {@link DustStep}s.
 	 */
 	public final void process ()
 	{
 		checkAll();
 
-		for ( int i = 0; i < observers.length; ++i )
+		for ( int i = 0; i < steps.length; ++i )
 		{
-			final EntityObserver obs = observers[i];
+			final DustStep obs = steps[i];
 
 			if ( obs.isActive() )
 			{
-				obs.process();
+				obs.run();
 			}
 		}
 	}
@@ -367,8 +372,8 @@ public final class World
 	}
 
 	/**
-	 * Returns a new {@link World} {@link Builder} instance. By default its
-	 * configured to not respect each {@link EntityObserver}'s order.
+	 * Returns a new {@link DustContext} {@link Builder} instance. By default its
+	 * configured to not respect each {@link DustStep}'s order.
 	 *
 	 * @return new {@link Builder} instance.
 	 */
@@ -379,21 +384,14 @@ public final class World
 
 	/**
 	 * <p>
-	 * {@link Builder} class to configure and construct {@link World} instances
-	 * from.
+	 * {@link Builder} class to configure and construct {@link DustContext}
+	 * instances from.
 	 * </p>
 	 *
 	 * <p>
-	 * Can be configured with {@link EntityObserver}s, configure if the
-	 * {@link EntityObserver} initialization and/or processing should be done in a
-	 * specific order.
+	 * Can be configured with {@link DustStep}s, configure if the {@link DustStep}
+	 * initialization and/or processing should be done in a specific order.
 	 * </p>
-	 *
-	 * <p>
-	 * Also can be configured to supply other kinds of {@link World} instances by
-	 * providing a custom world supplier.
-	 * </p>
-	 *
 	 *
 	 * @author dustContributor
 	 *
@@ -401,25 +399,25 @@ public final class World
 	public static final class Builder
 	{
 		/**
-		 * Types that will be present in all entities of the world.
+		 * Types that will be present in all entities of the {@link DustContext}.
 		 */
 		private final HashSet<Class<? extends Component>> componentTypes;
 		/**
 		 * Observers, their filter builders and their priorities/orders, matched by
 		 * position.
 		 */
-		private final ArrayList<Function<EntityGroups, EntityObserver>> observers;
+		private final ArrayList<Function<EntityGroups, DustStep>> steps;
 		private final IntBag orders;
 		/**
-		 * Arbitrary data parameter for the world.
+		 * Arbitrary data parameter for the {@link DustContext}.
 		 */
 		private Object data;
 		/**
-		 * Initialize observers in the order specified or not.
+		 * Initialize {@link DustStep}s in the order specified or not.
 		 */
 		private boolean initializeByOrder;
 		/**
-		 * Process observers in the order specified or not.
+		 * Process {@link DustStep}s in the order specified or not.
 		 */
 		private boolean processByOrder;
 
@@ -428,17 +426,17 @@ public final class World
 			this.initializeByOrder = false;
 			this.processByOrder = false;
 			this.componentTypes = new HashSet<>();
-			this.observers = new ArrayList<>( 16 );
+			this.steps = new ArrayList<>( 16 );
 			this.orders = new IntBag( 16 );
 		}
 
 		/**
 		 * This allows you to place an arbitrary object as field of your
-		 * {@link World} instance. This way if you need any sort of shared resources
-		 * between your systems, you can place them in a data structure of your
-		 * choice here.
+		 * {@link DustContext} instance. This way if you need any sort of shared
+		 * resources between your systems, you can place them in a data structure of
+		 * your choice here.
 		 *
-		 * @param data to set in the world instance.
+		 * @param data to set in the {@link DustContext} instance.
 		 * @return this {@link Builder} instance.
 		 */
 		public final Builder data ( final Object data )
@@ -449,13 +447,13 @@ public final class World
 
 		/**
 		 * Configures this {@link Builder} response to each of the
-		 * {@link EntityObserver}'s order.
+		 * {@link DustStep}'s order.
 		 *
 		 * <p>
-		 * If set to 'true', the produced {@link World} will initialize
-		 * {@link EntityObserver} instances respecting the passed order (from lower
-		 * to upper). Otherwise if set to 'false' it will ignore it and initialize
-		 * {@link EntityObserver} instances in the order they were added to this
+		 * If set to 'true', the produced {@link DustContext} will initialize
+		 * {@link DustStep} instances respecting the passed order (from lower to
+		 * upper). Otherwise if set to 'false' it will ignore it and initialize
+		 * {@link DustStep} instances in the order they were added to this
 		 * {@link Builder}.
 		 * </p>
 		 *
@@ -474,12 +472,12 @@ public final class World
 
 		/**
 		 * Configures this {@link Builder} response to each of the
-		 * {@link EntityObserver}'s order.
+		 * {@link DustStep}'s order.
 		 * <p>
-		 * If set to 'true', the produced {@link World} will process
-		 * {@link EntityObserver} instances respecting the passed order (from lower
-		 * to upper). Otherwise if set to 'false' it will ignore it and process
-		 * {@link EntityObserver} instances in the order they were added to this
+		 * If set to 'true', the produced {@link DustContext} will process
+		 * {@link DustStep} instances respecting the passed order (from lower to
+		 * upper). Otherwise if set to 'false' it will ignore it and process
+		 * {@link DustStep} instances in the order they were added to this
 		 * {@link Builder}.
 		 * </p>
 		 * <p>
@@ -496,72 +494,74 @@ public final class World
 		}
 
 		/**
-		 * Convenience overload for {@link EntityObserver}s that need no filtered
-		 * entity lists.
+		 * Convenience overload for {@link DustStep}s that need no filtered entity
+		 * lists.
 		 * 
-		 * @param observer to add.
+		 * @param step to add.
 		 * @return this builder instance.
 		 * 
-		 * @see Builder#observer(Function)
+		 * @see Builder#step(Function)
 		 */
-		public final Builder observer ( final Supplier<EntityObserver> observer )
+		public final Builder step ( final Supplier<DustStep> step )
 		{
-			DustException.enforceNonNull( this, observer, "observer" );
-			return observer( g -> observer.get(), 0 );
+			DustException.enforceNonNull( this, step, "step" );
+			return step( g -> step.get(), 0 );
 		}
 
 		/**
-		 * Convenience overload for {@link EntityObserver}s that need no filtered
-		 * entity lists.
+		 * Convenience overload for {@link DustStep}s that need no filtered entity
+		 * lists.
 		 * 
-		 * @param observer to add.
-		 * @param order of the observer.
+		 * @param step to add.
+		 * @param order of the instance.
 		 * @return this builder instance.
 		 * 
-		 * @see Builder#observer(Function, int)
+		 * @see Builder#step(Function, int)
 		 */
-		public final Builder observer ( final Supplier<EntityObserver> observer, final int order )
+		public final Builder step ( final Supplier<DustStep> step, final int order )
 		{
-			DustException.enforceNonNull( this, observer, "observer" );
-			return observer( g -> observer.get(), order );
+			DustException.enforceNonNull( this, step, "step" );
+			return step( g -> step.get(), order );
 		}
 
 		/**
-		 * Add an observer constructor into this world {@link Builder}. Once
-		 * constructed, the observer can be retrieved later via the world instance.
-		 * The {@link World} instance constructed with this {@link Builder} will
-		 * notify the {@link EntityObserver} of any entity changes. <b>Its order
-		 * will be set to 0.</b>
+		 * Add an {@link DustStep} constructor into this {@link DustContext}
+		 * {@link Builder}. Once constructed, the {@link DustStep} can be retrieved
+		 * later via the {@link DustContext} instance. The {@link DustContext}
+		 * instance constructed with this {@link Builder} will notify the
+		 * {@link DustStep} of any entity changes. <b>Its order will be set to
+		 * 0.</b>
 		 *
-		 * @param observer to add.
+		 * @param step to add.
 		 * @return this builder instance.
 		 */
-		public final Builder observer ( final Function<EntityGroups, EntityObserver> observer )
+		public final Builder step ( final Function<EntityGroups, DustStep> step )
 		{
-			return observer( observer, 0 );
+			return step( step, 0 );
 		}
 
 		/**
-		 * Add an observer constructor into this world {@link Builder}. Once
-		 * constructed, the observer can be retrieved later via the world instance.
-		 * The {@link World} instance constructed with this {@link Builder} will
-		 * notify the {@link EntityObserver} of any entity changes.
+		 * Add an {@link DustStep} constructor into this {@link DustContext}
+		 * {@link Builder}. Once constructed, the {@link DustStep} can be retrieved
+		 * later via the {@link DustContext} instance. The {@link DustContext}
+		 * instance constructed with this {@link Builder} will notify the
+		 * {@link DustStep} of any entity changes.
 		 *
-		 * @param observer to add.
-		 * @param order of the observer.
+		 * @param step to add.
+		 * @param order of the instance.
 		 * @return this {@link Builder} instance.
 		 */
-		public final Builder observer ( final Function<EntityGroups, EntityObserver> observer, final int order )
+		public final Builder step ( final Function<EntityGroups, DustStep> step, final int order )
 		{
-			DustException.enforceNonNull( this, observer, "observer" );
-			this.observers.add( observer );
+			DustException.enforceNonNull( this, step, "step" );
+			this.steps.add( step );
 			this.orders.add( order );
 			return this;
 		}
 
 		/**
-		 * Adds a component type that the {@link World} instance created by this
-		 * {@link Builder} will be able to handle.
+		 * Adds a component type that the {@link DustContext} instance created by
+		 * this {@link Builder} will be able to handle.
 		 *
 		 * @param type of the {@link Component}.
 		 * @return this {@link Builder} instance.
@@ -604,74 +604,74 @@ public final class World
 		}
 
 		/**
-		 * Builds a {@link World} instance with this {@link Builder}'s
-		 * {@link EntityObserver} configuration.
+		 * Builds a {@link DustContext} instance with this {@link Builder}'s
+		 * {@link DustStep} configuration.
 		 *
-		 * @return new {@link World} instance.
+		 * @return new {@link DustContext} instance.
 		 */
-		public final World build ()
+		public final DustContext build ()
 		{
 			/*
-			 * Mapping from observer to order, we fill it later by passing it to the
-			 * method that creates observers. The usage is a bit messy, maybe it could
-			 * be refined.
+			 * Mapping from step to order, we fill it later by passing it to the
+			 * method that creates steps. The usage is a bit messy, maybe it could be
+			 * refined.
 			 */
-			final IdentityHashMap<EntityObserver, Integer> orderMap = new IdentityHashMap<>( observers.size() );
+			final IdentityHashMap<DustStep, Integer> orderMap = new IdentityHashMap<>( this.steps.size() );
 			// Capture the map and use it for sorter by order later.
-			final Comparator<EntityObserver> compareByOrder = ( a, b ) -> orderMap.get( a ).compareTo( orderMap.get( b ) );
+			final Comparator<DustStep> compareByOrder = ( a, b ) -> orderMap.get( a ).compareTo( orderMap.get( b ) );
 			/*
-			 * Construct component manager, used by world instance and filter
+			 * Construct component manager, used by context instance and filter
 			 * creation.
 			 */
 			final ComponentManager cm = new ComponentManager( componentTypes );
 			// Make the filter manager which will initialize all the filter groups.
 			final EntityGroups filterManager = new EntityGroups( cm );
-			// Use all the constructors to create the observers.
-			final EntityObserver[] observers = createObservers( orderMap, filterManager );
+			// Use all the constructors to create the steps.
+			final DustStep[] steps = createObservers( orderMap, filterManager );
 
-			// Compose world parameters and construct it.
-			final World world = new World( composeWorldParams( observers, filterManager, compareByOrder, cm ) );
-			// Do the init step on observers.
-			observerInitialization( observers, compareByOrder, world );
-			// Now return fully constructed world instance.
-			return world;
+			// Compose context parameters and construct it.
+			final DustContext context = new DustContext( composeWorldParams( steps, filterManager, compareByOrder, cm ) );
+			// Do the init step on steps.
+			stepInitialization( steps, compareByOrder, context );
+			// Now return fully constructed context instance.
+			return context;
 		}
 
-		private final EntityObserver[] createObservers (
-				final IdentityHashMap<EntityObserver, Integer> observerToOrder,
+		private final DustStep[] createObservers (
+				final IdentityHashMap<DustStep, Integer> stepToOrder,
 				final EntityGroups groups )
 		{
-			final int size = observers.size();
+			final int size = steps.size();
 
-			final EntityObserver[] result = new EntityObserver[size];
+			final DustStep[] result = new DustStep[size];
 
 			for ( int i = 0; i < size; ++i )
 			{
-				// Fetch the observer constructor.
-				final Function<EntityGroups, EntityObserver> ctor = observers.get( i );
+				// Fetch the step constructor.
+				final Function<EntityGroups, DustStep> ctor = steps.get( i );
 				// Fetch the priority/order.
 				final int order = orders.getUnsafe( i );
 				/*
 				 * If its the dummy builder, just use the empty filter, otherwise build
 				 * the new filter to use.
 				 */
-				// Construct observer and set it on the same position.
+				// Construct step and set it on the same position.
 				result[i] = ctor.apply( groups );
 				// Map its order.
-				observerToOrder.put( result[i], Integer.valueOf( order ) );
+				stepToOrder.put( result[i], Integer.valueOf( order ) );
 			}
 
 			return result;
 		}
 
 		private final WorldParams composeWorldParams (
-				final EntityObserver[] observers,
+				final DustStep[] steps,
 				final EntityGroups filterManager,
-				final Comparator<EntityObserver> comparator,
+				final Comparator<DustStep> comparator,
 				final ComponentManager cm )
 		{
 			// Make a defensive copy.
-			final EntityObserver[] processObservers = observers.clone();
+			final DustStep[] processObservers = steps.clone();
 
 			if ( processByOrder )
 			{
@@ -679,7 +679,7 @@ public final class World
 				Arrays.sort( processObservers, comparator );
 			}
 
-			// Construct entity manager, used by the world instance.
+			// Construct entity manager, used by the context instance.
 			final EntityManager em = new EntityManager();
 
 			/*
@@ -689,13 +689,13 @@ public final class World
 			return new WorldParams( cm, em, processObservers, filterManager.groups(), data );
 		}
 
-		private final void observerInitialization (
-				final EntityObserver[] observers,
-				final Comparator<EntityObserver> comparator,
-				final World world )
+		private final void stepInitialization (
+				final DustStep[] steps,
+				final Comparator<DustStep> comparator,
+				final DustContext context )
 		{
 			// Make a defensive copy.
-			final EntityObserver[] initializeObservers = observers.clone();
+			final DustStep[] initializeObservers = steps.clone();
 
 			if ( initializeByOrder )
 			{
@@ -703,8 +703,8 @@ public final class World
 				Arrays.sort( initializeObservers, comparator );
 			}
 
-			// First step is to inject the observers.
-			Injector.init( world, initializeObservers );
+			// First step is to inject the steps.
+			Injector.init( context, initializeObservers );
 
 			// Second step is to call 'init' on them.
 			for ( int i = 0; i < initializeObservers.length; ++i )

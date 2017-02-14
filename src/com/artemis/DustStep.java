@@ -1,22 +1,24 @@
 package com.artemis;
 
 /**
- * @author Arni Arent
+ * This class represents a step in the {@link DustContext} that owns it. It is a
+ * singular piece of logic that may or may not process entities.
+ * 
  * @author dustContributor
  */
-public abstract class EntityObserver
+public abstract class DustStep
 {
 	/** Active by default. */
 	private boolean active = true;
 
-	private World world;
+	private DustContext context;
 
 	protected void init ()
 	{
 		// Empty by default.
 	}
 
-	protected void process ()
+	protected void run ()
 	{
 		// Empty by default.
 	}
@@ -27,31 +29,31 @@ public abstract class EntityObserver
 	}
 
 	/**
-	 * @return the {@link World} instance that owns this observer.
+	 * @return the {@link DustContext} instance that owns this {@link DustStep}.
 	 */
-	protected final World world ()
+	protected final DustContext context ()
 	{
-		return this.world;
+		return this.context;
 	}
 
-	final void world ( final World world )
+	final void context ( final DustContext context )
 	{
-		this.world = world;
+		this.context = context;
 	}
 
 	/**
-	 * A convenience method that delegates to {@link World#data()}.
+	 * A convenience method that delegates to {@link DustContext#data()}.
 	 *
-	 * @see World#data()
+	 * @see DustContext#data()
 	 * @return arbitrary data object retrieved from the world instance.
 	 */
 	protected final <T> T data ()
 	{
-		return this.world.data();
+		return this.context.data();
 	}
 
 	/**
-	 * Returns the state of this observer
+	 * Returns the state of this {@link DustStep}
 	 *
 	 * @return {@code true} if its active and will get processed, {@code false}
 	 *         otherwise.
@@ -62,7 +64,7 @@ public abstract class EntityObserver
 	}
 
 	/**
-	 * Sets the state of this observer.
+	 * Sets the state of this {@link DustStep}.
 	 *
 	 * @param active {@code true} if its active and will get processed,
 	 *          {@code false} otherwise.
