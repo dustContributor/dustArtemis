@@ -51,11 +51,11 @@ public final class EntityGroups
 			throw new DustException( this, "Cant pass an empty filter, it wont have any entities in it!" );
 		}
 
-		return groups.computeIfAbsent( filter, f -> new EntityGroup( filter, cm ) );
+		return groups.computeIfAbsent( filter, f -> new EntityGroup( f, this.cm ) );
 	}
 
 	final EntityGroup[] groups ()
 	{
-		return groups.values().stream().toArray( EntityGroup[]::new );
+		return groups.values().toArray( new EntityGroup[0] );
 	}
 }
