@@ -229,7 +229,11 @@ public final class EntityGroup
 		// Check changes in removed entities.
 		for ( int i = entities.size(); i-- > 0; )
 		{
-			minId = Math.min( minId, data[i] );
+			final int eid = data[i];
+			if ( eid < minId )
+			{
+				minId = eid;
+			}
 		}
 		// Return min entity id that was modified.
 		return minId;
