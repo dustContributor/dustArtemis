@@ -56,6 +56,6 @@ public final class EntityGroups
 
 	final EntityGroup[] groups ()
 	{
-		return groups.values().toArray( new EntityGroup[0] );
+		return groups.values().toArray( new EntityGroup[groups.size()] );
 	}
 }
