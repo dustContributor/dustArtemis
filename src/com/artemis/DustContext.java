@@ -24,9 +24,9 @@ import com.artemis.utils.IntBag;
 public final class DustContext
 {
 	/** Managers for all entities this instance created. */
-	private final EntityManager em;
+	private final EntityManager entityManager;
 	/** Managers for all the components of the entities of this instance. */
-	private final ComponentManager cm;
+	private final ComponentManager componentManager;
 
 	/** Arbitrary data field. */
 	private final Object data;
@@ -40,7 +40,7 @@ public final class DustContext
 	private final IntBag disabled = new IntBag();
 
 	/** These are the entity group filters to match against the entities. */
-	private final EntityGroup[] entityFilters;
+	private final EntityGroup[] entityGroups;
 	/** All the steps this instance owns. */
 	private final DustStep[] steps;
 	/** An immutable view of the steps. */
@@ -89,8 +89,8 @@ public final class DustContext
 	{
 		DustException.enforceNonNull( this, params, "params" );
 
-		cm = params.componentManager;
-		em = params.entityManager;
+		componentManager = params.componentManager;
+		entityManager = params.entityManager;
 
 		// We don't validate arbitrary data.
 		data = params.data;
@@ -99,7 +99,7 @@ public final class DustContext
 		steps = params.steps;
 
 		// Store entity filters.
-		entityFilters = params.entityFilters;
+		entityGroups = params.entityFilters;
 
 		// Create immutable view of the step array.
 		final Bag<DustStep> obag = new Bag<>( steps );
@@ -118,7 +118,7 @@ public final class DustContext
 	 */
 	public final EntityManager entityManager ()
 	{
-		return em;
+		return entityManager;
 	}
 
 	/**
@@ -129,7 +129,7 @@ public final class DustContext
 	 */
 	public final ComponentManager componentManager ()
 	{
-		return cm;
+		return componentManager;
 	}
 
 	/**
@@ -187,13 +187,20 @@ public final class DustContext
 	}
 
 	/**
-	 * Adds a entity to this {@link DustContext}.
+	 * Queue entity for addition in the next {@link DustContext#process()} call.
+	 * This will be notified to the {@link EntityGroup}s and internal managers.
+	 * Only one occurrence of the entity will be present in the queue.
 	 *
 	 * @param eid entity id.
 	 */
 	public final void addEntity ( final int eid )
 	{
-		added.add( eid );
+		final int ei = added.binarySearch( eid );
+
+		if ( ei < 0 )
+		{
+			added.insert( -ei - 1, eid );
+		}
 	}
 
 	/**
@@ -205,19 +212,25 @@ public final class DustContext
 	 */
 	public final boolean isAdded ( final int eid )
 	{
-		return added.contains( eid ) > -1;
+		return added.binarySearch( eid ) > -1;
 	}
 
 	/**
-	 * Ensure all {@link DustStep}s are notified of changes to this entity. If
-	 * you're adding a component to an entity after it's been added to the
-	 * {@link DustContext}, then you need to invoke this method.
+	 * Queue entity for marking as "changed" in the next
+	 * {@link DustContext#process()} call. This will be notified to the
+	 * {@link EntityGroup}s and internal managers. Only one occurrence of the
+	 * entity will be present in the queue.
 	 *
 	 * @param eid entity id.
 	 */
 	public final void changedEntity ( final int eid )
 	{
-		changed.add( eid );
+		final int ei = changed.binarySearch( eid );
+
+		if ( ei < 0 )
+		{
+			changed.insert( -ei - 1, eid );
+		}
 	}
 
 	/**
@@ -229,17 +242,24 @@ public final class DustContext
 	 */
 	public final boolean isChanged ( final int eid )
 	{
-		return changed.contains( eid ) > -1;
+		return changed.binarySearch( eid ) > -1;
 	}
 
 	/**
-	 * Delete the entity from the {@link DustContext}.
+	 * Queue entity for deletion in the next {@link DustContext#process()} call.
+	 * This will be notified to the {@link EntityGroup}s and internal managers.
+	 * Only one occurrence of the entity will be present in the queue.
 	 *
 	 * @param eid entity id.
 	 */
 	public final void deleteEntity ( final int eid )
 	{
-		deleted.add( eid );
+		final int ei = deleted.binarySearch( eid );
+
+		if ( ei < 0 )
+		{
+			deleted.insert( -ei - 1, eid );
+		}
 	}
 
 	/**
@@ -251,71 +271,85 @@ public final class DustContext
 	 */
 	public final boolean isDeleted ( final int eid )
 	{
-		return deleted.contains( eid ) > -1;
+		return deleted.binarySearch( eid ) > -1;
 	}
 
 	/**
-	 * (Re)enable the entity in the {@link DustContext}, after it having being
-	 * disabled. Won't do anything unless it was already disabled.
+	 * Queue entity for enabling in the next {@link DustContext#process()} call.
+	 * This will be notified to the {@link EntityGroup}s and internal managers.
+	 * Only one occurrence of the entity will be present in the queue.
 	 *
 	 * @param eid entity id.
 	 */
 	public final void enable ( final int eid )
 	{
-		enabled.add( eid );
+		final int ei = enabled.binarySearch( eid );
+
+		if ( ei < 0 )
+		{
+			enabled.insert( -ei - 1, eid );
+		}
 	}
 
 	/**
-	 * Disable the entity from being processed. Won't delete it, it will continue
-	 * to exist but won't get processed.
+	 * Checks if the entity has been enabled in the {@link DustContext} since the
+	 * last {@link #process()} call.
+	 *
+	 * @param eid entity id to look for.
+	 * @return true if it was enabled recently, false otherwise.
+	 */
+	public final boolean isEnabled ( final int eid )
+	{
+		return enabled.binarySearch( eid ) > -1;
+	}
+
+	/**
+	 * Queue entity for disabling in the next {@link DustContext#process()} call.
+	 * This will be notified to the {@link EntityGroup}s and internal managers.
+	 * Only one occurrence of the entity will be present in the queue.
 	 *
 	 * @param eid entity id.
 	 */
 	public final void disable ( final int eid )
 	{
-		disabled.add( eid );
+		final int ei = disabled.binarySearch( eid );
+
+		if ( ei < 0 )
+		{
+			disabled.insert( -ei - 1, eid );
+		}
+	}
+
+	/**
+	 * Checks if the entity has been disabled in the {@link DustContext} since the
+	 * last {@link #process()} call.
+	 *
+	 * @param eid entity id to look for.
+	 * @return true if it was enabled recently, false otherwise.
+	 */
+	public final boolean isDisabled ( final int eid )
+	{
+		return disabled.binarySearch( eid ) > -1;
 	}
 
 	/**
 	 * Create and return a new entity. Will NOT add the entity to the
 	 * {@link DustContext}, use {@link DustContext#addEntity(int)} for that.
 	 *
-	 * @return entity
+	 * @return new entity id.
 	 */
 	public final int createEntity ()
 	{
-		final int eid = em.createEntityInstance();
-		cm.registerEntity( eid );
+		final int eid = entityManager.createEntityInstance();
+		componentManager.registerEntity( eid );
 		return eid;
-	}
-
-	/**
-	 * Iterates over all entity bags, and which each corresponding action (added,
-	 * deleted, etc), it calls it for each entity in that bag, for each entity
-	 * {@link DustStep} present in this World instance.
-	 */
-	private final void checkAll ()
-	{
-		// Checking all affected entities in all of the filters.
-		notifyFilters();
-
-		notifyComponentManager();
-		notifyEntityManager();
-
-		// Clearing all the affected entities before next {@link DustContext}
-		// update.
-		added.setSize( 0 );
-		changed.setSize( 0 );
-		disabled.setSize( 0 );
-		enabled.setSize( 0 );
-		deleted.setSize( 0 );
 	}
 
 	private final void notifyFilters ()
 	{
-		for ( int i = 0; i < entityFilters.length; ++i )
+		for ( int i = 0; i < entityGroups.length; ++i )
 		{
-			final EntityGroup group = entityFilters[i];
+			final EntityGroup group = entityGroups[i];
 			group.clear();
 			group.added( added );
 			group.added( enabled );
@@ -329,25 +363,20 @@ public final class DustContext
 	private final void notifyComponentManager ()
 	{
 		// Clean components from deleted entities.
-		cm.clean( deleted );
+		componentManager.clean( deleted );
 	}
 
 	private final void notifyEntityManager ()
 	{
 		// Notify entity manager of all entity changes.
-		em.added( added );
-		em.disabled( disabled );
-		em.enabled( enabled );
-		em.deleted( deleted );
+		entityManager.added( added );
+		entityManager.disabled( disabled );
+		entityManager.enabled( enabled );
+		entityManager.deleted( deleted );
 	}
 
-	/**
-	 * Process all active {@link DustStep}s.
-	 */
-	public final void process ()
+	private final void runSteps ()
 	{
-		checkAll();
-
 		for ( int i = 0; i < steps.length; ++i )
 		{
 			final DustStep obs = steps[i];
@@ -359,6 +388,28 @@ public final class DustContext
 		}
 	}
 
+	private final void clearLists ()
+	{
+		// Clearing all the affected entities before next update.
+		added.setSize( 0 );
+		changed.setSize( 0 );
+		disabled.setSize( 0 );
+		enabled.setSize( 0 );
+		deleted.setSize( 0 );
+	}
+
+	/**
+	 * Process all active {@link DustStep}s.
+	 */
+	public final void process ()
+	{
+		notifyFilters();
+		notifyComponentManager();
+		notifyEntityManager();
+		clearLists();
+		runSteps();
+	}
+
 	/**
 	 * Retrieves a {@link ComponentHandler} instance for fast retrieval of
 	 * components from entities.
@@ -368,7 +419,7 @@ public final class DustContext
 	 */
 	public final <T extends Component> ComponentHandler<T> getHandler ( final Class<T> type )
 	{
-		return cm.getHandlerFor( type );
+		return componentManager.getHandlerFor( type );
 	}
 
 	/**
@@ -496,10 +547,10 @@ public final class DustContext
 		/**
 		 * Convenience overload for {@link DustStep}s that need no filtered entity
 		 * lists.
-		 * 
+		 *
 		 * @param step to add.
 		 * @return this builder instance.
-		 * 
+		 *
 		 * @see Builder#step(Function)
 		 */
 		public final Builder step ( final Supplier<DustStep> step )
@@ -511,11 +562,11 @@ public final class DustContext
 		/**
 		 * Convenience overload for {@link DustStep}s that need no filtered entity
 		 * lists.
-		 * 
+		 *
 		 * @param step to add.
 		 * @param order of the instance.
 		 * @return this builder instance.
-		 * 
+		 *
 		 * @see Builder#step(Function, int)
 		 */
 		public final Builder step ( final Supplier<DustStep> step, final int order )
