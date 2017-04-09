@@ -109,11 +109,16 @@ public final class ComponentManager
 		final MutableBitIterator it = new MutableBitIterator( componentBits() );
 		final int start = id * wordsPerEntity;
 		final int end = start + wordsPerEntity;
+		// Implementation detail, bit set uses 64 bit words.
+		final int cmpBitOffset = start * 64;
+		// Start from the entity's bits.
 		it.selectWord( start );
 
-		for ( int i = it.nextSetBit( end ); i >= 0; i = it.nextSetBit( end ) )
+		int cmp;
+
+		while ( (cmp = it.nextSetBit( end ) - cmpBitOffset) > -1 && cmp < cmpBags.length )
 		{
-			dest.add( cmpBags[i].get( id ) );
+			dest.add( cmpBags[cmp].get( id ) );
 		}
 
 		return dest;
@@ -200,12 +205,16 @@ public final class ComponentManager
 			final int eid = ents[i];
 			final int start = eid * wordCount;
 			final int end = start + wordCount;
+			// Implementation detail, bit set uses 64 bit words.
+			final int cmpBitOffset = start * 64;
 			// Now iterate over normal component bits and remove them.
 			it.selectWord( start );
 
-			for ( int j = it.nextSetBit( end ); j >= 0 && j < cmpBags.length; j = it.nextSetBit( end ) )
+			int cmp;
+
+			while ( (cmp = it.nextSetBit( end ) - cmpBitOffset) > -1 && cmp < cmpBags.length )
 			{
-				cmpBags[j].data()[eid] = null;
+				cmpBags[cmp].delete( eid );
 			}
 
 			// Now clear all component bits from the entity.

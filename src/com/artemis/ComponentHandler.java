@@ -126,6 +126,19 @@ public abstract class ComponentHandler<T extends Component>
 	public abstract boolean has ( final int id );
 
 	/**
+	 * Deletes the component of the specified entity. Doesn't notifies the
+	 * {@link ComponentManager} of the change. Used internally for component
+	 * cleanup of deleted entities.
+	 *
+	 * <p>
+	 * <b>UNSAFE: Avoids doing any bounds check.</b>
+	 * </p>
+	 *
+	 * @param id of the entity with the component.
+	 */
+	protected abstract void delete ( final int id );
+
+	/**
 	 * Resizes the handler so it can contain the index provided.
 	 *
 	 * @param index that is expected the handler can contain.

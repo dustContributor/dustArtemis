@@ -95,8 +95,15 @@ public final class ArrayComponentHandler<T extends Component> extends ComponentH
 		return isInBounds( id ) && data[id] != null;
 	}
 
+	@Override
+	protected final void delete ( final int id )
+	{
+		data[id] = null;
+	}
+
 	private final boolean isInBounds ( final int index )
 	{
 		return (index > -1 && index < data.length);
 	}
+
 }

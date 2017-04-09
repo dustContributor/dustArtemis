@@ -138,47 +138,10 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 	@Override
 	public final T remove ( final int id )
 	{
-		final int curri = searchRangeIndex( ranges, rangesSize, id );
-		// Clamp in case curri is first range.
-		final int lefti = Math.max( 0, curri - 1 );
-		final long leftRange = ranges[lefti];
-		final int leftOffset = Range.offset( leftRange );
-		final int leftStart = Range.start( leftRange );
-		final int leftEnd = Range.end( leftRange );
-		// Erase first before changing the ranges.
-		final T item = eraseItem( id - leftStart + leftOffset );
-		// Fix up the ranges.
-		if ( id == leftStart )
-		{
-			final int newStart = id + 1;
-			if ( leftEnd - newStart < 1 )
-			{
-				// Range can't hold anything else, remove.
-				eraseRange( lefti );
-			}
-			else
-			{
-				// Otherwise just adjust the start.
-				ranges[lefti] = Range.start( newStart, leftRange );
-			}
-		}
-		else
-		{
-			// Id is in the middle or at the end, we might need to split.
-			ranges[lefti] = Range.end( id, leftRange );
-			final int newStart = id + 1;
-			// If there is any space left to the right, add the range.
-			if ( newStart < leftEnd )
-			{
-				insertRange( curri, Range.of( newStart, leftEnd ) );
-			}
-		}
 		// Notify the component manager about changes.
 		cm.notifyRemovedComponent( id, typeIndex );
-		// Update all the range item counters to the right.
-		updateOffsets( lefti );
-		// And return what it was removed.
-		return item;
+		// Remove and return.
+		return removeInternal( id );
 	}
 
 	@Override
@@ -215,6 +178,55 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 	public final boolean has ( final int id )
 	{
 		return cm.hasComponent( id, typeIndex );
+	}
+
+	@Override
+	protected final void delete ( final int id )
+	{
+		removeInternal( id );
+	}
+
+	private final T removeInternal ( final int id )
+	{
+		final int curri = searchRangeIndex( ranges, rangesSize, id );
+		// Clamp in case curri is first range.
+		final int lefti = Math.max( 0, curri - 1 );
+		final long leftRange = ranges[lefti];
+		final int leftOffset = Range.offset( leftRange );
+		final int leftStart = Range.start( leftRange );
+		final int leftEnd = Range.end( leftRange );
+		// Erase first before changing the ranges.
+		final T item = eraseItem( id - leftStart + leftOffset );
+		// Fix up the ranges.
+		if ( id == leftStart )
+		{
+			final int newStart = id + 1;
+			if ( leftEnd - newStart < 1 )
+			{
+				// Range can't hold anything else, remove.
+				eraseRange( lefti );
+			}
+			else
+			{
+				// Otherwise just adjust the start.
+				ranges[lefti] = Range.start( newStart, leftRange );
+			}
+		}
+		else
+		{
+			// Id is in the middle or at the end, we might need to split.
+			ranges[lefti] = Range.end( id, leftRange );
+			final int newStart = id + 1;
+			// If there is any space left to the right, add the range.
+			if ( newStart < leftEnd )
+			{
+				insertRange( curri, Range.of( newStart, leftEnd ) );
+			}
+		}
+		// Update all the range item counters to the right.
+		updateOffsets( lefti );
+		// And return what it was removed.
+		return item;
 	}
 
 	/**
@@ -313,7 +325,7 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 	{
 		final int size = rangesSize;
 		final int newSize = size + 1;
-		fixRangeCapacity( newSize );
+		final long[] ranges = fixRangeCapacity( newSize );
 		// Make space for the new item and write.
 		System.arraycopy( ranges, index, ranges, index + 1, size - index );
 		ranges[index] = range;
@@ -354,7 +366,7 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 		Range.updateOffsets( index, ranges, rangesSize );
 	}
 
-	public static final int searchRangeIndex ( final long[] data, final int size, final int value )
+	private static final int searchRangeIndex ( final long[] data, final int size, final int value )
 	{
 		// Range index.
 		int rangei = 0;
