@@ -481,6 +481,19 @@ public class IntBag extends ImmutableIntBag
 	}
 
 	/**
+	 * Performs binary search for the value provided. Won't work if the values
+	 * aren't sorted.
+	 * 
+	 * @param value to search for.
+	 * @return the index of the value if found,
+	 *         <code>(-wouldBeIndexOfInsertion - 1)</code> if it wasn't.
+	 */
+	public int binarySearch ( final int value )
+	{
+		return Arrays.binarySearch( this.data, 0, this.size, value );
+	}
+
+	/**
 	 * Shrinks the capacity of this {@link IntBag} to the next capacity that could
 	 * hold a {@link IntBag} of this size.
 	 * 
