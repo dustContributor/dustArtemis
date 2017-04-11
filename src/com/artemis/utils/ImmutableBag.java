@@ -400,9 +400,10 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 	{
 		// Sets all elements to the specified value.
 		dest[0] = value;
+
 		for ( int i = 1; i < limit; i += i )
 		{
-			System.arraycopy( dest, 0, dest, i, ((limit - i) < i) ? (limit - i) : i );
+			System.arraycopy( dest, 0, dest, i, Math.min( limit - i, i ) );
 		}
 		return dest;
 	}
