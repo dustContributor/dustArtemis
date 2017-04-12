@@ -398,13 +398,29 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 	 */
 	protected static final <T> T[] fillWith ( final T value, final T[] dest, final int limit )
 	{
-		// Sets all elements to the specified value.
-		dest[0] = value;
+		// Threshold backed by some JMH benchmarks.
+		if ( limit <= 256 )
+		{
+			// Not worth going through arracopy if the range is small.
+			Arrays.fill( dest, 0, limit, value );
+			return dest;
+		}
 
-		for ( int i = 1; i < limit; i += i )
+		// Unroll write. Avoid the first few copy calls.
+		dest[0] = value;
+		dest[1] = value;
+		dest[2] = value;
+		dest[3] = value;
+		dest[4] = value;
+		dest[5] = value;
+		dest[6] = value;
+		dest[7] = value;
+
+		for ( int i = 8; i < limit; i += i )
 		{
 			System.arraycopy( dest, 0, dest, i, Math.min( limit - i, i ) );
 		}
+
 		return dest;
 	}
 
