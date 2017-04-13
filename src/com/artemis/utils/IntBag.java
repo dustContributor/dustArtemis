@@ -8,7 +8,7 @@ public class IntBag extends ImmutableIntBag
 	/**
 	 * Constructs an empty {@link IntBag} with an initial capacity of
 	 * {@value #DEFAULT_CAPACITY}.
-	 * 
+	 *
 	 */
 	public IntBag ()
 	{
@@ -17,25 +17,25 @@ public class IntBag extends ImmutableIntBag
 
 	/**
 	 * Constructs an empty {@link IntBag} with the defined initial capacity.
-	 * 
+	 *
 	 * <p>
 	 * NOTE: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY}, the
 	 * {@link IntBag} will be created with a capacity of
 	 * {@value #MINIMUM_WORKING_CAPACITY} instead.
 	 * </p>
-	 * 
+	 *
 	 * @param capacity of the {@link IntBag}.
 	 */
-	public IntBag ( int capacity )
+	public IntBag ( final int capacity )
 	{
 		super( capacity );
 	}
 
 	/**
 	 * Adds the specified item to the end of this bag.
-	 * 
+	 *
 	 * It will increase the size of the bag as required.
-	 * 
+	 *
 	 * @param item to be added to this list
 	 */
 	public void add ( final int item )
@@ -47,11 +47,11 @@ public class IntBag extends ImmutableIntBag
 
 	/**
 	 * Adds the specified item to the end of this bag.
-	 * 
+	 *
 	 * <p>
 	 * <b>UNSAFE: Avoids doing any bounds check.</b>
 	 * </p>
-	 * 
+	 *
 	 * @param item to be added to this list
 	 */
 	public void addUnsafe ( final int item )
@@ -62,7 +62,7 @@ public class IntBag extends ImmutableIntBag
 
 	/**
 	 * Add items into this bag. Does nothing if itemsLength is less than 1.
-	 * 
+	 *
 	 * @param items to add.
 	 * @param itemsLength of the item array that will be added.
 	 */
@@ -70,29 +70,29 @@ public class IntBag extends ImmutableIntBag
 	{
 		if ( itemsLength > 0 )
 		{
-			ensureCapacity( itemsLength + size );
+			ensureCapacity( itemsLength + size - 1 );
 			addAllUnsafe( items, itemsLength );
 		}
 	}
 
 	/**
 	 * Add all items into this bag.
-	 * 
+	 *
 	 * @param items to add.
 	 */
 	public void addAll ( final int[] items )
 	{
-		ensureCapacity( items.length + size );
+		ensureCapacity( items.length + size - 1 );
 		addAllUnsafe( items, items.length );
 	}
 
 	/**
 	 * Add items into this bag.
-	 * 
+	 *
 	 * <p>
 	 * <b>UNSAFE: Avoids doing any bounds check.</b>
 	 * </p>
-	 * 
+	 *
 	 * @param items to add.
 	 * @param itemsLength of the item array that will be added.
 	 */
@@ -104,7 +104,7 @@ public class IntBag extends ImmutableIntBag
 
 	/**
 	 * Add all items into this bag.
-	 * 
+	 *
 	 * @param items to add.
 	 */
 	public void addAll ( final IntBag items )
@@ -114,26 +114,29 @@ public class IntBag extends ImmutableIntBag
 
 	/**
 	 * Add all items into this bag.
-	 * 
+	 *
 	 * @param items to add.
 	 */
 	public void addAll ( final ImmutableIntBag items )
 	{
+		final int[] data = this.data;
+		final int size = this.size;
 		final int itemsSize = items.size();
-
-		ensureCapacity( itemsSize + size );
-
-		for ( int i = 0; i < itemsSize; ++i )
+		// New size.
+		this.size = itemsSize + size;
+		ensureCapacity( itemsSize + size - 1 );
+		// Copy values back.
+		for ( int i = 0, d = size; i < itemsSize; ++i, ++d )
 		{
-			add( items.getUnsafe( i ) );
+			data[d] = items.getUnsafe( i );
 		}
 	}
 
 	/**
 	 * Set item at specified index in the bag.
-	 * 
+	 *
 	 * It will increase the size of the bag as required.
-	 * 
+	 *
 	 * @param index of item
 	 * @param item to be set.
 	 */
@@ -150,11 +153,11 @@ public class IntBag extends ImmutableIntBag
 
 	/**
 	 * Set item at specified index in the bag.
-	 * 
+	 *
 	 * <p>
 	 * <b>UNSAFE: Avoids doing any bounds check.</b>
 	 * </p>
-	 * 
+	 *
 	 * @param index of item
 	 * @param item to be set.
 	 */
@@ -167,7 +170,7 @@ public class IntBag extends ImmutableIntBag
 	/**
 	 * Inserts an item into a position of this {@link IntBag}, shifting any
 	 * elements remaining to the right, preserving their order.
-	 * 
+	 *
 	 * @param index to insert the item at.
 	 * @param item to be inserted into the {@link IntBag}.
 	 */
@@ -188,11 +191,11 @@ public class IntBag extends ImmutableIntBag
 	/**
 	 * Inserts an item into a position of this {@link IntBag}, shifting any
 	 * elements remaining to the right, preserving their order.
-	 * 
+	 *
 	 * <p>
 	 * <b>UNSAFE: Avoids doing any bounds check.</b>
 	 * </p>
-	 * 
+	 *
 	 * @param index to insert the item at.
 	 * @param item to be inserted into the {@link IntBag}.
 	 */
@@ -210,7 +213,7 @@ public class IntBag extends ImmutableIntBag
 	/**
 	 * Erases an element of this {@link IntBag}, shifting the remaining elements
 	 * to the left, preserving their order.
-	 * 
+	 *
 	 * @param index to erase an element at.
 	 * @param defaultValue to return in case the index is outside bounds.
 	 * @return the element erased from this {@link IntBag}, or defaultValue if the
@@ -229,11 +232,11 @@ public class IntBag extends ImmutableIntBag
 	/**
 	 * Erases an element of this {@link IntBag}, shifting the remaining elements
 	 * to the left, preserving their order.
-	 * 
+	 *
 	 * <p>
 	 * <b>UNSAFE: Avoids doing any bounds check.</b>
 	 * </p>
-	 * 
+	 *
 	 * @param index to erase an element at.
 	 * @return the element erased from this {@link IntBag}.
 	 */
@@ -251,7 +254,7 @@ public class IntBag extends ImmutableIntBag
 	/**
 	 * Erases a range of elements in this {@link IntBag}, shifting the remaining
 	 * elements to the left, preserving their order.
-	 * 
+	 *
 	 * @param index from which the elements will start to be erased.
 	 * @param length of the range to be erased.
 	 */
@@ -266,11 +269,11 @@ public class IntBag extends ImmutableIntBag
 	/**
 	 * Erases a range of elements in this {@link IntBag}, shifting the remaining
 	 * elements to the left, preserving their order.
-	 * 
+	 *
 	 * <p>
 	 * <b>UNSAFE: Avoids doing any bounds check.</b>
 	 * </p>
-	 * 
+	 *
 	 * @param index from which the elements will start to be erased.
 	 * @param length of the range to be erased.
 	 */
@@ -286,10 +289,10 @@ public class IntBag extends ImmutableIntBag
 	/**
 	 * Removes the item at the specified position in this {@link IntBag}. Does
 	 * this by overwriting it was last item then removing last item.
-	 * 
+	 *
 	 * It returns <code>null</code> if the index its outside bounds or if the item
 	 * at the index was <code>null</code>.
-	 * 
+	 *
 	 * @param index the index of item to be removed
 	 * @param defaultValue to return in case the index is outside bounds.
 	 * @return item that was removed from the {@link IntBag}, or defaultValue if
@@ -308,11 +311,11 @@ public class IntBag extends ImmutableIntBag
 	/**
 	 * Removes the item at the specified position in this {@link IntBag}. Does
 	 * this by overwriting it was last item then removing last item.
-	 * 
+	 *
 	 * <p>
 	 * <b>UNSAFE: Avoids doing any bounds check.</b>
 	 * </p>
-	 * 
+	 *
 	 * @param index the index of item to be removed
 	 * @return item that was removed from the {@link IntBag}
 	 */
@@ -327,9 +330,9 @@ public class IntBag extends ImmutableIntBag
 
 	/**
 	 * Removes the first value in the bag.
-	 * 
+	 *
 	 * @param defaultValue to return in case the {@link IntBag} is empty.
-	 * 
+	 *
 	 * @return the first value in the bag, or defaultValue if the {@link IntBag}
 	 *         is empty.
 	 */
@@ -346,11 +349,11 @@ public class IntBag extends ImmutableIntBag
 
 	/**
 	 * Removes the first value in the bag.
-	 * 
+	 *
 	 * <p>
 	 * <b>UNSAFE: Avoids doing any bounds check.</b>
 	 * </p>
-	 * 
+	 *
 	 * @return the first value in the bag.
 	 */
 	public int removeFirstUnsafe ()
@@ -360,9 +363,9 @@ public class IntBag extends ImmutableIntBag
 
 	/**
 	 * Removes the last object in the bag.
-	 * 
+	 *
 	 * @param defaultValue to return in case the {@link IntBag} is empty.
-	 * 
+	 *
 	 * @return the last item in the bag, or defaultValue if the {@link IntBag} is
 	 *         empty.
 	 */
@@ -379,11 +382,11 @@ public class IntBag extends ImmutableIntBag
 
 	/**
 	 * Removes the last object in the bag.
-	 * 
+	 *
 	 * <p>
 	 * <b>UNSAFE: Avoids doing any bounds check.</b>
 	 * </p>
-	 * 
+	 *
 	 * @return the last item in the bag.
 	 */
 	public int removeLastUnsafe ()
@@ -398,7 +401,7 @@ public class IntBag extends ImmutableIntBag
 	 * Removes the first occurrence of the specified item from this
 	 * {@link IntBag}, if it is present. Works by overwriting it was last item
 	 * then removing last item.
-	 * 
+	 *
 	 * @param item to be removed from this bag.
 	 * @return <code>true</code> if this bag contained the specified item.
 	 */
@@ -424,7 +427,7 @@ public class IntBag extends ImmutableIntBag
 	/**
 	 * Removes the first occurrence of the item that matches the provided
 	 * criteria. Works by overwriting it was last item then removing last item.
-	 * 
+	 *
 	 * @param criteria to match the items against.
 	 * @param defaultValue to return if the item isn't found.
 	 * @return the first item that matched the criteria, <code>defaultValue</code>
@@ -450,7 +453,7 @@ public class IntBag extends ImmutableIntBag
 	/**
 	 * Removes from this {@link IntBag} all of its items that are contained in the
 	 * specified {@link IntBag}.
-	 * 
+	 *
 	 * @param bag containing items to be removed from this {@link IntBag}
 	 */
 	public void removeAll ( final IntBag bag )
@@ -467,7 +470,7 @@ public class IntBag extends ImmutableIntBag
 	/**
 	 * Removes from this {@link IntBag} all of its items that are contained in the
 	 * specified {@link IntBag}.
-	 * 
+	 *
 	 * @param bag containing items to be removed from this {@link IntBag}
 	 */
 	public void removeAll ( final ImmutableIntBag bag )
@@ -483,7 +486,7 @@ public class IntBag extends ImmutableIntBag
 	/**
 	 * Performs binary search for the value provided. Won't work if the values
 	 * aren't sorted.
-	 * 
+	 *
 	 * @param value to search for.
 	 * @return the index of the value if found,
 	 *         <code>(-wouldBeIndexOfInsertion - 1)</code> if it wasn't.
@@ -496,7 +499,7 @@ public class IntBag extends ImmutableIntBag
 	/**
 	 * Shrinks the capacity of this {@link IntBag} to the next capacity that could
 	 * hold a {@link IntBag} of this size.
-	 * 
+	 *
 	 * If the capacities match, then it leaves the {@link IntBag} as it is.
 	 */
 	public void shrink ()
@@ -521,7 +524,7 @@ public class IntBag extends ImmutableIntBag
 
 	/**
 	 * Resizes the {@link IntBag} so it can contain the index provided.
-	 * 
+	 *
 	 * @param index that is expected the {@link IntBag} can contain.
 	 */
 	public void ensureCapacity ( final int index )
@@ -536,7 +539,7 @@ public class IntBag extends ImmutableIntBag
 
 	/**
 	 * Sets all items in this bag to the provided value.
-	 * 
+	 *
 	 * @param value to set the entire bag to.
 	 */
 	public void clear ( final int value )

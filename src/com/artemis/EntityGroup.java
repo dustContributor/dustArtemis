@@ -221,7 +221,7 @@ public final class EntityGroup
 		final int newSize = activeEntityFlags.cardinality();
 		final int oldSize = activeEntities.size();
 		activeEntities.setSize( newSize );
-		activeEntities.ensureCapacity( newSize );
+		activeEntities.ensureCapacity( newSize - 1 );
 
 		final int[] ids = activeEntities.data();
 
