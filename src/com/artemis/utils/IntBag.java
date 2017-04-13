@@ -173,14 +173,14 @@ public class IntBag extends ImmutableIntBag
 	 */
 	public void insert ( final int index, final int item )
 	{
-		final int newSize = this.size + 1;
+		final int size = this.size;
 		/*
 		 * Allow to insert at 0 if the bag is empty, or at the end if there is
 		 * anything.
 		 */
-		if ( index > -1 && index < newSize )
+		if ( index >= 0 && index <= size )
 		{
-			ensureCapacity( newSize );
+			ensureCapacity( size );
 			insertUnsafe( index, item );
 		}
 	}
@@ -297,7 +297,7 @@ public class IntBag extends ImmutableIntBag
 	 */
 	public int remove ( final int index, final int defaultValue )
 	{
-		if ( isInBounds( index ) )
+		if ( isInSize( index ) )
 		{
 			return removeUnsafe( index );
 		}
