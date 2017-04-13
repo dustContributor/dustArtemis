@@ -108,38 +108,38 @@ public final class EntityGroup
 
 	final void added ( final ImmutableIntBag entities )
 	{
-		final OpenBitSet acBits = activeEntityFlags;
-		final IntBag insrts = addedEntities;
+		final OpenBitSet activeBits = activeEntityFlags;
+		final IntBag added = addedEntities;
 		final long[] cmpBits = cm.componentBits();
-		final int[] array = ((IntBag) entities).data();
+		final int[] eids = ((IntBag) entities).data();
 		final int size = entities.size();
 
 		for ( int i = 0; i < size; ++i )
 		{
-			final int eid = array[i];
+			final int eid = eids[i];
 
 			if ( isInteresting( eid, cmpBits ) )
 			{
-				insrts.add( eid );
-				acBits.set( eid );
+				added.add( eid );
+				activeBits.set( eid );
 			}
 		}
 	}
 
 	final void mutated ( final ImmutableIntBag entities )
 	{
-		final OpenBitSet acBits = activeEntityFlags;
-		final IntBag insrts = addedEntities;
-		final IntBag removs = removedEntities;
+		final OpenBitSet activeBits = activeEntityFlags;
+		final IntBag added = addedEntities;
+		final IntBag removed = removedEntities;
 		final long[] cmpBits = cm.componentBits();
-		final int[] array = ((IntBag) entities).data();
+		final int[] eids = ((IntBag) entities).data();
 		final int size = entities.size();
 
 		for ( int i = 0; i < size; ++i )
 		{
-			final int eid = array[i];
+			final int eid = eids[i];
 			// First bit for 'contains'.
-			final int contains = acBits.getBit( eid );
+			final int contains = activeBits.getBit( eid );
 			// Second bit for 'interesting'.
 			final int interesting = isInteresting( eid, cmpBits ) ? 0b10 : 0b0;
 
@@ -148,15 +148,15 @@ public final class EntityGroup
 				case 0b01:
 				{
 					// Not interesting and observer does contains. Remove.
-					removs.add( eid );
-					acBits.fastClear( eid );
+					removed.add( eid );
+					activeBits.fastClear( eid );
 					continue;
 				}
 				case 0b10:
 				{
 					// Interesting and observer doesn't contains. Add.
-					insrts.add( eid );
-					acBits.set( eid );
+					added.add( eid );
+					activeBits.set( eid );
 					continue;
 				}
 				default:
@@ -169,19 +169,19 @@ public final class EntityGroup
 	final void removed ( final ImmutableIntBag entities )
 	{
 		// Fetch bits of active entities.
-		final OpenBitSet acBits = activeEntityFlags;
-		final IntBag removs = removedEntities;
-		final int[] array = ((IntBag) entities).data();
+		final OpenBitSet activeBits = activeEntityFlags;
+		final IntBag removed = removedEntities;
+		final int[] eids = ((IntBag) entities).data();
 		final int size = entities.size();
 
 		for ( int i = 0; i < size; ++i )
 		{
-			final int eid = array[i];
+			final int eid = eids[i];
 
-			if ( acBits.get( eid ) )
+			if ( activeBits.get( eid ) )
 			{
-				removs.add( eid );
-				acBits.fastClear( eid );
+				removed.add( eid );
+				activeBits.fastClear( eid );
 			}
 		}
 	}
@@ -191,15 +191,18 @@ public final class EntityGroup
 	 */
 	final void updateActiveList ()
 	{
-		// Now start checking of something actually changed.
-		final int minIdRemoved = minimumIdOf( removedEntities );
-		final int minIdInserted = minimumIdOf( addedEntities );
-		// Compute real min modified entity id.
+		/*
+		 * Since both removed and added entities are ordered, fetch the fist value,
+		 * which is the smallest.
+		 */
+		final int minIdRemoved = removedEntities.get( 0, Integer.MAX_VALUE );
+		final int minIdInserted = addedEntities.get( 0, Integer.MAX_VALUE );
+		// Compute smallest modified entity id.
 		final int minId = Math.min( minIdRemoved, minIdInserted );
 		// Using max value as flag for no changes.
 		if ( minId < Integer.MAX_VALUE )
 		{
-			// And rebuild this observer's entity list.
+			// Something changed, rebuild the active entity list.
 			rebuildEntityList( minId );
 		}
 	}
@@ -211,32 +214,6 @@ public final class EntityGroup
 	{
 		this.addedEntities.setSize( 0 );
 		this.removedEntities.setSize( 0 );
-	}
-
-	/**
-	 * Returns the minimum affected entity id found.
-	 *
-	 * @param entities to process.
-	 * @return minimum affected entity id, or {@link Integer#MAX_VALUE} if there
-	 *         was nothing in the bag.
-	 */
-	private static final int minimumIdOf ( final IntBag entities )
-	{
-		// Using max value as flag for no changes.
-		int minId = Integer.MAX_VALUE;
-
-		final int[] data = entities.data();
-		// Check changes in removed entities.
-		for ( int i = entities.size(); i-- > 0; )
-		{
-			final int eid = data[i];
-			if ( eid < minId )
-			{
-				minId = eid;
-			}
-		}
-		// Return min entity id that was modified.
-		return minId;
 	}
 
 	private final void rebuildEntityList ( final int startId )
