@@ -555,8 +555,7 @@ public final class DustContext
 		 */
 		public final Builder step ( final Supplier<DustStep> step )
 		{
-			DustException.enforceNonNull( this, step, "step" );
-			return step( g -> step.get(), 0 );
+			return step( step, 0 );
 		}
 
 		/**
