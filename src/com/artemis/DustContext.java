@@ -105,9 +105,6 @@ public final class DustContext
 		final Bag<DustStep> obag = new Bag<>( steps );
 		obag.setSize( steps.length );
 		immutableObservers = obag;
-
-		// World sets itself in all its steps.
-		immutableObservers.forEach( o -> o.context( this ) );
 	}
 
 	/**
@@ -362,17 +359,28 @@ public final class DustContext
 
 	private final void notifyComponentManager ()
 	{
-		// Clean components from deleted entities.
 		componentManager.clean( deleted );
 	}
 
 	private final void notifyEntityManager ()
 	{
-		// Notify entity manager of all entity changes.
 		entityManager.added( added );
 		entityManager.disabled( disabled );
 		entityManager.enabled( enabled );
 		entityManager.deleted( deleted );
+	}
+
+	private final void cleanupSteps ()
+	{
+		for ( int i = 0; i < steps.length; ++i )
+		{
+			final DustStep obs = steps[i];
+
+			if ( obs.isActive() )
+			{
+				obs.cleanup();
+			}
+		}
 	}
 
 	private final void runSteps ()
@@ -390,7 +398,6 @@ public final class DustContext
 
 	private final void clearLists ()
 	{
-		// Clearing all the affected entities before next update.
 		added.setSize( 0 );
 		changed.setSize( 0 );
 		disabled.setSize( 0 );
@@ -403,10 +410,20 @@ public final class DustContext
 	 */
 	public final void process ()
 	{
+		// Let the entity group filters update their internal lists.
 		notifyFilters();
+		/*
+		 * Let the steps have the opportunity of clean up after removed entities
+		 * from last tick.
+		 */
+		cleanupSteps();
+		// Clean components from deleted entities.
 		notifyComponentManager();
+		// Notify entity manager of all entity changes.
 		notifyEntityManager();
+		// Clearing all the affected entities before next update.
 		clearLists();
+		// Execute all steps of the context.
 		runSteps();
 	}
 
@@ -681,6 +698,11 @@ public final class DustContext
 
 			// Compose context parameters and construct it.
 			final DustContext context = new DustContext( composeWorldParams( steps, filterManager, compareByOrder, cm ) );
+			// Set the owner for all steps.
+			for ( int s = steps.length; s-- > 0; )
+			{
+				steps[s].context( context );
+			}
 			// Do the init step on steps.
 			stepInitialization( steps, compareByOrder, context );
 			// Now return fully constructed context instance.

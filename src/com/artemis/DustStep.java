@@ -6,7 +6,7 @@ package com.artemis;
  * 
  * @author dustContributor
  */
-public abstract class DustStep
+public class DustStep
 {
 	/** Active by default. */
 	private boolean active = true;
@@ -19,6 +19,11 @@ public abstract class DustStep
 	}
 
 	protected void run ()
+	{
+		// Empty by default.
+	}
+
+	protected void cleanup ()
 	{
 		// Empty by default.
 	}
