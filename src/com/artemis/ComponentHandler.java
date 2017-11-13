@@ -1,9 +1,15 @@
 package com.artemis;
 
+import static com.artemis.DustException.enforceNonNull;
+
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
+import org.apache.lucene.util.BitUtil;
+import org.apache.lucene.util.OpenBitSet;
+
 import com.artemis.utils.ImmutableBag;
+import com.artemis.utils.IntBag;
 
 /**
  * This class serves to manage a particular component type. Its used for both
@@ -16,41 +22,36 @@ import com.artemis.utils.ImmutableBag;
  */
 public abstract class ComponentHandler<T extends Component>
 {
-	protected T[] data;
+	/** Bit flags indicating component ownership of entities. */
+	private final OpenBitSet componentBits;
+	/* How many 64 bit words are reserved for each entity. */
+	private final int wordsPerEntity;
 	/** Index of the component type that this handler uses. */
-	protected final int typeIndex;
-	/** Component manager owner of this handler. */
-	protected final ComponentManager cm;
-
-	/**
-	 * Constructs an empty handler with an initial capacity of
-	 * {@link ImmutableBag#DEFAULT_CAPACITY}. Uses Array.newInstance() to
-	 * instantiate a backing array of the proper type.
-	 *
-	 * @param type of the backing array.
-	 * @param owner of this component handler.
-	 * @param index of the component type this handler will manage in the
-	 *          component manager.
-	 */
-	protected ComponentHandler ( final Class<T> type, final ComponentManager owner, final int index )
-	{
-		this( type, owner, index, ImmutableBag.DEFAULT_CAPACITY );
-	}
+	private final int typeIndex;
+	/** */
+	private final IntBag removedIds;
+	/** Storage for components. */
+	protected T[] data;
 
 	@SuppressWarnings( "unchecked" )
-	protected ComponentHandler ( final Class<T> type, final ComponentManager owner, final int index, final int capacity )
+	protected ComponentHandler ( final Class<T> type, final OpenBitSet componentBits, final int wordsPerEntity,
+			final int index, final int capacity )
 	{
-		DustException.enforceNonNull( this, type, "type" );
-
 		if ( index < 0 )
 		{
 			throw new DustException( this, "index can't be negative!" );
 		}
 
-		// this.cm = DustException.enforceNonNull( this, owner, "owner" );
-		this.cm = owner;
-		this.data = (T[]) Array.newInstance( type, capacity );
+		if ( wordsPerEntity < 1 )
+		{
+			throw new DustException( this, "wordsPerEntity has to be positive!" );
+		}
+
+		this.data = (T[]) Array.newInstance( enforceNonNull( this, type, "type" ), capacity );
+		this.componentBits = enforceNonNull( this, componentBits, "componentBits" );
 		this.typeIndex = index;
+		this.wordsPerEntity = wordsPerEntity;
+		this.removedIds = new IntBag( 32 );
 	}
 
 	/**
@@ -123,7 +124,23 @@ public abstract class ComponentHandler<T extends Component>
 	 * @param id of the entity that could have the component.
 	 * @return true if the entity has this component type, false if it doesn't.
 	 */
-	public abstract boolean has ( final int id );
+	public final boolean has ( final int id )
+	{
+		return BitUtil.getRelative( componentBits.getBits(), typeIndex, id, wordsPerEntity );
+	}
+
+	/**
+	 * Returns the backing array of components for this handler. This can be used
+	 * for fast direct array indexing when doing bulk operations on entities. Just
+	 * remember to NEVER modify the array directly, unless you know exactly what
+	 * you're doing.
+	 *
+	 * @return array of components backing this handler.
+	 */
+	public final T[] data ()
+	{
+		return this.data;
+	}
 
 	/**
 	 * Deletes the component of the specified entity. Doesn't notifies the
@@ -137,6 +154,34 @@ public abstract class ComponentHandler<T extends Component>
 	 * @param id of the entity with the component.
 	 */
 	protected abstract void delete ( final int id );
+
+	/**
+	 * Sets the appropriate component flag for the entity.
+	 * 
+	 * @param id of the entity.
+	 */
+	protected final void addedComponent ( final int id )
+	{
+		BitUtil.setRelative( componentBits.getBits(), typeIndex, id, wordsPerEntity );
+	}
+
+	/**
+	 * Clears the appropriate component flag for the entity and queues the
+	 * component removal for later.
+	 * 
+	 * @param id of the entity.
+	 */
+	protected final void enqueueRemoval ( final int id )
+	{
+		BitUtil.clearRelative( componentBits.getBits(), typeIndex, id, wordsPerEntity );
+
+		final int ei = removedIds.binarySearch( id );
+
+		if ( ei < 0 )
+		{
+			removedIds.insert( -ei - 1, id );
+		}
+	}
 
 	/**
 	 * Resizes the handler so it can contain the index provided.
@@ -154,16 +199,18 @@ public abstract class ComponentHandler<T extends Component>
 	}
 
 	/**
-	 * Returns the backing array of components for this handler. This can be used
-	 * for fast direct array indexing when doing bulk operations on entities. Just
-	 * remember to NEVER modify the array directly, unless you know exactly what
-	 * you're doing.
-	 *
-	 * @return array of components backing this handler.
+	 * Internal method to cleanup any components removed since the last to this
+	 * method.
 	 */
-	public final T[] data ()
+	final void clean ()
 	{
-		return this.data;
-	}
+		final int size = removedIds.size();
+		final int[] ids = removedIds.data();
+		removedIds.setSize( 0 );
 
+		for ( int i = 0; i < size; ++i )
+		{
+			delete( ids[i] );
+		}
+	}
 }

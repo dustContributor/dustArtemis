@@ -2,7 +2,7 @@ package com.artemis;
 
 import java.util.Arrays;
 
-import com.artemis.utils.ImmutableBag;
+import org.apache.lucene.util.OpenBitSet;
 
 /**
  * This component handler doesn't allows for gaps in between components, they're
@@ -18,24 +18,10 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 	private long[] ranges;
 	private int rangesSize;
 
-	/**
-	 * Constructs an empty handler with an initial capacity of
-	 * {@link ImmutableBag#DEFAULT_CAPACITY}. Uses Array.newInstance() to
-	 * instantiate a backing array of the proper type.
-	 *
-	 * @param type of the backing array.
-	 * @param owner of this component handler.
-	 * @param index of the component type this handler will manage in the
-	 *          component manager.
-	 */
-	CompactComponentHandler ( final Class<T> type, final ComponentManager owner, final int index )
+	protected CompactComponentHandler ( Class<T> type, OpenBitSet componentBits, int wordsPerEntity, int index,
+			int capacity )
 	{
-		this( type, owner, index, ImmutableBag.DEFAULT_CAPACITY );
-	}
-
-	CompactComponentHandler ( final Class<T> type, final ComponentManager owner, final int index, final int capacity )
-	{
-		super( type, owner, index, capacity );
+		super( type, componentBits, wordsPerEntity, index, capacity );
 		this.ranges = new long[128];
 	}
 
@@ -43,7 +29,7 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 	public final void add ( final int id, final T component )
 	{
 		// We notify first, then do the whole process.
-		cm.notifyAddedComponent( id, typeIndex );
+		addedComponent( id );
 
 		final int curri = searchRangeIndex( ranges, rangesSize, id );
 		// Check if we could just insert a range at zero, or expand the first range.
@@ -138,10 +124,10 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 	@Override
 	public final T remove ( final int id )
 	{
-		// Notify the component manager about changes.
-		cm.notifyRemovedComponent( id, typeIndex );
-		// Remove and return.
-		return removeInternal( id );
+		// Will remove later.
+		enqueueRemoval( id );
+		// Return removed component.
+		return get( id );
 	}
 
 	@Override
@@ -172,12 +158,6 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 		}
 
 		return null;
-	}
-
-	@Override
-	public final boolean has ( final int id )
-	{
-		return cm.hasComponent( id, typeIndex );
 	}
 
 	@Override

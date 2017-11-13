@@ -51,6 +51,12 @@ public final class ComponentManager
 
 		// Sort the component types by hash code.
 		Arrays.sort( types, ( a, b ) -> Integer.compare( a.hashCode(), b.hashCode() ) );
+		// Fetch the constant.
+		final int wordsPerEntity = computeWordsPerEntity( types.length );
+
+		// Init bitsets for all entities.
+		final int bitCount = (DAConstants.APPROX_LIVE_ENTITIES * wordsPerEntity) * 64;
+		final OpenBitSet componentBits = new OpenBitSet( bitCount );
 
 		// Reasonable initial capacity.
 		final int handlerCap = Math.max( 32, DAConstants.APPROX_LIVE_ENTITIES / 2 );
@@ -59,14 +65,8 @@ public final class ComponentManager
 		// Init all the component handlers.
 		for ( int i = componentHandlers.length; i-- > 0; )
 		{
-			componentHandlers[i] = new ArrayComponentHandler( types[i], this, i, handlerCap );
+			componentHandlers[i] = new ArrayComponentHandler( types[i], componentBits, wordsPerEntity, i, handlerCap );
 		}
-		// Fetch the constant.
-		final int wordsPerEntity = computeWordsPerEntity( types.length );
-
-		// Init bitsets for all entities.
-		final int bitCount = (DAConstants.APPROX_LIVE_ENTITIES * wordsPerEntity) * 64;
-		final OpenBitSet componentBits = new OpenBitSet( bitCount );
 
 		// Now keep everything we need.
 		this.componentHashCodes = componentHashCodes;
@@ -147,41 +147,6 @@ public final class ComponentManager
 		}
 	}
 
-	/**
-	 * Notifies this component manager that a component was added to an entity.
-	 *
-	 * @param id of the entity to add a component to.
-	 * @param typeIndex of the component that was added.
-	 */
-	final void notifyAddedComponent ( final int id, final int typeIndex )
-	{
-		BitUtil.setRelative( componentBits(), typeIndex, id, wordsPerEntity );
-	}
-
-	/**
-	 * Checks if a component type is registered for an entity in this manager.
-	 *
-	 * @param id of the entity.
-	 * @param typeIndex of the component.
-	 * @return 'true' if it is registered, 'false' otherwise.
-	 */
-	final boolean hasComponent ( final int id, final int typeIndex )
-	{
-		return BitUtil.getRelative( componentBits(), typeIndex, id, wordsPerEntity );
-	}
-
-	/**
-	 * Notifies this component manager that a component was removed from an
-	 * entity.
-	 *
-	 * @param id of the entity to remove a component from.
-	 * @param typeIndex of the component that was removed.
-	 */
-	final void notifyRemovedComponent ( final int id, final int typeIndex )
-	{
-		BitUtil.clearRelative( componentBits(), typeIndex, id, wordsPerEntity );
-	}
-
 	final long[] componentBits ()
 	{
 		return componentBits.getBits();
@@ -189,13 +154,25 @@ public final class ComponentManager
 
 	final void clean ( final ImmutableIntBag deleted )
 	{
-		// Clear all components.
+		// Let handlers clean removed components.
+		cleanHandlers();
+		// And clean all components from deleted entities.
 		clearComponents( ((IntBag) deleted).data(), deleted.size() );
+	}
+
+	private final void cleanHandlers ()
+	{
+		final ComponentHandler<Component>[] handlers = componentHandlers;
+		final int size = handlers.length;
+		for ( int i = 0; i < size; ++i )
+		{
+			handlers[i].clean();
+		}
 	}
 
 	private final void clearComponents ( final int[] ents, final int size )
 	{
-		final ComponentHandler<Component>[] cmpBags = componentHandlers;
+		final ComponentHandler<Component>[] handlers = componentHandlers;
 		final long[] bits = componentBits();
 		final MutableBitIterator it = new MutableBitIterator( componentBits() );
 		final int wordCount = wordsPerEntity;
@@ -212,9 +189,9 @@ public final class ComponentManager
 
 			int cmp;
 
-			while ( (cmp = it.nextSetBit( end ) - cmpBitOffset) > -1 && cmp < cmpBags.length )
+			while ( (cmp = it.nextSetBit( end ) - cmpBitOffset) > -1 && cmp < handlers.length )
 			{
-				cmpBags[cmp].delete( eid );
+				handlers[cmp].delete( eid );
 			}
 
 			// Now clear all component bits from the entity.

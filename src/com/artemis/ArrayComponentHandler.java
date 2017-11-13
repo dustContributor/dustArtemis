@@ -1,6 +1,6 @@
 package com.artemis;
 
-import com.artemis.utils.ImmutableBag;
+import org.apache.lucene.util.OpenBitSet;
 
 /**
  * This component handlers is implemented with a single element array, indexed
@@ -12,24 +12,10 @@ import com.artemis.utils.ImmutableBag;
  */
 public final class ArrayComponentHandler<T extends Component> extends ComponentHandler<T>
 {
-	/**
-	 * Constructs an empty handler with an initial capacity of
-	 * {@link ImmutableBag#DEFAULT_CAPACITY}. Uses Array.newInstance() to
-	 * instantiate a backing array of the proper type.
-	 *
-	 * @param type of the backing array.
-	 * @param owner of this component handler.
-	 * @param index of the component type this handler will manage in the
-	 *          component manager.
-	 */
-	ArrayComponentHandler ( final Class<T> type, final ComponentManager owner, final int index )
+	protected ArrayComponentHandler ( Class<T> type, OpenBitSet componentBits, int wordsPerEntity, int index,
+			int capacity )
 	{
-		super( type, owner, index, ImmutableBag.DEFAULT_CAPACITY );
-	}
-
-	ArrayComponentHandler ( final Class<T> type, final ComponentManager owner, final int index, final int capacity )
-	{
-		super( type, owner, index, capacity );
+		super( type, componentBits, wordsPerEntity, index, capacity );
 	}
 
 	@Override
@@ -63,7 +49,8 @@ public final class ArrayComponentHandler<T extends Component> extends ComponentH
 	public final void addUnsafe ( final int id, final T component )
 	{
 		data[id] = component;
-		cm.notifyAddedComponent( id, typeIndex );
+		// Mark as added.
+		addedComponent( id );
 	}
 
 	@Override
@@ -80,19 +67,10 @@ public final class ArrayComponentHandler<T extends Component> extends ComponentH
 	@Override
 	public final T remove ( final int id )
 	{
-		cm.notifyRemovedComponent( id, typeIndex );
-		// Item ref copy.
-		final T item = data[id];
-		// Null item.
-		data[id] = null;
+		// Queue removal for later.
+		enqueueRemoval( id );
 		// Return removed item.
-		return item;
-	}
-
-	@Override
-	public final boolean has ( final int id )
-	{
-		return isInBounds( id ) && data[id] != null;
+		return data[id];
 	}
 
 	@Override
