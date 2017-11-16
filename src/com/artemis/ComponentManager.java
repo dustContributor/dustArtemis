@@ -152,25 +152,35 @@ public final class ComponentManager
 		return componentBits.getBits();
 	}
 
-	final void clean ( final ImmutableIntBag deleted )
-	{
-		// Let handlers clean removed components.
-		cleanHandlers();
-		// And clean all components from deleted entities.
-		clearComponents( ((IntBag) deleted).data(), deleted.size() );
-	}
-
-	private final void cleanHandlers ()
+	final void markChanges ()
 	{
 		final ComponentHandler<Component>[] handlers = componentHandlers;
 		final int size = handlers.length;
 		for ( int i = 0; i < size; ++i )
 		{
-			handlers[i].clean();
+			handlers[i].markChanges();
 		}
 	}
 
-	private final void clearComponents ( final int[] ents, final int size )
+	final void cleanup ( final ImmutableIntBag deleted )
+	{
+		// Let handlers clean removed components.
+		cleanupHandlers();
+		// And clean all components from deleted entities.
+		cleanupComponents( ((IntBag) deleted).data(), deleted.size() );
+	}
+
+	private final void cleanupHandlers ()
+	{
+		final ComponentHandler<Component>[] handlers = componentHandlers;
+		final int size = handlers.length;
+		for ( int i = 0; i < size; ++i )
+		{
+			handlers[i].cleanup();
+		}
+	}
+
+	private final void cleanupComponents ( final int[] ents, final int size )
 	{
 		final ComponentHandler<Component>[] handlers = componentHandlers;
 		final long[] bits = componentBits();

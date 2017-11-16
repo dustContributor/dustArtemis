@@ -12,8 +12,9 @@ import org.apache.lucene.util.OpenBitSet;
  */
 public final class ArrayComponentHandler<T extends Component> extends ComponentHandler<T>
 {
-	protected ArrayComponentHandler ( Class<T> type, OpenBitSet componentBits, int wordsPerEntity, int index,
-			int capacity )
+	protected ArrayComponentHandler ( final Class<T> type, final OpenBitSet componentBits, final int wordsPerEntity,
+			final int index,
+			final int capacity )
 	{
 		super( type, componentBits, wordsPerEntity, index, capacity );
 	}
@@ -25,63 +26,21 @@ public final class ArrayComponentHandler<T extends Component> extends ComponentH
 	}
 
 	@Override
-	public final T getSafe ( final int id )
-	{
-		if ( isInBounds( id ) )
-		{
-			return get( id );
-		}
-		return null;
-	}
-
-	@Override
-	public final void add ( final int id, final T component )
-	{
-		if ( id < 0 )
-		{
-			return;
-		}
-		ensureCapacity( id );
-		addUnsafe( id, component );
-	}
-
-	@Override
-	public final void addUnsafe ( final int id, final T component )
-	{
-		data[id] = component;
-		// Mark as added.
-		addedComponent( id );
-	}
-
-	@Override
-	public final T removeSafe ( final int id )
-	{
-		if ( isInBounds( id ) )
-		{
-			return remove( id );
-		}
-
-		return null;
-	}
-
-	@Override
-	public final T remove ( final int id )
-	{
-		// Queue removal for later.
-		enqueueRemoval( id );
-		// Return removed item.
-		return data[id];
-	}
-
-	@Override
 	protected final void delete ( final int id )
 	{
 		data[id] = null;
 	}
 
-	private final boolean isInBounds ( final int index )
+	@Override
+	protected final void set ( final int id, final T component )
 	{
-		return (index > -1 && index < data.length);
+		data[id] = component;
+	}
+
+	@Override
+	protected final void ensureCapacity ( final int id )
+	{
+		resize( id );
 	}
 
 }

@@ -18,19 +18,17 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 	private long[] ranges;
 	private int rangesSize;
 
-	protected CompactComponentHandler ( Class<T> type, OpenBitSet componentBits, int wordsPerEntity, int index,
-			int capacity )
+	protected CompactComponentHandler ( final Class<T> type, final OpenBitSet componentBits, final int wordsPerEntity,
+			final int index,
+			final int capacity )
 	{
 		super( type, componentBits, wordsPerEntity, index, capacity );
 		this.ranges = new long[128];
 	}
 
 	@Override
-	public final void add ( final int id, final T component )
+	protected final void set ( final int id, final T component )
 	{
-		// We notify first, then do the whole process.
-		addedComponent( id );
-
 		final int curri = searchRangeIndex( ranges, rangesSize, id );
 		// Check if we could just insert a range at zero, or expand the first range.
 		if ( curri == 0 )
@@ -115,33 +113,6 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 	}
 
 	@Override
-	public final void addUnsafe ( final int id, final T component )
-	{
-		// No 'faster' path than this for now.
-		add( id, component );
-	}
-
-	@Override
-	public final T remove ( final int id )
-	{
-		// Will remove later.
-		enqueueRemoval( id );
-		// Return removed component.
-		return get( id );
-	}
-
-	@Override
-	public final T removeSafe ( final int id )
-	{
-		if ( isInBounds( id ) )
-		{
-			return remove( id );
-		}
-
-		return null;
-	}
-
-	@Override
 	public final T get ( final int id )
 	{
 		final int curri = searchRangeIndex( ranges, rangesSize, id );
@@ -150,23 +121,7 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 	}
 
 	@Override
-	public final T getSafe ( final int id )
-	{
-		if ( isInBounds( id ) )
-		{
-			return get( id );
-		}
-
-		return null;
-	}
-
-	@Override
 	protected final void delete ( final int id )
-	{
-		removeInternal( id );
-	}
-
-	private final T removeInternal ( final int id )
 	{
 		final int curri = searchRangeIndex( ranges, rangesSize, id );
 		// Clamp in case curri is first range.
@@ -176,7 +131,7 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 		final int leftStart = Range.start( leftRange );
 		final int leftEnd = Range.end( leftRange );
 		// Erase first before changing the ranges.
-		final T item = eraseItem( id - leftStart + leftOffset );
+		eraseItem( id - leftStart + leftOffset );
 		// Fix up the ranges.
 		if ( id == leftStart )
 		{
@@ -205,8 +160,6 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 		}
 		// Update all the range item counters to the right.
 		updateOffsets( lefti );
-		// And return what it was removed.
-		return item;
 	}
 
 	/**
@@ -295,7 +248,7 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 	private final void insertItem ( final int index, final T item )
 	{
 		final int size = size();
-		ensureCapacity( size + 1 );
+		resize( size + 1 );
 		// Make space for the new item and write.
 		System.arraycopy( data, index, data, index + 1, size - index );
 		data[index] = item;
@@ -507,5 +460,12 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 			res += ", ";
 		}
 		return "[" + res + "]";
+	}
+
+	@Override
+	protected final void ensureCapacity ( final int id )
+	{
+		// Nothing to do since it ensures capacity by default on add operations.
+		return;
 	}
 }

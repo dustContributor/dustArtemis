@@ -342,6 +342,11 @@ public final class DustContext
 		return eid;
 	}
 
+	private final void markComponentChanges ()
+	{
+		componentManager.markChanges();
+	}
+
 	private final void notifyFilters ()
 	{
 		for ( int i = 0; i < entityGroups.length; ++i )
@@ -357,9 +362,9 @@ public final class DustContext
 		}
 	}
 
-	private final void notifyComponentManager ()
+	private final void cleanupComponentManager ()
 	{
-		componentManager.clean( deleted );
+		componentManager.cleanup( deleted );
 	}
 
 	private final void notifyEntityManager ()
@@ -378,6 +383,11 @@ public final class DustContext
 
 			if ( obs.isActive() )
 			{
+				/*
+				 * TODO: What if component cleanup or initialization is still needed
+				 * even if step is disabled? This way the step will never know since
+				 * changes will be cleared in the next tick.
+				 */
 				obs.cleanup();
 			}
 		}
@@ -410,6 +420,8 @@ public final class DustContext
 	 */
 	public final void process ()
 	{
+		// Mark added/removed components in the entity bits.
+		markComponentChanges();
 		// Let the entity group filters update their internal lists.
 		notifyFilters();
 		/*
@@ -418,7 +430,7 @@ public final class DustContext
 		 */
 		cleanupSteps();
 		// Clean components from deleted entities.
-		notifyComponentManager();
+		cleanupComponentManager();
 		// Notify entity manager of all entity changes.
 		notifyEntityManager();
 		// Clearing all the affected entities before next update.

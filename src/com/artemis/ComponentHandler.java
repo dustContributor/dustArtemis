@@ -30,6 +30,8 @@ public abstract class ComponentHandler<T extends Component>
 	private final int typeIndex;
 	/** */
 	private final IntBag removedIds;
+	/** */
+	private final IntBag addedIds;
 	/** Storage for components. */
 	protected T[] data;
 
@@ -52,13 +54,14 @@ public abstract class ComponentHandler<T extends Component>
 		this.typeIndex = index;
 		this.wordsPerEntity = wordsPerEntity;
 		this.removedIds = new IntBag( 32 );
+		this.addedIds = new IntBag( 32 );
 	}
 
 	/**
 	 * Retrieves the related component from the entity.
 	 *
 	 * <p>
-	 * <b>UNSAFE: Avoids doing any bounds check.</b>
+	 * <b>UNSAFE: Not required to do bounds checks.</b>
 	 * </p>
 	 *
 	 * @param id of the entity that has the component.
@@ -73,7 +76,10 @@ public abstract class ComponentHandler<T extends Component>
 	 * @return the component that the entity has, or <code>null</code> if the
 	 *         entity its outside the bounds of this handler.
 	 */
-	public abstract T getSafe ( final int id );
+	public final T getSafe ( final int id )
+	{
+		return has( id ) ? get( id ) : null;
+	}
 
 	/**
 	 * Add a component to an entity.
@@ -81,19 +87,16 @@ public abstract class ComponentHandler<T extends Component>
 	 * @param id of the entity to add the component to.
 	 * @param component to add to the entity.
 	 */
-	public abstract void add ( final int id, final T component );
-
-	/**
-	 * Add a component to an entity.
-	 *
-	 * <p>
-	 * <b>UNSAFE: Avoids doing any bounds check.</b>
-	 * </p>
-	 *
-	 * @param id of the entity to add the component to.
-	 * @param component to add to the entity.
-	 */
-	public abstract void addUnsafe ( final int id, final T component );
+	public final void add ( final int id, final T component )
+	{
+		if ( id < 0 )
+		{
+			return;
+		}
+		addedComponent( id );
+		ensureCapacity( id );
+		set( id, component );
+	}
 
 	/**
 	 * Removes the related component of the specified entity.
@@ -104,19 +107,28 @@ public abstract class ComponentHandler<T extends Component>
 	 * @param id of the entity to remove the component from.
 	 * @return component that was removed from the entity.
 	 */
-	public abstract T removeSafe ( final int id );
+	public final T removeSafe ( final int id )
+	{
+		return has( id ) ? remove( id ) : null;
+	}
 
 	/**
 	 * Removes the related component of the specified entity.
 	 *
 	 * <p>
-	 * <b>UNSAFE: Avoids doing any bounds check.</b>
+	 * <b>UNSAFE: Not required to do bounds checks.</b>
 	 * </p>
 	 *
 	 * @param id of the entity to remove the component from.
 	 * @return component that was removed from the entity.
 	 */
-	public abstract T remove ( final int id );
+	public final T remove ( final int id )
+	{
+		// Will remove later.
+		removedComponent( id );
+		// Return removed component.
+		return get( id );
+	}
 
 	/**
 	 * Checks if the entity has this type of component.
@@ -143,6 +155,18 @@ public abstract class ComponentHandler<T extends Component>
 	}
 
 	/**
+	 * Sets a component to an entity.
+	 *
+	 * <p>
+	 * <b>UNSAFE: Not required to do bounds checks.</b>
+	 * </p>
+	 *
+	 * @param id of the entity to set the component to.
+	 * @param component to set to the entity.
+	 */
+	protected abstract void set ( final int id, final T component );
+
+	/**
 	 * Deletes the component of the specified entity. Doesn't notifies the
 	 * {@link ComponentManager} of the change. Used internally for component
 	 * cleanup of deleted entities.
@@ -155,26 +179,87 @@ public abstract class ComponentHandler<T extends Component>
 	 */
 	protected abstract void delete ( final int id );
 
+	protected abstract void ensureCapacity ( final int id );
+
+	/**
+	 * Resizes the handler so it can contain the index provided.
+	 *
+	 * @param index that is expected the handler can contain.
+	 */
+	protected final void resize ( final int index )
+	{
+		final int len = data.length;
+		if ( index >= len )
+		{
+			data = Arrays.copyOf( data, ImmutableBag.getCapacityFor( index, len ) );
+		}
+	}
+
+	/**
+	 * Internal method that marks all the added/removed components from the entity
+	 * bits.
+	 */
+	final void markChanges ()
+	{
+		final long[] bits = componentBits.getBits();
+		final int[] addedIds = this.addedIds.data();
+		final int addedSize = this.addedIds.size();
+
+		for ( int i = 0; i < addedSize; ++i )
+		{
+			BitUtil.setRelative( bits, typeIndex, addedIds[i], wordsPerEntity );
+		}
+
+		final int[] removedIds = this.removedIds.data();
+		final int removedSize = this.removedIds.size();
+
+		for ( int i = 0; i < removedSize; ++i )
+		{
+			BitUtil.clearRelative( bits, typeIndex, removedIds[i], wordsPerEntity );
+		}
+	}
+
+	/**
+	 * Internal method to cleanup all removed components and reset added/removed
+	 * tracking lists.
+	 */
+	final void cleanup ()
+	{
+		final int size = removedIds.size();
+		final int[] ids = removedIds.data();
+
+		removedIds.setSize( 0 );
+		addedIds.setSize( 0 );
+
+		for ( int i = 0; i < size; ++i )
+		{
+			delete( ids[i] );
+		}
+	}
+
 	/**
 	 * Sets the appropriate component flag for the entity.
-	 * 
+	 *
 	 * @param id of the entity.
 	 */
-	protected final void addedComponent ( final int id )
+	private final void addedComponent ( final int id )
 	{
-		BitUtil.setRelative( componentBits.getBits(), typeIndex, id, wordsPerEntity );
+		final int ei = addedIds.binarySearch( id );
+
+		if ( ei < 0 )
+		{
+			addedIds.insert( -ei - 1, id );
+		}
 	}
 
 	/**
 	 * Clears the appropriate component flag for the entity and queues the
 	 * component removal for later.
-	 * 
+	 *
 	 * @param id of the entity.
 	 */
-	protected final void enqueueRemoval ( final int id )
+	private final void removedComponent ( final int id )
 	{
-		BitUtil.clearRelative( componentBits.getBits(), typeIndex, id, wordsPerEntity );
-
 		final int ei = removedIds.binarySearch( id );
 
 		if ( ei < 0 )
@@ -183,34 +268,4 @@ public abstract class ComponentHandler<T extends Component>
 		}
 	}
 
-	/**
-	 * Resizes the handler so it can contain the index provided.
-	 *
-	 * @param index that is expected the handler can contain.
-	 */
-	protected final void ensureCapacity ( final int index )
-	{
-		final int dataLen = data.length;
-
-		if ( index >= dataLen )
-		{
-			data = Arrays.copyOf( data, ImmutableBag.getCapacityFor( index, dataLen ) );
-		}
-	}
-
-	/**
-	 * Internal method to cleanup any components removed since the last to this
-	 * method.
-	 */
-	final void clean ()
-	{
-		final int size = removedIds.size();
-		final int[] ids = removedIds.data();
-		removedIds.setSize( 0 );
-
-		for ( int i = 0; i < size; ++i )
-		{
-			delete( ids[i] );
-		}
-	}
 }
