@@ -177,7 +177,7 @@ final class Injector
 	private static final void trySetField ( final Field field, final Object target, final Object value )
 	{
 		// Store current state of the field.
-		final boolean wasntAccessible = !field.isAccessible();
+		final boolean wasntAccessible = !field.canAccess( target );
 		// If its accessible, no need to change it.
 		if ( wasntAccessible )
 		{
