@@ -138,7 +138,8 @@ public abstract class ComponentHandler<T extends Component>
 	 */
 	public final boolean has ( final int id )
 	{
-		return BitUtil.getRelative( componentBits.getBits(), typeIndex, id, wordsPerEntity );
+		return id >= 0 && id < (componentBits.length() * wordsPerEntity)
+				&& BitUtil.getRelative( componentBits.getBits(), typeIndex, id, wordsPerEntity );
 	}
 
 	/**
