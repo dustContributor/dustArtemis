@@ -5,38 +5,36 @@ import java.lang.reflect.ParameterizedType;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import com.artemis.annotations.EntitiesOf;
+//import com.artemis.annotations.EntitiesOf;
 import com.artemis.utils.Bag;
 import com.artemis.utils.ImmutableIntBag;
 
 /**
  * Class with static method for initializing {@link ComponentHandler}s and
- * {@link EntityObserver}s. <br>
- * It just plain initializes any {@link ComponentHandler} or
- * {@link EntityObserver} field it comes across in each object.
+ * {@link DustStep}s. <br>
+ * It just plain initializes any {@link ComponentHandler} or {@link DustStep}
+ * field it comes across in each object.
  *
  * @author dustContributor
  */
 final class Injector
 {
-	private final World world;
+	private final DustContext world;
 	private final Predicate<Field>[] tests;
 	private final Function<Field, Object>[] suppliers;
 
-	private Injector ( final World world )
+	private Injector ( final DustContext world )
 	{
 		// Init all fields.
 		this.world = world;
 		// Predicates to test if the field is the appropriate one.
 		this.tests = asArray(
 				Injector::testForHandler,
-				Injector::testForObserver,
-				Injector::testForEntitiesOf );
+				Injector::testForObserver );
 		// Suppliers for each of the fields that need to be injected.
 		this.suppliers = asArray(
 				this::supplyHandler,
-				this::supplyObserver,
-				this::supplyEntities );
+				this::supplyObserver );
 	}
 
 	/**
@@ -53,12 +51,12 @@ final class Injector
 
 	/**
 	 * For each of the objects provided, they will get assigned an instance of
-	 * their {@link EntityObserver}, {@link ComponentHandler} or entity
+	 * their {@link DustStep}, {@link ComponentHandler} or entity
 	 * {@link ImmutableIntBag} fields.
 	 *
 	 * @param objects that you need initialized.
 	 */
-	static final void init ( final World world, final Object[] objects )
+	static final void init ( final DustContext world, final Object[] objects )
 	{
 		// Validate params.
 		DustException.enforceNonNull( Injector.class, world, "world" );
@@ -143,7 +141,7 @@ final class Injector
 	{
 		final Class<?> type = field.getType();
 		@SuppressWarnings( "unchecked" )
-		final EntityObserver value = world.observer( (Class<EntityObserver>) type );
+		final DustStep value = world.step( (Class<DustStep>) type );
 		// Check for missing observer.
 		if ( value == null )
 		{
@@ -152,41 +150,6 @@ final class Injector
 		}
 		// Everything OK.
 		return value;
-	}
-
-	private final Object supplyEntities ( final Field field )
-	{
-		/*
-		 * ImmutableIntBag has no superclasses besides Object so just check
-		 * directly.
-		 */
-		if ( !(ImmutableIntBag.class == field.getType()) )
-		{
-			/*
-			 * Fetch names at runtime so refactoring names wont mess up the message.
-			 */
-			final String anName = EntitiesOf.class.getSimpleName();
-			final String listName = ImmutableIntBag.class.getSimpleName();
-			final String fmsg = field.toString();
-			// Compose error message and throw exception.
-			throw new DustException( this,
-					"While injecting FIELD: " + fmsg + ". Can only use " + anName +
-							" annotation on " + listName + " fields!" );
-		}
-
-		final EntitiesOf ients = field.getAnnotation( EntitiesOf.class );
-		final Class<? extends EntitySystem> type = ients.value();
-		final EntitySystem source = world.observer( type );
-		// Check if the entity list source is null.
-		if ( source == null )
-		{
-			final String tname = type.getSimpleName();
-			throw new DustException( this,
-					"Cant find OBSERVER of the type " + tname
-							+ " to fetch entity list from!" );
-		}
-		// Everything OK.
-		return source.actives();
 	}
 
 	/**
@@ -201,31 +164,20 @@ final class Injector
 	}
 
 	/**
-	 * Tests if the passed field is a subclass of {@link EntityObserver}.
+	 * Tests if the passed field is a subclass of {@link DustStep}.
 	 *
 	 * @param field to test.
 	 * @return 'true' if it is, 'false' otherwise.
 	 */
 	private static final boolean testForObserver ( final Field field )
 	{
-		return EntityObserver.class.isAssignableFrom( field.getType() );
-	}
-
-	/**
-	 * Tests if the passed field possesses the annotation {@link EntitiesOf}.
-	 *
-	 * @param field to test.
-	 * @return 'true' if it has it, 'false' otherwise.
-	 */
-	private static final boolean testForEntitiesOf ( final Field field )
-	{
-		return field.getAnnotation( EntitiesOf.class ) != null;
+		return DustStep.class.isAssignableFrom( field.getType() );
 	}
 
 	private static final void trySetField ( final Field field, final Object target, final Object value )
 	{
 		// Store current state of the field.
-		final boolean wasntAccessible = !field.isAccessible();
+		final boolean wasntAccessible = !field.canAccess( target );
 		// If its accessible, no need to change it.
 		if ( wasntAccessible )
 		{

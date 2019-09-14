@@ -15,13 +15,13 @@ import java.util.function.Supplier;
  * default minimum capacity, implements grow strategies so it doesn't grows
  * madly after a few thousand adds, clearly defines different 'safe' and
  * 'unsafe' methods, and probably more stuff I'm missing.
- * 
+ *
  * <p>
  * Growth is predictable. Before set(index,value) method enlarged the array
  * depending on the index that was being set, now it follows the grow strategies
  * always.
  * </p>
- * 
+ *
  * <p>
  * These are the grow strategies:
  * </p>
@@ -34,7 +34,7 @@ import java.util.function.Supplier;
  * {@link ImmutableBag#GROW_RATE_THRESHOLD}
  * </p>
  * </p>
- * 
+ *
  * @author Arni Arent
  * @author dustContributor
  *
@@ -46,7 +46,7 @@ public final class Bag<T> extends AbstractBag<T>
 	 * Constructs an empty Bag with an initial capacity of
 	 * {@link ImmutableBag#DEFAULT_CAPACITY}. The backing array type will be
 	 * Object.
-	 * 
+	 *
 	 */
 	public Bag ()
 	{
@@ -55,14 +55,14 @@ public final class Bag<T> extends AbstractBag<T>
 
 	/**
 	 * Constructs an empty Bag with the specified initial capacity.
-	 * 
+	 *
 	 * <p>
 	 * NOTE: If capacity is less than
 	 * {@link ImmutableBag#MINIMUM_WORKING_CAPACITY}, the Bag will be created with
 	 * a capacity of {@link ImmutableBag#MINIMUM_WORKING_CAPACITY} instead. The
 	 * backing array type will be Object.
 	 * </p>
-	 * 
+	 *
 	 * @param capacity of the Bag
 	 */
 	public Bag ( final int capacity )
@@ -74,7 +74,7 @@ public final class Bag<T> extends AbstractBag<T>
 	 * Constructs an empty Bag with an initial capacity of
 	 * {@link ImmutableBag#DEFAULT_CAPACITY}. Uses Array.newInstance() to
 	 * instantiate a backing array of the proper type.
-	 * 
+	 *
 	 * @param type of the backing array.
 	 */
 	public Bag ( final Class<T> type )
@@ -84,16 +84,16 @@ public final class Bag<T> extends AbstractBag<T>
 
 	/**
 	 * Constructs an empty Bag with the defined initial capacity.
-	 * 
+	 *
 	 * <p>
 	 * NOTE: If capacity is less than
 	 * {@link ImmutableBag#MINIMUM_WORKING_CAPACITY}, the Bag will be created with
 	 * a capacity of {@link ImmutableBag#MINIMUM_WORKING_CAPACITY} instead. Uses
 	 * Array.newInstance() to instantiate a backing array of the proper type.
 	 * </p>
-	 * 
+	 *
 	 * @param type of the backing array.
-	 * 
+	 *
 	 * @param capacity of the Bag.
 	 */
 	public Bag ( final Class<T> type, final int capacity )
@@ -103,9 +103,9 @@ public final class Bag<T> extends AbstractBag<T>
 
 	/**
 	 * Adds the specified item to the end of this bag.
-	 * 
+	 *
 	 * It will increase the size of the bag as required.
-	 * 
+	 *
 	 * @param item to be added to this list
 	 */
 	public void add ( final T item )
@@ -117,11 +117,11 @@ public final class Bag<T> extends AbstractBag<T>
 
 	/**
 	 * Constructs an empty Bag with the defined data array as backing storage.
-	 * 
+	 *
 	 * <p>
 	 * <b>NOTE</b>: Wont do any length/null checks on the passed array.
 	 * </p>
-	 * 
+	 *
 	 * @param data array to use as backing storage.
 	 */
 	public Bag ( final T[] data )
@@ -131,11 +131,11 @@ public final class Bag<T> extends AbstractBag<T>
 
 	/**
 	 * Adds the specified item to the end of this bag.
-	 * 
+	 *
 	 * <p>
 	 * <b>UNSAFE: Avoids doing any bounds check.</b>
 	 * </p>
-	 * 
+	 *
 	 * @param item to be added to this list
 	 */
 	public void addUnsafe ( final T item )
@@ -148,7 +148,7 @@ public final class Bag<T> extends AbstractBag<T>
 
 	/**
 	 * Add items into this bag. Does nothing if itemsLength is less than 1.
-	 * 
+	 *
 	 * @param items to add.
 	 * @param itemsLength of the item array that will be added.
 	 */
@@ -156,29 +156,29 @@ public final class Bag<T> extends AbstractBag<T>
 	{
 		if ( itemsLength > 0 )
 		{
-			ensureCapacity( itemsLength + size );
+			ensureCapacity( itemsLength + size - 1 );
 			addAllUnsafe( items, itemsLength );
 		}
 	}
 
 	/**
 	 * Add all items into this bag.
-	 * 
+	 *
 	 * @param items to add.
 	 */
 	public void addAll ( final T[] items )
 	{
-		ensureCapacity( items.length + size );
+		ensureCapacity( items.length + size - 1 );
 		addAllUnsafe( items, items.length );
 	}
 
 	/**
 	 * Add items into this bag.
-	 * 
+	 *
 	 * <p>
 	 * <b>UNSAFE: Avoids doing any bounds check.</b>
 	 * </p>
-	 * 
+	 *
 	 * @param items to add.
 	 * @param itemsLength of the item array that will be added.
 	 */
@@ -190,7 +190,7 @@ public final class Bag<T> extends AbstractBag<T>
 
 	/**
 	 * Add all items into this bag.
-	 * 
+	 *
 	 * @param items to add.
 	 */
 	public void addAll ( final Bag<T> items )
@@ -200,26 +200,29 @@ public final class Bag<T> extends AbstractBag<T>
 
 	/**
 	 * Add all items into this bag.
-	 * 
+	 *
 	 * @param items to add.
 	 */
 	public void addAll ( final ImmutableBag<T> items )
 	{
+		final T[] data = this.data;
+		final int size = this.size;
 		final int itemsSize = items.size();
-
-		ensureCapacity( itemsSize + size );
-
-		for ( int i = 0; i < itemsSize; ++i )
+		// New size.
+		this.size = itemsSize + size;
+		ensureCapacity( itemsSize + size - 1 );
+		// Copy values back.
+		for ( int i = 0, d = size; i < itemsSize; ++i, ++d )
 		{
-			add( items.getUnsafe( i ) );
+			data[d] = items.getUnsafe( i );
 		}
 	}
 
 	/**
 	 * Set item at specified index in the bag.
-	 * 
+	 *
 	 * It will increase the size of the bag as required.
-	 * 
+	 *
 	 * @param index of item
 	 * @param item to be set.
 	 */
@@ -238,7 +241,7 @@ public final class Bag<T> extends AbstractBag<T>
 	 * Tries to get the item at the specified index. If it isn't there, it sets it
 	 * to whatever the supplier provides, then returns that result. Will resize
 	 * the bag as needed.
-	 * 
+	 *
 	 * @param index of the item.
 	 * @param supplier of items to use if its missing.
 	 * @return item at the index, or null if the index is negative.
@@ -266,11 +269,11 @@ public final class Bag<T> extends AbstractBag<T>
 
 	/**
 	 * Set item at specified index in the bag.
-	 * 
+	 *
 	 * <p>
 	 * <b>UNSAFE: Avoids doing any bounds check.</b>
 	 * </p>
-	 * 
+	 *
 	 * @param index of item
 	 * @param item to be set.
 	 */
@@ -283,15 +286,20 @@ public final class Bag<T> extends AbstractBag<T>
 	/**
 	 * Inserts an item into a position of this Bag, shifting any elements
 	 * remaining to the right, preserving their order.
-	 * 
+	 *
 	 * @param index to insert the item at.
 	 * @param item to be inserted into the Bag.
 	 */
 	public void insert ( final int index, final T item )
 	{
-		if ( isInSize( index ) )
+		final int size = this.size;
+		/*
+		 * Allow to insert at 0 if the bag is empty, or at the end if there is
+		 * anything.
+		 */
+		if ( index >= 0 && index <= size )
 		{
-			ensureCapacity( size + 1 );
+			ensureCapacity( size );
 			insertUnsafe( index, item );
 		}
 	}
@@ -299,11 +307,11 @@ public final class Bag<T> extends AbstractBag<T>
 	/**
 	 * Inserts an item into a position of this Bag, shifting any elements
 	 * remaining to the right, preserving their order.
-	 * 
+	 *
 	 * <p>
 	 * <b>UNSAFE: Avoids doing any bounds check.</b>
 	 * </p>
-	 * 
+	 *
 	 * @param index to insert the item at.
 	 * @param item to be inserted into the Bag.
 	 */
@@ -321,7 +329,7 @@ public final class Bag<T> extends AbstractBag<T>
 	/**
 	 * Erases an element of this Bag, shifting the remaining elements to the left,
 	 * preserving their order.
-	 * 
+	 *
 	 * @param index to erase an element at.
 	 * @return the element erased from this Bag.
 	 */
@@ -338,11 +346,11 @@ public final class Bag<T> extends AbstractBag<T>
 	/**
 	 * Erases an element of this Bag, shifting the remaining elements to the left,
 	 * preserving their order.
-	 * 
+	 *
 	 * <p>
 	 * <b>UNSAFE: Avoids doing any bounds check.</b>
 	 * </p>
-	 * 
+	 *
 	 * @param index to erase an element at.
 	 * @return the element erased from this Bag.
 	 */
@@ -364,7 +372,7 @@ public final class Bag<T> extends AbstractBag<T>
 	 * Erases the first occurrence of the specified item from this Bag, if it is
 	 * present, shifting the remaining elements to the left, preserving their
 	 * order.
-	 * 
+	 *
 	 * @param item to be erased from this bag.
 	 * @return <code>true</code> if this bag contained the specified item.
 	 */
@@ -390,9 +398,9 @@ public final class Bag<T> extends AbstractBag<T>
 	/**
 	 * Erases the first occurrence of the item that matches the provided criteria,
 	 * shifting the remaining elements to the left, preserving their order.
-	 * 
+	 *
 	 * @param criteria to match the items against.
-	 * 
+	 *
 	 * @return the first item that matched the criteria, <code>null</code> if no
 	 *         items matched the criteria.
 	 */
@@ -416,10 +424,10 @@ public final class Bag<T> extends AbstractBag<T>
 	/**
 	 * Removes the item at the specified position in this Bag. Does this by
 	 * overwriting it was last item then removing last item.
-	 * 
+	 *
 	 * It returns <code>null</code> if the index its outside bounds or if the item
 	 * at the index was <code>null</code>.
-	 * 
+	 *
 	 * @param index the index of item to be removed
 	 * @return item that was removed from the Bag.
 	 */
@@ -436,11 +444,11 @@ public final class Bag<T> extends AbstractBag<T>
 	/**
 	 * Removes the item at the specified position in this Bag. Does this by
 	 * overwriting it was last item then removing last item.
-	 * 
+	 *
 	 * <p>
 	 * <b>UNSAFE: Avoids doing any bounds check.</b>
 	 * </p>
-	 * 
+	 *
 	 * @param index the index of item to be removed
 	 * @return item that was removed from the Bag
 	 */
@@ -460,7 +468,7 @@ public final class Bag<T> extends AbstractBag<T>
 
 	/**
 	 * Removes the first value in the bag.
-	 * 
+	 *
 	 * @return the first value in the bag, or <code>null</code> if it has no
 	 *         values.
 	 */
@@ -477,11 +485,11 @@ public final class Bag<T> extends AbstractBag<T>
 
 	/**
 	 * Removes the first value in the bag.
-	 * 
+	 *
 	 * <p>
 	 * <b>UNSAFE: Avoids doing any bounds check.</b>
 	 * </p>
-	 * 
+	 *
 	 * @return the first value in the bag.
 	 */
 	public T removeFirstUnsafe ()
@@ -491,7 +499,7 @@ public final class Bag<T> extends AbstractBag<T>
 
 	/**
 	 * Removes the last object in the bag.
-	 * 
+	 *
 	 * @return the last item in the bag, or <code>null</code> if it has no items.
 	 */
 	public T removeLast ()
@@ -507,11 +515,11 @@ public final class Bag<T> extends AbstractBag<T>
 
 	/**
 	 * Removes the last object in the bag.
-	 * 
+	 *
 	 * <p>
 	 * <b>UNSAFE: Avoids doing any bounds check.</b>
 	 * </p>
-	 * 
+	 *
 	 * @return the last item in the bag.
 	 */
 	public T removeLastUnsafe ()
@@ -529,7 +537,7 @@ public final class Bag<T> extends AbstractBag<T>
 	/**
 	 * Removes the first occurrence of the specified item from this Bag, if it is
 	 * present. Works by overwriting it was last item then removing last item.
-	 * 
+	 *
 	 * @param item to be removed from this bag.
 	 * @return <code>true</code> if this bag contained the specified item.
 	 */
@@ -555,9 +563,9 @@ public final class Bag<T> extends AbstractBag<T>
 	/**
 	 * Removes the first occurrence of the item that matches the provided
 	 * criteria. Works by overwriting it was last item then removing last item.
-	 * 
+	 *
 	 * @param criteria to match the items against.
-	 * 
+	 *
 	 * @return the first item that matched the criteria, <code>null</code> if no
 	 *         items matched the criteria.
 	 */
@@ -581,7 +589,7 @@ public final class Bag<T> extends AbstractBag<T>
 	/**
 	 * Removes from this Bag all of its items that are contained in the specified
 	 * Bag.
-	 * 
+	 *
 	 * @param bag containing items to be removed from this Bag
 	 */
 	public void removeAll ( final Bag<T> bag )
@@ -598,7 +606,7 @@ public final class Bag<T> extends AbstractBag<T>
 	/**
 	 * Removes from this Bag all of its items that are contained in the specified
 	 * Bag.
-	 * 
+	 *
 	 * @param bag containing items to be removed from this Bag
 	 */
 	public void removeAll ( final ImmutableBag<T> bag )

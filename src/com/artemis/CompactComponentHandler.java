@@ -2,7 +2,7 @@ package com.artemis;
 
 import java.util.Arrays;
 
-import com.artemis.utils.ImmutableBag;
+import org.apache.lucene.util.OpenBitSet;
 
 /**
  * This component handler doesn't allows for gaps in between components, they're
@@ -18,33 +18,17 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 	private long[] ranges;
 	private int rangesSize;
 
-	/**
-	 * Constructs an empty handler with an initial capacity of
-	 * {@link ImmutableBag#DEFAULT_CAPACITY}. Uses Array.newInstance() to
-	 * instantiate a backing array of the proper type.
-	 *
-	 * @param type of the backing array.
-	 * @param owner of this component handler.
-	 * @param index of the component type this handler will manage in the
-	 *          component manager.
-	 */
-	CompactComponentHandler ( final Class<T> type, final ComponentManager owner, final int index )
+	protected CompactComponentHandler ( final Class<T> type, final OpenBitSet componentBits, final int wordsPerEntity,
+			final int index,
+			final int capacity )
 	{
-		this( type, owner, index, ImmutableBag.DEFAULT_CAPACITY );
-	}
-
-	CompactComponentHandler ( final Class<T> type, final ComponentManager owner, final int index, final int capacity )
-	{
-		super( type, owner, index, capacity );
+		super( type, componentBits, wordsPerEntity, index, capacity );
 		this.ranges = new long[128];
 	}
 
 	@Override
-	public final void add ( final int id, final T component )
+	protected final void set ( final int id, final T component )
 	{
-		// We notify first, then do the whole process.
-		cm.notifyAddedComponent( id, typeIndex );
-
 		final int curri = searchRangeIndex( ranges, rangesSize, id );
 		// Check if we could just insert a range at zero, or expand the first range.
 		if ( curri == 0 )
@@ -129,14 +113,15 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 	}
 
 	@Override
-	public final void addUnsafe ( final int id, final T component )
+	public final T get ( final int id )
 	{
-		// No 'faster' path than this for now.
-		add( id, component );
+		final int curri = searchRangeIndex( ranges, rangesSize, id );
+		final long leftRange = ranges[curri - 1];
+		return this.data[id - Range.start( leftRange ) + Range.offset( leftRange )];
 	}
 
 	@Override
-	public final T remove ( final int id )
+	protected final void delete ( final int id )
 	{
 		final int curri = searchRangeIndex( ranges, rangesSize, id );
 		// Clamp in case curri is first range.
@@ -146,7 +131,7 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 		final int leftStart = Range.start( leftRange );
 		final int leftEnd = Range.end( leftRange );
 		// Erase first before changing the ranges.
-		final T item = eraseItem( id - leftStart + leftOffset );
+		eraseItem( id - leftStart + leftOffset );
 		// Fix up the ranges.
 		if ( id == leftStart )
 		{
@@ -173,48 +158,8 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 				insertRange( curri, Range.of( newStart, leftEnd ) );
 			}
 		}
-		// Notify the component manager about changes.
-		cm.notifyRemovedComponent( id, typeIndex );
 		// Update all the range item counters to the right.
 		updateOffsets( lefti );
-		// And return what it was removed.
-		return item;
-	}
-
-	@Override
-	public final T removeSafe ( final int id )
-	{
-		if ( isInBounds( id ) )
-		{
-			return remove( id );
-		}
-
-		return null;
-	}
-
-	@Override
-	public final T get ( final int id )
-	{
-		final int curri = searchRangeIndex( ranges, rangesSize, id );
-		final long leftRange = ranges[curri - 1];
-		return this.data[id - Range.start( leftRange ) + Range.offset( leftRange )];
-	}
-
-	@Override
-	public final T getSafe ( final int id )
-	{
-		if ( isInBounds( id ) )
-		{
-			return get( id );
-		}
-
-		return null;
-	}
-
-	@Override
-	public final boolean has ( final int id )
-	{
-		return cm.hasComponent( id, typeIndex );
 	}
 
 	/**
@@ -303,7 +248,7 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 	private final void insertItem ( final int index, final T item )
 	{
 		final int size = size();
-		ensureCapacity( size + 1 );
+		resize( size + 1 );
 		// Make space for the new item and write.
 		System.arraycopy( data, index, data, index + 1, size - index );
 		data[index] = item;
@@ -313,7 +258,7 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 	{
 		final int size = rangesSize;
 		final int newSize = size + 1;
-		fixRangeCapacity( newSize );
+		final long[] ranges = fixRangeCapacity( newSize );
 		// Make space for the new item and write.
 		System.arraycopy( ranges, index, ranges, index + 1, size - index );
 		ranges[index] = range;
@@ -354,7 +299,7 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 		Range.updateOffsets( index, ranges, rangesSize );
 	}
 
-	public static final int searchRangeIndex ( final long[] data, final int size, final int value )
+	private static final int searchRangeIndex ( final long[] data, final int size, final int value )
 	{
 		// Range index.
 		int rangei = 0;
@@ -515,5 +460,12 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 			res += ", ";
 		}
 		return "[" + res + "]";
+	}
+
+	@Override
+	protected final void ensureCapacity ( final int id )
+	{
+		// Nothing to do since it ensures capacity by default on add operations.
+		return;
 	}
 }

@@ -1,9 +1,15 @@
 package com.artemis;
 
+import static com.artemis.DustException.enforceNonNull;
+
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
+import org.apache.lucene.util.BitUtil;
+import org.apache.lucene.util.OpenBitSet;
+
 import com.artemis.utils.ImmutableBag;
+import com.artemis.utils.IntBag;
 
 /**
  * This class serves to manage a particular component type. Its used for both
@@ -16,48 +22,46 @@ import com.artemis.utils.ImmutableBag;
  */
 public abstract class ComponentHandler<T extends Component>
 {
-	protected T[] data;
+	/** Bit flags indicating component ownership of entities. */
+	private final OpenBitSet componentBits;
+	/* How many 64 bit words are reserved for each entity. */
+	private final int wordsPerEntity;
 	/** Index of the component type that this handler uses. */
-	protected final int typeIndex;
-	/** Component manager owner of this handler. */
-	protected final ComponentManager cm;
-
-	/**
-	 * Constructs an empty handler with an initial capacity of
-	 * {@link ImmutableBag#DEFAULT_CAPACITY}. Uses Array.newInstance() to
-	 * instantiate a backing array of the proper type.
-	 *
-	 * @param type of the backing array.
-	 * @param owner of this component handler.
-	 * @param index of the component type this handler will manage in the
-	 *          component manager.
-	 */
-	protected ComponentHandler ( final Class<T> type, final ComponentManager owner, final int index )
-	{
-		this( type, owner, index, ImmutableBag.DEFAULT_CAPACITY );
-	}
+	private final int typeIndex;
+	/** */
+	private final IntBag removedIds;
+	/** */
+	private final IntBag addedIds;
+	/** Storage for components. */
+	protected T[] data;
 
 	@SuppressWarnings( "unchecked" )
-	protected ComponentHandler ( final Class<T> type, final ComponentManager owner, final int index, final int capacity )
+	protected ComponentHandler ( final Class<T> type, final OpenBitSet componentBits, final int wordsPerEntity,
+			final int index, final int capacity )
 	{
-		DustException.enforceNonNull( this, type, "type" );
-
 		if ( index < 0 )
 		{
 			throw new DustException( this, "index can't be negative!" );
 		}
 
-		// this.cm = DustException.enforceNonNull( this, owner, "owner" );
-		this.cm = owner;
-		this.data = (T[]) Array.newInstance( type, capacity );
+		if ( wordsPerEntity < 1 )
+		{
+			throw new DustException( this, "wordsPerEntity has to be positive!" );
+		}
+
+		this.data = (T[]) Array.newInstance( enforceNonNull( this, type, "type" ), capacity );
+		this.componentBits = enforceNonNull( this, componentBits, "componentBits" );
 		this.typeIndex = index;
+		this.wordsPerEntity = wordsPerEntity;
+		this.removedIds = new IntBag( 32 );
+		this.addedIds = new IntBag( 32 );
 	}
 
 	/**
 	 * Retrieves the related component from the entity.
 	 *
 	 * <p>
-	 * <b>UNSAFE: Avoids doing any bounds check.</b>
+	 * <b>UNSAFE: Not required to do bounds checks.</b>
 	 * </p>
 	 *
 	 * @param id of the entity that has the component.
@@ -72,7 +76,10 @@ public abstract class ComponentHandler<T extends Component>
 	 * @return the component that the entity has, or <code>null</code> if the
 	 *         entity its outside the bounds of this handler.
 	 */
-	public abstract T getSafe ( final int id );
+	public final T getSafe ( final int id )
+	{
+		return has( id ) ? get( id ) : null;
+	}
 
 	/**
 	 * Add a component to an entity.
@@ -80,19 +87,16 @@ public abstract class ComponentHandler<T extends Component>
 	 * @param id of the entity to add the component to.
 	 * @param component to add to the entity.
 	 */
-	public abstract void add ( final int id, final T component );
-
-	/**
-	 * Add a component to an entity.
-	 *
-	 * <p>
-	 * <b>UNSAFE: Avoids doing any bounds check.</b>
-	 * </p>
-	 *
-	 * @param id of the entity to add the component to.
-	 * @param component to add to the entity.
-	 */
-	public abstract void addUnsafe ( final int id, final T component );
+	public final void add ( final int id, final T component )
+	{
+		if ( id < 0 )
+		{
+			return;
+		}
+		addedComponent( id );
+		ensureCapacity( id );
+		set( id, component );
+	}
 
 	/**
 	 * Removes the related component of the specified entity.
@@ -103,19 +107,28 @@ public abstract class ComponentHandler<T extends Component>
 	 * @param id of the entity to remove the component from.
 	 * @return component that was removed from the entity.
 	 */
-	public abstract T removeSafe ( final int id );
+	public final T removeSafe ( final int id )
+	{
+		return has( id ) ? remove( id ) : null;
+	}
 
 	/**
 	 * Removes the related component of the specified entity.
 	 *
 	 * <p>
-	 * <b>UNSAFE: Avoids doing any bounds check.</b>
+	 * <b>UNSAFE: Not required to do bounds checks.</b>
 	 * </p>
 	 *
 	 * @param id of the entity to remove the component from.
 	 * @return component that was removed from the entity.
 	 */
-	public abstract T remove ( final int id );
+	public final T remove ( final int id )
+	{
+		// Will remove later.
+		removedComponent( id );
+		// Return removed component.
+		return get( id );
+	}
 
 	/**
 	 * Checks if the entity has this type of component.
@@ -123,21 +136,10 @@ public abstract class ComponentHandler<T extends Component>
 	 * @param id of the entity that could have the component.
 	 * @return true if the entity has this component type, false if it doesn't.
 	 */
-	public abstract boolean has ( final int id );
-
-	/**
-	 * Resizes the handler so it can contain the index provided.
-	 *
-	 * @param index that is expected the handler can contain.
-	 */
-	protected final void ensureCapacity ( final int index )
+	public final boolean has ( final int id )
 	{
-		final int dataLen = data.length;
-
-		if ( index >= dataLen )
-		{
-			data = Arrays.copyOf( data, ImmutableBag.getCapacityFor( index, dataLen ) );
-		}
+		return id >= 0 && id < (componentBits.length() * wordsPerEntity)
+				&& BitUtil.getRelative( componentBits.getBits(), typeIndex, id, wordsPerEntity );
 	}
 
 	/**
@@ -151,6 +153,120 @@ public abstract class ComponentHandler<T extends Component>
 	public final T[] data ()
 	{
 		return this.data;
+	}
+
+	/**
+	 * Sets a component to an entity.
+	 *
+	 * <p>
+	 * <b>UNSAFE: Not required to do bounds checks.</b>
+	 * </p>
+	 *
+	 * @param id of the entity to set the component to.
+	 * @param component to set to the entity.
+	 */
+	protected abstract void set ( final int id, final T component );
+
+	/**
+	 * Deletes the component of the specified entity. Doesn't notifies the
+	 * {@link ComponentManager} of the change. Used internally for component
+	 * cleanup of deleted entities.
+	 *
+	 * <p>
+	 * <b>UNSAFE: Avoids doing any bounds check.</b>
+	 * </p>
+	 *
+	 * @param id of the entity with the component.
+	 */
+	protected abstract void delete ( final int id );
+
+	protected abstract void ensureCapacity ( final int id );
+
+	/**
+	 * Resizes the handler so it can contain the index provided.
+	 *
+	 * @param index that is expected the handler can contain.
+	 */
+	protected final void resize ( final int index )
+	{
+		final int len = data.length;
+		if ( index >= len )
+		{
+			data = Arrays.copyOf( data, ImmutableBag.getCapacityFor( index, len ) );
+		}
+	}
+
+	/**
+	 * Internal method that marks all the added/removed components from the entity
+	 * bits.
+	 */
+	final void markChanges ()
+	{
+		final long[] bits = componentBits.getBits();
+		final int[] addedIds = this.addedIds.data();
+		final int addedSize = this.addedIds.size();
+
+		for ( int i = 0; i < addedSize; ++i )
+		{
+			BitUtil.setRelative( bits, typeIndex, addedIds[i], wordsPerEntity );
+		}
+
+		final int[] removedIds = this.removedIds.data();
+		final int removedSize = this.removedIds.size();
+
+		for ( int i = 0; i < removedSize; ++i )
+		{
+			BitUtil.clearRelative( bits, typeIndex, removedIds[i], wordsPerEntity );
+		}
+	}
+
+	/**
+	 * Internal method to cleanup all removed components and reset added/removed
+	 * tracking lists.
+	 */
+	final void cleanup ()
+	{
+		final int size = removedIds.size();
+		final int[] ids = removedIds.data();
+
+		removedIds.setSize( 0 );
+		addedIds.setSize( 0 );
+
+		for ( int i = 0; i < size; ++i )
+		{
+			delete( ids[i] );
+		}
+	}
+
+	/**
+	 * Sets the appropriate component flag for the entity.
+	 *
+	 * @param id of the entity.
+	 */
+	private final void addedComponent ( final int id )
+	{
+		final int ei = addedIds.binarySearch( id );
+
+		if ( ei < 0 )
+		{
+			addedIds.insert( -ei - 1, id );
+		}
+	}
+
+	/**
+	 * Clears the appropriate component flag for the entity and queues the
+	 * component removal for later.
+	 *
+	 * @param id of the entity.
+	 */
+	private final void removedComponent ( final int id )
+	{
+		final int ei = removedIds.binarySearch( id );
+
+		if ( ei < 0 )
+		{
+			removedIds.insert( -ei - 1, id );
+		}
 	}
 
 }

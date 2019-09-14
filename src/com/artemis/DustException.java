@@ -34,7 +34,7 @@ final class DustException extends RuntimeException
 	static final String makeMessage ( final Object source, final String message )
 	{
 		// Assume null then check later.
-		String sourceName = "null";
+		String sourceName = String.valueOf( (Object) null );
 
 		if ( source != null )
 		{

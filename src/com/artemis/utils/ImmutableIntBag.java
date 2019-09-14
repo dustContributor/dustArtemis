@@ -177,7 +177,7 @@ public abstract class ImmutableIntBag
 	 */
 	public int get ( final int index, final int defaultValue )
 	{
-		if ( isInBounds( index ) )
+		if ( isInSize( index ) )
 		{
 			return data[index];
 		}
