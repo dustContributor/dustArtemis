@@ -40,16 +40,13 @@ import java.util.function.Supplier;
  *
  * @param <T> type of the elements it holds.
  */
-public final class Bag<T> extends AbstractBag<T>
-{
+public final class Bag<T> extends AbstractBag<T> {
 	/**
 	 * Constructs an empty Bag with an initial capacity of
-	 * {@link ImmutableBag#DEFAULT_CAPACITY}. The backing array type will be
-	 * Object.
+	 * {@link ImmutableBag#DEFAULT_CAPACITY}. The backing array type will be Object.
 	 *
 	 */
-	public Bag ()
-	{
+	public Bag() {
 		super();
 	}
 
@@ -57,17 +54,16 @@ public final class Bag<T> extends AbstractBag<T>
 	 * Constructs an empty Bag with the specified initial capacity.
 	 *
 	 * <p>
-	 * NOTE: If capacity is less than
-	 * {@link ImmutableBag#MINIMUM_WORKING_CAPACITY}, the Bag will be created with
-	 * a capacity of {@link ImmutableBag#MINIMUM_WORKING_CAPACITY} instead. The
-	 * backing array type will be Object.
+	 * NOTE: If capacity is less than {@link ImmutableBag#MINIMUM_WORKING_CAPACITY},
+	 * the Bag will be created with a capacity of
+	 * {@link ImmutableBag#MINIMUM_WORKING_CAPACITY} instead. The backing array type
+	 * will be Object.
 	 * </p>
 	 *
 	 * @param capacity of the Bag
 	 */
-	public Bag ( final int capacity )
-	{
-		super( capacity );
+	public Bag(final int capacity) {
+		super(capacity);
 	}
 
 	/**
@@ -77,28 +73,26 @@ public final class Bag<T> extends AbstractBag<T>
 	 *
 	 * @param type of the backing array.
 	 */
-	public Bag ( final Class<T> type )
-	{
-		super( type );
+	public Bag(final Class<T> type) {
+		super(type);
 	}
 
 	/**
 	 * Constructs an empty Bag with the defined initial capacity.
 	 *
 	 * <p>
-	 * NOTE: If capacity is less than
-	 * {@link ImmutableBag#MINIMUM_WORKING_CAPACITY}, the Bag will be created with
-	 * a capacity of {@link ImmutableBag#MINIMUM_WORKING_CAPACITY} instead. Uses
+	 * NOTE: If capacity is less than {@link ImmutableBag#MINIMUM_WORKING_CAPACITY},
+	 * the Bag will be created with a capacity of
+	 * {@link ImmutableBag#MINIMUM_WORKING_CAPACITY} instead. Uses
 	 * Array.newInstance() to instantiate a backing array of the proper type.
 	 * </p>
 	 *
-	 * @param type of the backing array.
+	 * @param type     of the backing array.
 	 *
 	 * @param capacity of the Bag.
 	 */
-	public Bag ( final Class<T> type, final int capacity )
-	{
-		super( type, capacity );
+	public Bag(final Class<T> type, final int capacity) {
+		super(type, capacity);
 	}
 
 	/**
@@ -108,11 +102,10 @@ public final class Bag<T> extends AbstractBag<T>
 	 *
 	 * @param item to be added to this list
 	 */
-	public void add ( final T item )
-	{
+	public void add(final T item) {
 		// if size greater than capacity then increase capacity.
-		ensureCapacity( size );
-		addUnsafe( item );
+		ensureCapacity(size);
+		addUnsafe(item);
 	}
 
 	/**
@@ -124,9 +117,8 @@ public final class Bag<T> extends AbstractBag<T>
 	 *
 	 * @param data array to use as backing storage.
 	 */
-	public Bag ( final T[] data )
-	{
-		super( data );
+	public Bag(final T[] data) {
+		super(data);
 	}
 
 	/**
@@ -138,8 +130,7 @@ public final class Bag<T> extends AbstractBag<T>
 	 *
 	 * @param item to be added to this list
 	 */
-	public void addUnsafe ( final T item )
-	{
+	public void addUnsafe(final T item) {
 		// Set the new item.
 		data[size] = item;
 		// Increment size.
@@ -149,15 +140,13 @@ public final class Bag<T> extends AbstractBag<T>
 	/**
 	 * Add items into this bag. Does nothing if itemsLength is less than 1.
 	 *
-	 * @param items to add.
+	 * @param items       to add.
 	 * @param itemsLength of the item array that will be added.
 	 */
-	public void addAll ( final T[] items, final int itemsLength )
-	{
-		if ( itemsLength > 0 )
-		{
-			ensureCapacity( itemsLength + size - 1 );
-			addAllUnsafe( items, itemsLength );
+	public void addAll(final T[] items, final int itemsLength) {
+		if (itemsLength > 0) {
+			ensureCapacity(itemsLength + size - 1);
+			addAllUnsafe(items, itemsLength);
 		}
 	}
 
@@ -166,10 +155,9 @@ public final class Bag<T> extends AbstractBag<T>
 	 *
 	 * @param items to add.
 	 */
-	public void addAll ( final T[] items )
-	{
-		ensureCapacity( items.length + size - 1 );
-		addAllUnsafe( items, items.length );
+	public void addAll(final T[] items) {
+		ensureCapacity(items.length + size - 1);
+		addAllUnsafe(items, items.length);
 	}
 
 	/**
@@ -179,12 +167,11 @@ public final class Bag<T> extends AbstractBag<T>
 	 * <b>UNSAFE: Avoids doing any bounds check.</b>
 	 * </p>
 	 *
-	 * @param items to add.
+	 * @param items       to add.
 	 * @param itemsLength of the item array that will be added.
 	 */
-	public void addAllUnsafe ( final T[] items, final int itemsLength )
-	{
-		System.arraycopy( items, 0, data, size, itemsLength );
+	public void addAllUnsafe(final T[] items, final int itemsLength) {
+		System.arraycopy(items, 0, data, size, itemsLength);
 		size += itemsLength;
 	}
 
@@ -193,9 +180,8 @@ public final class Bag<T> extends AbstractBag<T>
 	 *
 	 * @param items to add.
 	 */
-	public void addAll ( final Bag<T> items )
-	{
-		addAll( items.data, items.size );
+	public void addAll(final Bag<T> items) {
+		addAll(items.data, items.size);
 	}
 
 	/**
@@ -203,18 +189,16 @@ public final class Bag<T> extends AbstractBag<T>
 	 *
 	 * @param items to add.
 	 */
-	public void addAll ( final ImmutableBag<T> items )
-	{
+	public void addAll(final ImmutableBag<T> items) {
 		final T[] data = this.data;
 		final int size = this.size;
 		final int itemsSize = items.size();
 		// New size.
 		this.size = itemsSize + size;
-		ensureCapacity( itemsSize + size - 1 );
+		ensureCapacity(itemsSize + size - 1);
 		// Copy values back.
-		for ( int i = 0, d = size; i < itemsSize; ++i, ++d )
-		{
-			data[d] = items.getUnsafe( i );
+		for (int i = 0, d = size; i < itemsSize; ++i, ++d) {
+			data[d] = items.getUnsafe(i);
 		}
 	}
 
@@ -224,43 +208,38 @@ public final class Bag<T> extends AbstractBag<T>
 	 * It will increase the size of the bag as required.
 	 *
 	 * @param index of item
-	 * @param item to be set.
+	 * @param item  to be set.
 	 */
-	public void set ( final int index, final T item )
-	{
-		if ( index < 0 )
-		{
+	public void set(final int index, final T item) {
+		if (index < 0) {
 			return;
 		}
 
-		ensureCapacity( index );
-		setUnsafe( index, item );
+		ensureCapacity(index);
+		setUnsafe(index, item);
 	}
 
 	/**
 	 * Tries to get the item at the specified index. If it isn't there, it sets it
-	 * to whatever the supplier provides, then returns that result. Will resize
-	 * the bag as needed.
+	 * to whatever the supplier provides, then returns that result. Will resize the
+	 * bag as needed.
 	 *
-	 * @param index of the item.
+	 * @param index    of the item.
 	 * @param supplier of items to use if its missing.
 	 * @return item at the index, or null if the index is negative.
 	 */
-	public T getOrSet ( final int index, final Supplier<T> supplier )
-	{
+	public T getOrSet(final int index, final Supplier<T> supplier) {
 		T tmp = null;
 		// If its a valid index.
-		if ( index > -1 )
-		{
+		if (index > -1) {
 			// Resize if needed.
-			ensureCapacity( index );
+			ensureCapacity(index);
 			// Now get the element.
-			tmp = getUnsafe( index );
+			tmp = getUnsafe(index);
 			// If it isn't there, initialize it.
-			if ( tmp == null )
-			{
+			if (tmp == null) {
 				tmp = supplier.get();
-				setUnsafe( index, tmp );
+				setUnsafe(index, tmp);
 			}
 		}
 		// Returns null if index isn't valid.
@@ -275,52 +254,47 @@ public final class Bag<T> extends AbstractBag<T>
 	 * </p>
 	 *
 	 * @param index of item
-	 * @param item to be set.
+	 * @param item  to be set.
 	 */
-	public void setUnsafe ( final int index, final T item )
-	{
-		size = Math.max( size, index + 1 );
+	public void setUnsafe(final int index, final T item) {
+		size = Math.max(size, index + 1);
 		data[index] = item;
 	}
 
 	/**
-	 * Inserts an item into a position of this Bag, shifting any elements
-	 * remaining to the right, preserving their order.
+	 * Inserts an item into a position of this Bag, shifting any elements remaining
+	 * to the right, preserving their order.
 	 *
 	 * @param index to insert the item at.
-	 * @param item to be inserted into the Bag.
+	 * @param item  to be inserted into the Bag.
 	 */
-	public void insert ( final int index, final T item )
-	{
+	public void insert(final int index, final T item) {
 		final int size = this.size;
 		/*
-		 * Allow to insert at 0 if the bag is empty, or at the end if there is
-		 * anything.
+		 * Allow to insert at 0 if the bag is empty, or at the end if there is anything.
 		 */
-		if ( index >= 0 && index <= size )
-		{
-			ensureCapacity( size );
-			insertUnsafe( index, item );
+		if (index >= 0 && index <= size) {
+			ensureCapacity(size);
+			insertUnsafe(index, item);
 		}
 	}
 
 	/**
-	 * Inserts an item into a position of this Bag, shifting any elements
-	 * remaining to the right, preserving their order.
+	 * Inserts an item into a position of this Bag, shifting any elements remaining
+	 * to the right, preserving their order.
 	 *
 	 * <p>
 	 * <b>UNSAFE: Avoids doing any bounds check.</b>
 	 * </p>
 	 *
 	 * @param index to insert the item at.
-	 * @param item to be inserted into the Bag.
+	 * @param item  to be inserted into the Bag.
 	 */
-	public void insertUnsafe ( final int index, final T item )
-	{
+	public void insertUnsafe(final int index, final T item) {
 		final T[] array = data;
 		final int aSize = size;
 		// Shift elements to the right.
-		System.arraycopy( array, index, array, index + 1, aSize - index );
+		System.arraycopy(array, index, array, index + 1, aSize - index);
 		// Set element and set new size.
 		array[index] = item;
 		size = aSize + 1;
@@ -333,11 +307,9 @@ public final class Bag<T> extends AbstractBag<T>
 	 * @param index to erase an element at.
 	 * @return the element erased from this Bag.
 	 */
-	public T erase ( final int index )
-	{
-		if ( isInSize( index ) )
-		{
-			return eraseUnsafe( index );
+	public T erase(final int index) {
+		if (isInSize(index)) {
+			return eraseUnsafe(index);
 		}
 
 		return null;
@@ -354,13 +326,12 @@ public final class Bag<T> extends AbstractBag<T>
 	 * @param index to erase an element at.
 	 * @return the element erased from this Bag.
 	 */
-	public T eraseUnsafe ( final int index )
-	{
+	public T eraseUnsafe(final int index) {
 		final T[] array = data;
 		final T item = array[index];
 		final int newSize = size - 1;
 		// Shift elements to the left.
-		System.arraycopy( array, index + 1, array, index, newSize - index );
+		System.arraycopy(array, index + 1, array, index, newSize - index);
 		// Null last element and set new size.
 		array[newSize] = null;
 		size = newSize;
@@ -370,22 +341,18 @@ public final class Bag<T> extends AbstractBag<T>
 
 	/**
 	 * Erases the first occurrence of the specified item from this Bag, if it is
-	 * present, shifting the remaining elements to the left, preserving their
-	 * order.
+	 * present, shifting the remaining elements to the left, preserving their order.
 	 *
 	 * @param item to be erased from this bag.
 	 * @return <code>true</code> if this bag contained the specified item.
 	 */
-	public boolean erase ( final T item )
-	{
+	public boolean erase(final T item) {
 		final int iSize = size;
 
-		for ( int i = 0; i < iSize; ++i )
-		{
-			if ( item == data[i] )
-			{
+		for (int i = 0; i < iSize; ++i) {
+			if (item == data[i]) {
 				// Item found, erase it.
-				eraseUnsafe( i );
+				eraseUnsafe(i);
 				// Item has been erased.
 				return true;
 			}
@@ -404,16 +371,13 @@ public final class Bag<T> extends AbstractBag<T>
 	 * @return the first item that matched the criteria, <code>null</code> if no
 	 *         items matched the criteria.
 	 */
-	public T erase ( final Predicate<T> criteria )
-	{
+	public T erase(final Predicate<T> criteria) {
 		final int iSize = size;
 
-		for ( int i = 0; i < iSize; ++i )
-		{
-			if ( criteria.test( data[i] ) )
-			{
+		for (int i = 0; i < iSize; ++i) {
+			if (criteria.test(data[i])) {
 				// Item found. Erase and return it.
-				return eraseUnsafe( i );
+				return eraseUnsafe(i);
 			}
 		}
 
@@ -431,11 +395,9 @@ public final class Bag<T> extends AbstractBag<T>
 	 * @param index the index of item to be removed
 	 * @return item that was removed from the Bag.
 	 */
-	public T remove ( final int index )
-	{
-		if ( isInBounds( index ) )
-		{
-			return removeUnsafe( index );
+	public T remove(final int index) {
+		if (isInBounds(index)) {
+			return removeUnsafe(index);
 		}
 
 		return null;
@@ -452,8 +414,7 @@ public final class Bag<T> extends AbstractBag<T>
 	 * @param index the index of item to be removed
 	 * @return item that was removed from the Bag
 	 */
-	public T removeUnsafe ( final int index )
-	{
+	public T removeUnsafe(final int index) {
 		// Item ref copy.
 		final T item = data[index];
 		// Decrement size.
@@ -469,13 +430,10 @@ public final class Bag<T> extends AbstractBag<T>
 	/**
 	 * Removes the first value in the bag.
 	 *
-	 * @return the first value in the bag, or <code>null</code> if it has no
-	 *         values.
+	 * @return the first value in the bag, or <code>null</code> if it has no values.
 	 */
-	public T removeFirst ()
-	{
-		if ( size > 0 )
-		{
+	public T removeFirst() {
+		if (size > 0) {
 			return removeFirstUnsafe();
 		}
 
@@ -492,9 +450,8 @@ public final class Bag<T> extends AbstractBag<T>
 	 *
 	 * @return the first value in the bag.
 	 */
-	public T removeFirstUnsafe ()
-	{
-		return removeUnsafe( 0 );
+	public T removeFirstUnsafe() {
+		return removeUnsafe(0);
 	}
 
 	/**
@@ -502,10 +459,8 @@ public final class Bag<T> extends AbstractBag<T>
 	 *
 	 * @return the last item in the bag, or <code>null</code> if it has no items.
 	 */
-	public T removeLast ()
-	{
-		if ( size > 0 )
-		{
+	public T removeLast() {
+		if (size > 0) {
 			return removeLastUnsafe();
 		}
 
@@ -522,8 +477,7 @@ public final class Bag<T> extends AbstractBag<T>
 	 *
 	 * @return the last item in the bag.
 	 */
-	public T removeLastUnsafe ()
-	{
+	public T removeLastUnsafe() {
 		// Decrement size.
 		--size;
 		// Get last item.
@@ -541,16 +495,13 @@ public final class Bag<T> extends AbstractBag<T>
 	 * @param item to be removed from this bag.
 	 * @return <code>true</code> if this bag contained the specified item.
 	 */
-	public boolean remove ( final T item )
-	{
+	public boolean remove(final T item) {
 		final int iSize = size;
 
-		for ( int i = 0; i < iSize; ++i )
-		{
-			if ( item == data[i] )
-			{
+		for (int i = 0; i < iSize; ++i) {
+			if (item == data[i]) {
 				// Item found, remove it.
-				removeUnsafe( i );
+				removeUnsafe(i);
 				// Item has been removed.
 				return true;
 			}
@@ -561,24 +512,21 @@ public final class Bag<T> extends AbstractBag<T>
 	}
 
 	/**
-	 * Removes the first occurrence of the item that matches the provided
-	 * criteria. Works by overwriting it was last item then removing last item.
+	 * Removes the first occurrence of the item that matches the provided criteria.
+	 * Works by overwriting it was last item then removing last item.
 	 *
 	 * @param criteria to match the items against.
 	 *
 	 * @return the first item that matched the criteria, <code>null</code> if no
 	 *         items matched the criteria.
 	 */
-	public T remove ( final Predicate<T> criteria )
-	{
+	public T remove(final Predicate<T> criteria) {
 		final int iSize = size;
 
-		for ( int i = 0; i < iSize; ++i )
-		{
-			if ( criteria.test( data[i] ) )
-			{
+		for (int i = 0; i < iSize; ++i) {
+			if (criteria.test(data[i])) {
 				// Item found. Remove and return it.
-				return removeUnsafe( i );
+				return removeUnsafe(i);
 			}
 		}
 
@@ -592,14 +540,12 @@ public final class Bag<T> extends AbstractBag<T>
 	 *
 	 * @param bag containing items to be removed from this Bag
 	 */
-	public void removeAll ( final Bag<T> bag )
-	{
+	public void removeAll(final Bag<T> bag) {
 		final T[] bagData = bag.data;
 		final int bagSize = bag.size;
 
-		for ( int i = 0; i < bagSize; ++i )
-		{
-			remove( bagData[i] );
+		for (int i = 0; i < bagSize; ++i) {
+			remove(bagData[i]);
 		}
 	}
 
@@ -609,13 +555,11 @@ public final class Bag<T> extends AbstractBag<T>
 	 *
 	 * @param bag containing items to be removed from this Bag
 	 */
-	public void removeAll ( final ImmutableBag<T> bag )
-	{
+	public void removeAll(final ImmutableBag<T> bag) {
 		final int bagSize = bag.size();
 
-		for ( int i = 0; i < bagSize; ++i )
-		{
-			remove( bag.getUnsafe( i ) );
+		for (int i = 0; i < bagSize; ++i) {
+			remove(bag.getUnsafe(i));
 		}
 	}
 
@@ -623,32 +567,27 @@ public final class Bag<T> extends AbstractBag<T>
 	 * Compacts the backing array of this Bag to the left, leaving all null values
 	 * to the right. Preserves ordering.
 	 */
-	public void compact ()
-	{
+	public void compact() {
 		final T[] arr = data;
 		final int prevSize = size;
 		int newSize = prevSize;
 
-		for ( int i = prevSize; i-- > 0; )
-		{
+		for (int i = prevSize; i-- > 0;) {
 			// If there isn't something to compact.
-			if ( arr[i] != null )
-			{
+			if (arr[i] != null) {
 				continue;
 			}
 			// Found something.
 			int j = i;
 
 			// Find more slots to compact.
-			while ( j-- > 0 )
-			{
-				if ( arr[j] != null )
-				{
+			while (j-- > 0) {
+				if (arr[j] != null) {
 					break;
 				}
 			}
 			// Copy contents to left.
-			System.arraycopy( arr, i + 1, arr, j + 1, newSize - i - 1 );
+			System.arraycopy(arr, i + 1, arr, j + 1, newSize - i - 1);
 			// Size + diff between start and finish of null slots.
 			newSize += j - i;
 			// Jump over recently compacted elements.
@@ -656,11 +595,9 @@ public final class Bag<T> extends AbstractBag<T>
 		}
 
 		// If something was compacted.
-		if ( prevSize != newSize )
-		{
+		if (prevSize != newSize) {
 			// Nullify everything to right.
-			for ( int i = prevSize; i-- > newSize; )
-			{
+			for (int i = prevSize; i-- > newSize;) {
 				arr[i] = null;
 			}
 			// Set new size.
@@ -669,19 +606,17 @@ public final class Bag<T> extends AbstractBag<T>
 	}
 
 	@Override
-	public String toString ()
-	{
+	public String toString() {
 		final String newLine = System.lineSeparator();
-		final StringBuilder str = new StringBuilder( data.length * 10 );
+		final StringBuilder str = new StringBuilder(data.length * 10);
 
-		str.append( super.toString() ).append( newLine );
-		str.append( "Capacity " ).append( this.capacity() ).append( newLine );
-		str.append( "Size " ).append( this.size );
+		str.append(super.toString()).append(newLine);
+		str.append("Capacity ").append(this.capacity()).append(newLine);
+		str.append("Size ").append(this.size);
 
-		for ( int i = 0; i < size; ++i )
-		{
-			str.append( newLine );
-			str.append( data[i] );
+		for (int i = 0; i < size; ++i) {
+			str.append(newLine);
+			str.append(data[i]);
 		}
 
 		return str.toString();

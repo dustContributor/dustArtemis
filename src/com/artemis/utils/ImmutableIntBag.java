@@ -14,8 +14,7 @@ import com.artemis.DAConstants;
  * 
  * @author dustContributor
  */
-public abstract class ImmutableIntBag
-{
+public abstract class ImmutableIntBag {
 	protected int[] data;
 	protected int size;
 
@@ -24,9 +23,8 @@ public abstract class ImmutableIntBag
 	 * {@value #DEFAULT_CAPACITY}.
 	 * 
 	 */
-	public ImmutableIntBag ()
-	{
-		this( DEFAULT_CAPACITY );
+	public ImmutableIntBag() {
+		this(DEFAULT_CAPACITY);
 	}
 
 	/**
@@ -40,8 +38,7 @@ public abstract class ImmutableIntBag
 	 * 
 	 * @param capacity of the Bag.
 	 */
-	public ImmutableIntBag ( final int capacity )
-	{
+	public ImmutableIntBag(final int capacity) {
 		final int newCap = (capacity > MINIMUM_WORKING_CAPACITY) ? capacity
 				: MINIMUM_WORKING_CAPACITY;
 		this.data = new int[newCap];
@@ -52,8 +49,7 @@ public abstract class ImmutableIntBag
 	 * 
 	 * @return number of items in this bag.
 	 */
-	public int size ()
-	{
+	public int size() {
 		return size;
 	}
 
@@ -62,8 +58,7 @@ public abstract class ImmutableIntBag
 	 * 
 	 * @return number of items the bag can hold without growing.
 	 */
-	public int capacity ()
-	{
+	public int capacity() {
 		return data.length;
 	}
 
@@ -72,8 +67,7 @@ public abstract class ImmutableIntBag
 	 * 
 	 * @return true if this list contains no items.
 	 */
-	public boolean isEmpty ()
-	{
+	public boolean isEmpty() {
 		return size < 1;
 	}
 
@@ -83,15 +77,12 @@ public abstract class ImmutableIntBag
 	 * @param item to check if its contained in the bag.
 	 * @return the index of the item, -1 if none of such item was found.
 	 */
-	public int contains ( final int item )
-	{
+	public int contains(final int item) {
 		final int size = this.size;
 		final int[] data = this.data;
 
-		for ( int i = 0; i < size; ++i )
-		{
-			if ( data[i] == item )
-			{
+		for (int i = 0; i < size; ++i) {
+			if (data[i] == item) {
 				// Item found. Return its index.
 				return i;
 			}
@@ -105,20 +96,17 @@ public abstract class ImmutableIntBag
 	 * Check if the bag contains this item applying the criteria supplied.
 	 * 
 	 * @param criteria to be used to find an item.
-	 * @return the index of the item that met the criteria, -1 if none of such
-	 *         items were found.
+	 * @return the index of the item that met the criteria, -1 if none of such items
+	 *         were found.
 	 */
-	public int contains ( final IntPredicate criteria )
-	{
-		Objects.requireNonNull( criteria, "criteria" );
+	public int contains(final IntPredicate criteria) {
+		Objects.requireNonNull(criteria, "criteria");
 
 		final int size = this.size;
 		final int[] data = this.data;
 
-		for ( int i = 0; i < size; ++i )
-		{
-			if ( criteria.test( data[i] ) )
-			{
+		for (int i = 0; i < size; ++i) {
+			if (criteria.test(data[i])) {
 				// Item found. Return its index.
 				return i;
 			}
@@ -131,19 +119,17 @@ public abstract class ImmutableIntBag
 	/**
 	 * Iterates over the items of this Bag applying the criteria supplied.
 	 * 
-	 * @param criteria to be used to find an item.
+	 * @param criteria     to be used to find an item.
 	 * @param defaultValue to return if the item isn't found.
-	 * @return the item that met the criteria or defaultValue if none of such
-	 *         items were found.
+	 * @return the item that met the criteria or defaultValue if none of such items
+	 *         were found.
 	 */
-	public int find ( final IntPredicate criteria, final int defaultValue )
-	{
-		Objects.requireNonNull( criteria, "criteria" );
+	public int find(final IntPredicate criteria, final int defaultValue) {
+		Objects.requireNonNull(criteria, "criteria");
 
-		final int index = contains( criteria );
+		final int index = contains(criteria);
 
-		if ( index > -1 )
-		{
+		if (index > -1) {
 			return data[index];
 		}
 
@@ -155,30 +141,26 @@ public abstract class ImmutableIntBag
 	 * 
 	 * @param operation to be performed on each element of this bag.
 	 */
-	public void forEach ( final IntConsumer operation )
-	{
-		Objects.requireNonNull( operation, "operation" );
+	public void forEach(final IntConsumer operation) {
+		Objects.requireNonNull(operation, "operation");
 
 		final int size = this.size;
 		final int[] data = this.data;
 
-		for ( int i = 0; i < size; ++i )
-		{
-			operation.accept( data[i] );
+		for (int i = 0; i < size; ++i) {
+			operation.accept(data[i]);
 		}
 	}
 
 	/**
 	 * Returns the item at the specified position in Bag.
 	 * 
-	 * @param index of the item to return
+	 * @param index        of the item to return
 	 * @param defaultValue to return if the provided index is outside bounds.
 	 * @return item at the specified position in bag
 	 */
-	public int get ( final int index, final int defaultValue )
-	{
-		if ( isInSize( index ) )
-		{
+	public int get(final int index, final int defaultValue) {
+		if (isInSize(index)) {
 			return data[index];
 		}
 
@@ -195,8 +177,7 @@ public abstract class ImmutableIntBag
 	 * @param index of the item to return
 	 * @return item at the specified position in bag
 	 */
-	public int getUnsafe ( final int index )
-	{
+	public int getUnsafe(final int index) {
 		return data[index];
 	}
 
@@ -208,28 +189,25 @@ public abstract class ImmutableIntBag
 	 * @return <code>true</code> if the index is within the bounds of the Bag,
 	 *         <code>false</code> otherwise.
 	 */
-	protected boolean isInBounds ( final int index )
-	{
+	protected boolean isInBounds(final int index) {
 		return (index > -1 && index < data.length);
 	}
 
 	/**
-	 * Checks if the index is within the size of the Bag (ie, if its bigger or
-	 * equal than 0 and less than the size of the bag).
+	 * Checks if the index is within the size of the Bag (ie, if its bigger or equal
+	 * than 0 and less than the size of the bag).
 	 * 
 	 * @param index that needs to be checked.
 	 * @return <code>true</code> if the index is within the size of the Bag,
 	 *         <code>false</code> otherwise.
 	 */
-	protected boolean isInSize ( final int index )
-	{
+	protected boolean isInSize(final int index) {
 		return (index > -1 && index < size);
 	}
 
-	private IntStream stream ( final boolean parallel )
-	{
-		final Spliterator.OfInt split = Spliterators.spliterator( data, Spliterator.IMMUTABLE );
-		return StreamSupport.intStream( split, parallel ).limit( size );
+	private IntStream stream(final boolean parallel) {
+		final Spliterator.OfInt split = Spliterators.spliterator(data, Spliterator.IMMUTABLE);
+		return StreamSupport.intStream(split, parallel).limit(size);
 	}
 
 	/**
@@ -237,9 +215,8 @@ public abstract class ImmutableIntBag
 	 *
 	 * @return Stream representing this bag.
 	 */
-	public IntStream stream ()
-	{
-		return stream( false );
+	public IntStream stream() {
+		return stream(false);
 	}
 
 	/**
@@ -247,9 +224,8 @@ public abstract class ImmutableIntBag
 	 *
 	 * @return Stream representing this bag.
 	 */
-	public IntStream parallelStream ()
-	{
-		return stream( true );
+	public IntStream parallelStream() {
+		return stream(true);
 	}
 
 	/**
@@ -266,10 +242,8 @@ public abstract class ImmutableIntBag
 	/** Non-configurable value. */
 	public static final int MINIMUM_WORKING_CAPACITY = 4;
 
-	protected static final int nextCapacity ( final int dataLength )
-	{
-		if ( dataLength < GROW_RATE_THRESHOLD )
-		{
+	protected static final int nextCapacity(final int dataLength) {
+		if (dataLength < GROW_RATE_THRESHOLD) {
 			// Exponential 2 growth.
 			return (dataLength << 1);
 		}
@@ -278,20 +252,18 @@ public abstract class ImmutableIntBag
 	}
 
 	/**
-	 * It finds the next capacity according to the grow strategy that could
-	 * contain the supplied index.
+	 * It finds the next capacity according to the grow strategy that could contain
+	 * the supplied index.
 	 * 
-	 * @param index that needs to be contained.
+	 * @param index       that needs to be contained.
 	 * @param arrayLength of the current backing array.
 	 * @return proper capacity given by the grow strategy.
 	 */
-	protected static final int getCapacityFor ( final int index, final int arrayLength )
-	{
+	protected static final int getCapacityFor(final int index, final int arrayLength) {
 		int newSize = arrayLength;
 
-		while ( index >= newSize )
-		{
-			newSize = nextCapacity( newSize );
+		while (index >= newSize) {
+			newSize = nextCapacity(newSize);
 		}
 
 		return newSize;

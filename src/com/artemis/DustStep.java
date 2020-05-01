@@ -6,43 +6,36 @@ package com.artemis;
  * 
  * @author dustContributor
  */
-public class DustStep
-{
+public class DustStep {
 	/** Active by default. */
 	private boolean active = true;
 
 	private DustContext context;
 
-	protected void init ()
-	{
+	protected void init() {
 		// Empty by default.
 	}
 
-	protected void run ()
-	{
+	protected void run() {
 		// Empty by default.
 	}
 
-	protected void cleanup ()
-	{
+	protected void cleanup() {
 		// Empty by default.
 	}
 
-	protected void dispose ()
-	{
+	protected void dispose() {
 		// Empty by default.
 	}
 
 	/**
 	 * @return the {@link DustContext} instance that owns this {@link DustStep}.
 	 */
-	protected final DustContext context ()
-	{
+	protected final DustContext context() {
 		return this.context;
 	}
 
-	final void context ( final DustContext context )
-	{
+	final void context(final DustContext context) {
 		this.context = context;
 	}
 
@@ -52,8 +45,7 @@ public class DustStep
 	 * @see DustContext#data()
 	 * @return arbitrary data object retrieved from the world instance.
 	 */
-	protected final <T> T data ()
-	{
+	protected final <T> T data() {
 		return this.context.data();
 	}
 
@@ -63,8 +55,7 @@ public class DustStep
 	 * @return {@code true} if its active and will get processed, {@code false}
 	 *         otherwise.
 	 */
-	public final boolean isActive ()
-	{
+	public final boolean isActive() {
 		return active;
 	}
 
@@ -72,10 +63,9 @@ public class DustStep
 	 * Sets the state of this {@link DustStep}.
 	 *
 	 * @param active {@code true} if its active and will get processed,
-	 *          {@code false} otherwise.
+	 *               {@code false} otherwise.
 	 */
-	public final void active ( final boolean active )
-	{
+	public final void active(final boolean active) {
 		this.active = active;
 	}
 }

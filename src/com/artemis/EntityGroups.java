@@ -11,28 +11,25 @@ import java.util.HashMap;
  * @author dustContributor
  *
  */
-public final class EntityGroups
-{
+public final class EntityGroups {
 	private final HashMap<EntityFilter, EntityGroup> groups = new HashMap<>();
 	private final ComponentManager cm;
 
-	EntityGroups ( final ComponentManager cm )
-	{
-		this.cm = DustException.enforceNonNull( this, cm, "cm" );
+	EntityGroups(final ComponentManager cm) {
+		this.cm = DustException.enforceNonNull(this, cm, "cm");
 	}
 
 	/**
-	 * Convenience method that builds the {@link EntityFilter} first then
-	 * delegates to {@link #matching(EntityFilter)}.
+	 * Convenience method that builds the {@link EntityFilter} first then delegates
+	 * to {@link #matching(EntityFilter)}.
 	 * 
 	 * @param filter builder to construct an {@link EntityFilter} from.
 	 * @return an {@link EntityGroup} matching the provided {@link EntityFilter}.
 	 * @see EntityGroups#matching(EntityFilter)
 	 */
-	public final EntityGroup matching ( final EntityFilter.Builder filter )
-	{
-		DustException.enforceNonNull( this, filter, "filter" );
-		return matching( filter.build() );
+	public final EntityGroup matching(final EntityFilter.Builder filter) {
+		DustException.enforceNonNull(this, filter, "filter");
+		return matching(filter.build());
 	}
 
 	/**
@@ -42,20 +39,17 @@ public final class EntityGroups
 	 * @param filter to match against entities in the {@link EntityGroup}.
 	 * @return an {@link EntityGroup} matching the provided {@link EntityFilter}.
 	 */
-	public final EntityGroup matching ( final EntityFilter filter )
-	{
-		DustException.enforceNonNull( this, filter, "filter" );
+	public final EntityGroup matching(final EntityFilter filter) {
+		DustException.enforceNonNull(this, filter, "filter");
 
-		if ( filter.isEmpty() )
-		{
-			throw new DustException( this, "Cant pass an empty filter, it wont have any entities in it!" );
+		if (filter.isEmpty()) {
+			throw new DustException(this, "Cant pass an empty filter, it wont have any entities in it!");
 		}
 
-		return groups.computeIfAbsent( filter, f -> new EntityGroup( f, this.cm ) );
+		return groups.computeIfAbsent(filter, f -> new EntityGroup(f, this.cm));
 	}
 
-	final EntityGroup[] groups ()
-	{
-		return groups.values().toArray( new EntityGroup[groups.size()] );
+	final EntityGroup[] groups() {
+		return groups.values().toArray(new EntityGroup[groups.size()]);
 	}
 }

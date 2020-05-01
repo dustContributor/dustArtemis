@@ -12,30 +12,25 @@ import java.util.function.Consumer;
  *
  * @param <T> type of the elements it holds.
  */
-public final class ArrayIterator<T> implements Iterator<T>
-{
+public final class ArrayIterator<T> implements Iterator<T> {
 	private final T[] data;
 	private final int size;
 	// Always starts at zero.
 	private int cursor;
 
-	public ArrayIterator ( final T[] data, final int size )
-	{
-		this.data = Objects.requireNonNull( data );
-		this.size = requireBetween( size, 0, data.length, "'size' is out of range!" );
+	public ArrayIterator(final T[] data, final int size) {
+		this.data = Objects.requireNonNull(data);
+		this.size = requireBetween(size, 0, data.length, "'size' is out of range!");
 	}
 
 	@Override
-	public final boolean hasNext ()
-	{
+	public final boolean hasNext() {
 		return cursor < size;
 	}
 
 	@Override
-	public final T next ()
-	{
-		if ( cursor < size )
-		{
+	public final T next() {
+		if (cursor < size) {
 			// Return current element and increment.
 			return data[cursor++];
 		}
@@ -43,9 +38,8 @@ public final class ArrayIterator<T> implements Iterator<T>
 	}
 
 	@Override
-	public final void forEachRemaining ( final Consumer<? super T> action )
-	{
-		Objects.requireNonNull( action );
+	public final void forEachRemaining(final Consumer<? super T> action) {
+		Objects.requireNonNull(action);
 		// Fetch all we need to iterate.
 		final int size = this.size;
 		final T[] data = this.data;
@@ -53,9 +47,8 @@ public final class ArrayIterator<T> implements Iterator<T>
 		// Update cursor so further 'next' calls fail.
 		this.cursor = size;
 		// Now we're free to iterate over the remaining elements.
-		for ( int i = cursor; i < size; ++i )
-		{
-			action.accept( data[i] );
+		for (int i = cursor; i < size; ++i) {
+			action.accept(data[i]);
 		}
 	}
 
@@ -63,24 +56,22 @@ public final class ArrayIterator<T> implements Iterator<T>
 	 * This checks the value is equal or greater than the 'lower' limit, and
 	 * strictly less than the 'upper' limit.
 	 * 
-	 * @param value to validate.
-	 * @param lower inclusive limit for the value.
-	 * @param upper exclusive limit for the value.
+	 * @param value   to validate.
+	 * @param lower   inclusive limit for the value.
+	 * @param upper   exclusive limit for the value.
 	 * @param message to display if value lies outside the bounds.
 	 * @return the validated value.
 	 */
-	private static final int requireBetween ( final int value, final int lower, final int upper, final String message )
-	{
-		if ( value >= lower && value < upper )
-		{
+	private static final int requireBetween(final int value, final int lower, final int upper, final String message) {
+		if (value >= lower && value < upper) {
 			return value;
 		}
 
-		throw new RuntimeException( new StringBuilder( message )
-				.append( " 'value' is '" ).append( value )
-				.append( "' when it should be >= '" ).append( lower )
-				.append( "' and < '" ).append( upper ).append( '\'' )
-				.toString() );
+		throw new RuntimeException(new StringBuilder(message)
+				.append(" 'value' is '").append(value)
+				.append("' when it should be >= '").append(lower)
+				.append("' and < '").append(upper).append('\'')
+				.toString());
 	}
 
 }

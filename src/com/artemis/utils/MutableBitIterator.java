@@ -16,37 +16,31 @@ package com.artemis.utils;
  * @author dustContributor
  *
  */
-public final class MutableBitIterator
-{
+public final class MutableBitIterator {
 	private long[] bits;
 	private long word;
 	private int length;
 	private int wordi;
 
-	public MutableBitIterator ()
-	{
+	public MutableBitIterator() {
 		// Empty.
 	}
 
-	public MutableBitIterator ( final long[] bits )
-	{
-		this.setBits( bits );
+	public MutableBitIterator(final long[] bits) {
+		this.setBits(bits);
 	}
 
-	public final void setBits ( final long[] bits )
-	{
+	public final void setBits(final long[] bits) {
 		this.length = bits.length;
 		this.bits = bits;
 	}
 
-	public final void selectWord ( final int word )
-	{
+	public final void selectWord(final int word) {
 		this.wordi = word;
 		this.word = bits[word];
 	}
 
-	public final void selectIndex ( final int index )
-	{
+	public final void selectIndex(final int index) {
 		final long msk = -1L << (index & 63);
 		// Computing starting word index.
 		final int wordIndex = index >>> 6;
@@ -59,15 +53,13 @@ public final class MutableBitIterator
 	/**
 	 * Resets the position of this iterator to 0.
 	 */
-	public final void reset ()
-	{
+	public final void reset() {
 		this.wordi = 0;
 		this.word = bits[0];
 	}
 
-	public final int nextSetBit ()
-	{
-		return nextSetBit( length );
+	public final int nextSetBit() {
+		return nextSetBit(length);
 	}
 
 	/**
@@ -77,16 +69,13 @@ public final class MutableBitIterator
 	 *
 	 * @return the index of the next set bit if there is one, -1 otherwise.
 	 */
-	public final int nextSetBit ( final int end )
-	{
+	public final int nextSetBit(final int end) {
 		final long[] bits = this.bits;
 		long word = this.word;
 		int wordi = this.wordi;
 
-		while ( word == 0L )
-		{
-			if ( ++wordi >= end )
-			{
+		while (word == 0L) {
+			if (++wordi >= end) {
 				// No words left.
 				return -1;
 			}
@@ -101,6 +90,6 @@ public final class MutableBitIterator
 		// Flip bit and store.
 		this.word = word ^ val;
 		// Return offset + next set bit of word.
-		return offset + Long.bitCount( val - 1 );
+		return offset + Long.bitCount(val - 1);
 	}
 }

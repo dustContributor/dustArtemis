@@ -21,8 +21,7 @@ import com.artemis.utils.IntBag;
  * @author dustContributor
  *
  */
-public final class DustContext
-{
+public final class DustContext {
 	/** Managers for all entities this instance created. */
 	private final EntityManager entityManager;
 	/** Managers for all the components of the entities of this instance. */
@@ -53,26 +52,24 @@ public final class DustContext
 	 *
 	 * @author dustContributor
 	 */
-	private static final class WorldParams
-	{
+	private static final class WorldParams {
 		final ComponentManager componentManager;
 		final EntityManager entityManager;
 		final DustStep[] steps;
 		final EntityGroup[] entityFilters;
 		final Object data;
 
-		WorldParams (
+		WorldParams(
 				final ComponentManager componentManager,
 				final EntityManager entityManager,
 				final DustStep[] steps,
 				final EntityGroup[] entityFilters,
-				final Object data )
-		{
+				final Object data) {
 			super();
-			this.componentManager = DustException.enforceNonNull( this, componentManager, "componentManager" );
-			this.entityManager = DustException.enforceNonNull( this, entityManager, "entityManager" );
-			this.steps = DustException.enforceNonNull( this, steps, "steps" );
-			this.entityFilters = DustException.enforceNonNull( this, entityFilters, "entityFilters" );
+			this.componentManager = DustException.enforceNonNull(this, componentManager, "componentManager");
+			this.entityManager = DustException.enforceNonNull(this, entityManager, "entityManager");
+			this.steps = DustException.enforceNonNull(this, steps, "steps");
+			this.entityFilters = DustException.enforceNonNull(this, entityFilters, "entityFilters");
 			// This one can be null. User-defined.
 			this.data = data;
 		}
@@ -85,9 +82,8 @@ public final class DustContext
 	 *
 	 * @param params to use to initialize the instance, can't be null.
 	 */
-	DustContext ( final WorldParams params )
-	{
-		DustException.enforceNonNull( this, params, "params" );
+	DustContext(final WorldParams params) {
+		DustException.enforceNonNull(this, params, "params");
 
 		componentManager = params.componentManager;
 		entityManager = params.entityManager;
@@ -102,8 +98,8 @@ public final class DustContext
 		entityGroups = params.entityFilters;
 
 		// Create immutable view of the step array.
-		final Bag<DustStep> obag = new Bag<>( steps );
-		obag.setSize( steps.length );
+		final Bag<DustStep> obag = new Bag<>(steps);
+		obag.setSize(steps.length);
 		immutableObservers = obag;
 	}
 
@@ -113,8 +109,7 @@ public final class DustContext
 	 *
 	 * @return entity manager.
 	 */
-	public final EntityManager entityManager ()
-	{
+	public final EntityManager entityManager() {
 		return entityManager;
 	}
 
@@ -124,16 +119,15 @@ public final class DustContext
 	 *
 	 * @return component manager.
 	 */
-	public final ComponentManager componentManager ()
-	{
+	public final ComponentManager componentManager() {
 		return componentManager;
 	}
 
 	/**
 	 * With this method you can retrieve the arbitrary data you placed in this
-	 * instance. This is a generic method so it does the cast for you. But you
-	 * need to be sure you're using the relevant generic type, otherwise the cast
-	 * will fail. Used like:
+	 * instance. This is a generic method so it does the cast for you. But you need
+	 * to be sure you're using the relevant generic type, otherwise the cast will
+	 * fail. Used like:
 	 *
 	 * <pre>
 	 * MySharedData mySharedData = context.data();
@@ -144,9 +138,8 @@ public final class DustContext
 	 * @return the arbitrary data object you placed, or null if there isn't any.
 	 * @see Builder#data(Object)
 	 */
-	@SuppressWarnings( "unchecked" )
-	public final <T> T data ()
-	{
+	@SuppressWarnings("unchecked")
+	public final <T> T data() {
 		return (T) data;
 	}
 
@@ -156,8 +149,7 @@ public final class DustContext
 	 *
 	 * @return all {@link DustStep}s in {@link DustContext}.
 	 */
-	public final ImmutableBag<DustStep> steps ()
-	{
+	public final ImmutableBag<DustStep> steps() {
 		return immutableObservers;
 	}
 
@@ -168,15 +160,12 @@ public final class DustContext
 	 * @return instance of the {@link DustStep} of the specified type in this
 	 *         {@link DustContext}, {@code null} if there is none.
 	 */
-	@SuppressWarnings( "unchecked" )
-	public final <T extends DustStep> T step ( final Class<T> type )
-	{
-		for ( int i = 0; i < steps.length; ++i )
-		{
+	@SuppressWarnings("unchecked")
+	public final <T extends DustStep> T step(final Class<T> type) {
+		for (int i = 0; i < steps.length; ++i) {
 			final DustStep obs = steps[i];
 
-			if ( obs.getClass() == type )
-			{
+			if (obs.getClass() == type) {
 				return (T) obs;
 			}
 		}
@@ -185,48 +174,43 @@ public final class DustContext
 
 	/**
 	 * Queue entity for addition in the next {@link DustContext#process()} call.
-	 * This will be notified to the {@link EntityGroup}s and internal managers.
-	 * Only one occurrence of the entity will be present in the queue.
+	 * This will be notified to the {@link EntityGroup}s and internal managers. Only
+	 * one occurrence of the entity will be present in the queue.
 	 *
 	 * @param eid entity id.
 	 */
-	public final void addEntity ( final int eid )
-	{
-		final int ei = added.binarySearch( eid );
+	public final void addEntity(final int eid) {
+		final int ei = added.binarySearch(eid);
 
-		if ( ei < 0 )
-		{
-			added.insert( -ei - 1, eid );
+		if (ei < 0) {
+			added.insert(-ei - 1, eid);
 		}
 	}
 
 	/**
-	 * Checks if the entity has been added to the {@link DustContext} since the
-	 * last {@link #process()} call.
+	 * Checks if the entity has been added to the {@link DustContext} since the last
+	 * {@link #process()} call.
 	 *
 	 * @param eid entity id to look for.
 	 * @return true if it was added recently, false otherwise.
 	 */
-	public final boolean isAdded ( final int eid )
-	{
-		return added.binarySearch( eid ) > -1;
+	public final boolean isAdded(final int eid) {
+		return added.binarySearch(eid) > -1;
 	}
 
 	/**
 	 * Queue entity for marking as "changed" in the next
 	 * {@link DustContext#process()} call. This will be notified to the
-	 * {@link EntityGroup}s and internal managers. Only one occurrence of the
-	 * entity will be present in the queue.
+	 * {@link EntityGroup}s and internal managers. Only one occurrence of the entity
+	 * will be present in the queue.
 	 *
 	 * @param eid entity id.
 	 */
-	public final void changedEntity ( final int eid )
-	{
-		final int ei = changed.binarySearch( eid );
+	public final void changedEntity(final int eid) {
+		final int ei = changed.binarySearch(eid);
 
-		if ( ei < 0 )
-		{
-			changed.insert( -ei - 1, eid );
+		if (ei < 0) {
+			changed.insert(-ei - 1, eid);
 		}
 	}
 
@@ -237,25 +221,22 @@ public final class DustContext
 	 * @param eid entity id to look for.
 	 * @return true if it was changed recently, false otherwise.
 	 */
-	public final boolean isChanged ( final int eid )
-	{
-		return changed.binarySearch( eid ) > -1;
+	public final boolean isChanged(final int eid) {
+		return changed.binarySearch(eid) > -1;
 	}
 
 	/**
 	 * Queue entity for deletion in the next {@link DustContext#process()} call.
-	 * This will be notified to the {@link EntityGroup}s and internal managers.
-	 * Only one occurrence of the entity will be present in the queue.
+	 * This will be notified to the {@link EntityGroup}s and internal managers. Only
+	 * one occurrence of the entity will be present in the queue.
 	 *
 	 * @param eid entity id.
 	 */
-	public final void deleteEntity ( final int eid )
-	{
-		final int ei = deleted.binarySearch( eid );
+	public final void deleteEntity(final int eid) {
+		final int ei = deleted.binarySearch(eid);
 
-		if ( ei < 0 )
-		{
-			deleted.insert( -ei - 1, eid );
+		if (ei < 0) {
+			deleted.insert(-ei - 1, eid);
 		}
 	}
 
@@ -266,25 +247,22 @@ public final class DustContext
 	 * @param eid entity id to look for.
 	 * @return true if it was deleted recently, false otherwise.
 	 */
-	public final boolean isDeleted ( final int eid )
-	{
-		return deleted.binarySearch( eid ) > -1;
+	public final boolean isDeleted(final int eid) {
+		return deleted.binarySearch(eid) > -1;
 	}
 
 	/**
 	 * Queue entity for enabling in the next {@link DustContext#process()} call.
-	 * This will be notified to the {@link EntityGroup}s and internal managers.
-	 * Only one occurrence of the entity will be present in the queue.
+	 * This will be notified to the {@link EntityGroup}s and internal managers. Only
+	 * one occurrence of the entity will be present in the queue.
 	 *
 	 * @param eid entity id.
 	 */
-	public final void enable ( final int eid )
-	{
-		final int ei = enabled.binarySearch( eid );
+	public final void enable(final int eid) {
+		final int ei = enabled.binarySearch(eid);
 
-		if ( ei < 0 )
-		{
-			enabled.insert( -ei - 1, eid );
+		if (ei < 0) {
+			enabled.insert(-ei - 1, eid);
 		}
 	}
 
@@ -295,25 +273,22 @@ public final class DustContext
 	 * @param eid entity id to look for.
 	 * @return true if it was enabled recently, false otherwise.
 	 */
-	public final boolean isEnabled ( final int eid )
-	{
-		return enabled.binarySearch( eid ) > -1;
+	public final boolean isEnabled(final int eid) {
+		return enabled.binarySearch(eid) > -1;
 	}
 
 	/**
 	 * Queue entity for disabling in the next {@link DustContext#process()} call.
-	 * This will be notified to the {@link EntityGroup}s and internal managers.
-	 * Only one occurrence of the entity will be present in the queue.
+	 * This will be notified to the {@link EntityGroup}s and internal managers. Only
+	 * one occurrence of the entity will be present in the queue.
 	 *
 	 * @param eid entity id.
 	 */
-	public final void disable ( final int eid )
-	{
-		final int ei = disabled.binarySearch( eid );
+	public final void disable(final int eid) {
+		final int ei = disabled.binarySearch(eid);
 
-		if ( ei < 0 )
-		{
-			disabled.insert( -ei - 1, eid );
+		if (ei < 0) {
+			disabled.insert(-ei - 1, eid);
 		}
 	}
 
@@ -324,9 +299,8 @@ public final class DustContext
 	 * @param eid entity id to look for.
 	 * @return true if it was enabled recently, false otherwise.
 	 */
-	public final boolean isDisabled ( final int eid )
-	{
-		return disabled.binarySearch( eid ) > -1;
+	public final boolean isDisabled(final int eid) {
+		return disabled.binarySearch(eid) > -1;
 	}
 
 	/**
@@ -335,98 +309,84 @@ public final class DustContext
 	 *
 	 * @return new entity id.
 	 */
-	public final int createEntity ()
-	{
+	public final int createEntity() {
 		final int eid = entityManager.createEntityInstance();
-		componentManager.registerEntity( eid );
+		componentManager.registerEntity(eid);
 		return eid;
 	}
 
-	private final void markComponentChanges ()
-	{
+	private final void markComponentChanges() {
 		componentManager.markChanges();
 	}
 
-	private final void notifyFilters ()
-	{
-		for ( int i = 0; i < entityGroups.length; ++i )
-		{
+	private final void notifyFilters() {
+		for (int i = 0; i < entityGroups.length; ++i) {
 			final EntityGroup group = entityGroups[i];
 			group.clear();
-			group.added( added );
-			group.added( enabled );
-			group.removed( disabled );
-			group.removed( deleted );
-			group.mutated( changed );
+			group.added(added);
+			group.added(enabled);
+			group.removed(disabled);
+			group.removed(deleted);
+			group.mutated(changed);
 			group.updateActiveList();
 		}
 	}
 
-	private final void cleanupComponentManager ()
-	{
-		componentManager.cleanup( deleted );
+	private final void cleanupComponentManager() {
+		componentManager.cleanup(deleted);
 	}
 
-	private final void notifyEntityManager ()
-	{
-		entityManager.added( added );
-		entityManager.disabled( disabled );
-		entityManager.enabled( enabled );
-		entityManager.deleted( deleted );
+	private final void notifyEntityManager() {
+		entityManager.added(added);
+		entityManager.disabled(disabled);
+		entityManager.enabled(enabled);
+		entityManager.deleted(deleted);
 	}
 
-	private final void cleanupSteps ()
-	{
-		for ( int i = 0; i < steps.length; ++i )
-		{
+	private final void cleanupSteps() {
+		for (int i = 0; i < steps.length; ++i) {
 			final DustStep obs = steps[i];
 
-			if ( obs.isActive() )
-			{
+			if (obs.isActive()) {
 				/*
-				 * TODO: What if component cleanup or initialization is still needed
-				 * even if step is disabled? This way the step will never know since
-				 * changes will be cleared in the next tick.
+				 * TODO: What if component cleanup or initialization is still needed even if
+				 * step is disabled? This way the step will never know since changes will be
+				 * cleared in the next tick.
 				 */
 				obs.cleanup();
 			}
 		}
 	}
 
-	private final void runSteps ()
-	{
-		for ( int i = 0; i < steps.length; ++i )
-		{
+	private final void runSteps() {
+		for (int i = 0; i < steps.length; ++i) {
 			final DustStep obs = steps[i];
 
-			if ( obs.isActive() )
-			{
+			if (obs.isActive()) {
 				obs.run();
 			}
 		}
 	}
 
-	private final void clearLists ()
-	{
-		added.setSize( 0 );
-		changed.setSize( 0 );
-		disabled.setSize( 0 );
-		enabled.setSize( 0 );
-		deleted.setSize( 0 );
+	private final void clearLists() {
+		added.setSize(0);
+		changed.setSize(0);
+		disabled.setSize(0);
+		enabled.setSize(0);
+		deleted.setSize(0);
 	}
 
 	/**
 	 * Process all active {@link DustStep}s.
 	 */
-	public final void process ()
-	{
+	public final void process() {
 		// Mark added/removed components in the entity bits.
 		markComponentChanges();
 		// Let the entity group filters update their internal lists.
 		notifyFilters();
 		/*
-		 * Let the steps have the opportunity of clean up after removed entities
-		 * from last tick.
+		 * Let the steps have the opportunity of clean up after removed entities from
+		 * last tick.
 		 */
 		cleanupSteps();
 		// Clean components from deleted entities.
@@ -446,9 +406,8 @@ public final class DustContext
 	 * @param type of component to get handler for.
 	 * @return handler for specified component type.
 	 */
-	public final <T extends Component> ComponentHandler<T> getHandler ( final Class<T> type )
-	{
-		return componentManager.getHandlerFor( type );
+	public final <T extends Component> ComponentHandler<T> getHandler(final Class<T> type) {
+		return componentManager.getHandlerFor(type);
 	}
 
 	/**
@@ -457,8 +416,7 @@ public final class DustContext
 	 *
 	 * @return new {@link Builder} instance.
 	 */
-	public static final Builder builder ()
-	{
+	public static final Builder builder() {
 		return new Builder();
 	}
 
@@ -476,8 +434,7 @@ public final class DustContext
 	 * @author dustContributor
 	 *
 	 */
-	public static final class Builder
-	{
+	public static final class Builder {
 		/**
 		 * Types that will be present in all entities of the {@link DustContext}.
 		 */
@@ -501,13 +458,12 @@ public final class DustContext
 		 */
 		private boolean processByOrder;
 
-		Builder ()
-		{
+		Builder() {
 			this.initializeByOrder = false;
 			this.processByOrder = false;
 			this.componentTypes = new HashSet<>();
-			this.steps = new ArrayList<>( 16 );
-			this.orders = new IntBag( 16 );
+			this.steps = new ArrayList<>(16);
+			this.orders = new IntBag(16);
 		}
 
 		/**
@@ -519,22 +475,20 @@ public final class DustContext
 		 * @param data to set in the {@link DustContext} instance.
 		 * @return this {@link Builder} instance.
 		 */
-		public final Builder data ( final Object data )
-		{
+		public final Builder data(final Object data) {
 			this.data = data;
 			return this;
 		}
 
 		/**
-		 * Configures this {@link Builder} response to each of the
-		 * {@link DustStep}'s order.
+		 * Configures this {@link Builder} response to each of the {@link DustStep}'s
+		 * order.
 		 *
 		 * <p>
 		 * If set to 'true', the produced {@link DustContext} will initialize
-		 * {@link DustStep} instances respecting the passed order (from lower to
-		 * upper). Otherwise if set to 'false' it will ignore it and initialize
-		 * {@link DustStep} instances in the order they were added to this
-		 * {@link Builder}.
+		 * {@link DustStep} instances respecting the passed order (from lower to upper).
+		 * Otherwise if set to 'false' it will ignore it and initialize {@link DustStep}
+		 * instances in the order they were added to this {@link Builder}.
 		 * </p>
 		 *
 		 * <p>
@@ -544,21 +498,19 @@ public final class DustContext
 		 * @param initializeByOrder value.
 		 * @return this {@link Builder} instance.
 		 */
-		public final Builder initializeByOrder ( final boolean initializeByOrder )
-		{
+		public final Builder initializeByOrder(final boolean initializeByOrder) {
 			this.initializeByOrder = initializeByOrder;
 			return this;
 		}
 
 		/**
-		 * Configures this {@link Builder} response to each of the
-		 * {@link DustStep}'s order.
+		 * Configures this {@link Builder} response to each of the {@link DustStep}'s
+		 * order.
 		 * <p>
 		 * If set to 'true', the produced {@link DustContext} will process
-		 * {@link DustStep} instances respecting the passed order (from lower to
-		 * upper). Otherwise if set to 'false' it will ignore it and process
-		 * {@link DustStep} instances in the order they were added to this
-		 * {@link Builder}.
+		 * {@link DustStep} instances respecting the passed order (from lower to upper).
+		 * Otherwise if set to 'false' it will ignore it and process {@link DustStep}
+		 * instances in the order they were added to this {@link Builder}.
 		 * </p>
 		 * <p>
 		 * 'false' by default.
@@ -567,8 +519,7 @@ public final class DustContext
 		 * @param processByOrder value.
 		 * @return this {@link Builder} instance.
 		 */
-		public final Builder processByOrder ( final boolean processByOrder )
-		{
+		public final Builder processByOrder(final boolean processByOrder) {
 			this.processByOrder = processByOrder;
 			return this;
 		}
@@ -582,72 +533,66 @@ public final class DustContext
 		 *
 		 * @see Builder#step(Function)
 		 */
-		public final Builder step ( final Supplier<DustStep> step )
-		{
-			return step( step, 0 );
+		public final Builder step(final Supplier<DustStep> step) {
+			return step(step, 0);
 		}
 
 		/**
 		 * Convenience overload for {@link DustStep}s that need no filtered entity
 		 * lists.
 		 *
-		 * @param step to add.
+		 * @param step  to add.
 		 * @param order of the instance.
 		 * @return this builder instance.
 		 *
 		 * @see Builder#step(Function, int)
 		 */
-		public final Builder step ( final Supplier<DustStep> step, final int order )
-		{
-			DustException.enforceNonNull( this, step, "step" );
-			return step( g -> step.get(), order );
+		public final Builder step(final Supplier<DustStep> step, final int order) {
+			DustException.enforceNonNull(this, step, "step");
+			return step(g -> step.get(), order);
 		}
 
 		/**
 		 * Add an {@link DustStep} constructor into this {@link DustContext}
 		 * {@link Builder}. Once constructed, the {@link DustStep} can be retrieved
-		 * later via the {@link DustContext} instance. The {@link DustContext}
-		 * instance constructed with this {@link Builder} will notify the
-		 * {@link DustStep} of any entity changes. <b>Its order will be set to
-		 * 0.</b>
+		 * later via the {@link DustContext} instance. The {@link DustContext} instance
+		 * constructed with this {@link Builder} will notify the {@link DustStep} of any
+		 * entity changes. <b>Its order will be set to 0.</b>
 		 *
 		 * @param step to add.
 		 * @return this builder instance.
 		 */
-		public final Builder step ( final Function<EntityGroups, DustStep> step )
-		{
-			return step( step, 0 );
+		public final Builder step(final Function<EntityGroups, DustStep> step) {
+			return step(step, 0);
 		}
 
 		/**
 		 * Add an {@link DustStep} constructor into this {@link DustContext}
 		 * {@link Builder}. Once constructed, the {@link DustStep} can be retrieved
-		 * later via the {@link DustContext} instance. The {@link DustContext}
-		 * instance constructed with this {@link Builder} will notify the
-		 * {@link DustStep} of any entity changes.
+		 * later via the {@link DustContext} instance. The {@link DustContext} instance
+		 * constructed with this {@link Builder} will notify the {@link DustStep} of any
+		 * entity changes.
 		 *
-		 * @param step to add.
+		 * @param step  to add.
 		 * @param order of the instance.
 		 * @return this {@link Builder} instance.
 		 */
-		public final Builder step ( final Function<EntityGroups, DustStep> step, final int order )
-		{
-			DustException.enforceNonNull( this, step, "step" );
-			this.steps.add( step );
-			this.orders.add( order );
+		public final Builder step(final Function<EntityGroups, DustStep> step, final int order) {
+			DustException.enforceNonNull(this, step, "step");
+			this.steps.add(step);
+			this.orders.add(order);
 			return this;
 		}
 
 		/**
-		 * Adds a component type that the {@link DustContext} instance created by
-		 * this {@link Builder} will be able to handle.
+		 * Adds a component type that the {@link DustContext} instance created by this
+		 * {@link Builder} will be able to handle.
 		 *
 		 * @param type of the {@link Component}.
 		 * @return this {@link Builder} instance.
 		 */
-		public final Builder componentType ( final Class<? extends Component> type )
-		{
-			componentTypes.add( DustException.enforceNonNull( this, type, "type" ) );
+		public final Builder componentType(final Class<? extends Component> type) {
+			componentTypes.add(DustException.enforceNonNull(this, type, "type"));
 			return this;
 		}
 
@@ -658,11 +603,9 @@ public final class DustContext
 		 * @return this {@link Builder} instance.
 		 */
 		@SafeVarargs
-		public final Builder componentTypes ( final Class<? extends Component>... types )
-		{
-			for ( final Class<? extends Component> type : types )
-			{
-				componentType( type );
+		public final Builder componentTypes(final Class<? extends Component>... types) {
+			for (final Class<? extends Component> type : types) {
+				componentType(type);
 			}
 			return this;
 		}
@@ -673,11 +616,9 @@ public final class DustContext
 		 * @param types of the {@link Component}s.
 		 * @return this {@link Builder} instance.
 		 */
-		public final Builder componentTypes ( final Iterable<Class<? extends Component>> types )
-		{
-			for ( final Class<? extends Component> type : types )
-			{
-				componentType( type );
+		public final Builder componentTypes(final Iterable<Class<? extends Component>> types) {
+			for (final Class<? extends Component> type : types) {
+				componentType(type);
 			}
 			return this;
 		}
@@ -688,79 +629,71 @@ public final class DustContext
 		 *
 		 * @return new {@link DustContext} instance.
 		 */
-		public final DustContext build ()
-		{
+		public final DustContext build() {
 			/*
-			 * Mapping from step to order, we fill it later by passing it to the
-			 * method that creates steps. The usage is a bit messy, maybe it could be
-			 * refined.
+			 * Mapping from step to order, we fill it later by passing it to the method that
+			 * creates steps. The usage is a bit messy, maybe it could be refined.
 			 */
-			final IdentityHashMap<DustStep, Integer> orderMap = new IdentityHashMap<>( this.steps.size() );
+			final IdentityHashMap<DustStep, Integer> orderMap = new IdentityHashMap<>(this.steps.size());
 			// Capture the map and use it for sorter by order later.
-			final Comparator<DustStep> compareByOrder = ( a, b ) -> orderMap.get( a ).compareTo( orderMap.get( b ) );
+			final Comparator<DustStep> compareByOrder = (a, b) -> orderMap.get(a).compareTo(orderMap.get(b));
 			/*
-			 * Construct component manager, used by context instance and filter
-			 * creation.
+			 * Construct component manager, used by context instance and filter creation.
 			 */
-			final ComponentManager cm = new ComponentManager( componentTypes );
+			final ComponentManager cm = new ComponentManager(componentTypes);
 			// Make the filter manager which will initialize all the filter groups.
-			final EntityGroups filterManager = new EntityGroups( cm );
+			final EntityGroups filterManager = new EntityGroups(cm);
 			// Use all the constructors to create the steps.
-			final DustStep[] steps = createObservers( orderMap, filterManager );
+			final DustStep[] steps = createObservers(orderMap, filterManager);
 
 			// Compose context parameters and construct it.
-			final DustContext context = new DustContext( composeWorldParams( steps, filterManager, compareByOrder, cm ) );
+			final DustContext context = new DustContext(composeWorldParams(steps, filterManager, compareByOrder, cm));
 			// Set the owner for all steps.
-			for ( int s = steps.length; s-- > 0; )
-			{
-				steps[s].context( context );
+			for (int s = steps.length; s-- > 0;) {
+				steps[s].context(context);
 			}
 			// Do the init step on steps.
-			stepInitialization( steps, compareByOrder, context );
+			stepInitialization(steps, compareByOrder, context);
 			// Now return fully constructed context instance.
 			return context;
 		}
 
-		private final DustStep[] createObservers (
+		private final DustStep[] createObservers(
 				final IdentityHashMap<DustStep, Integer> stepToOrder,
-				final EntityGroups groups )
-		{
+				final EntityGroups groups) {
 			final int size = steps.size();
 
 			final DustStep[] result = new DustStep[size];
 
-			for ( int i = 0; i < size; ++i )
-			{
+			for (int i = 0; i < size; ++i) {
 				// Fetch the step constructor.
-				final Function<EntityGroups, DustStep> ctor = steps.get( i );
+				final Function<EntityGroups, DustStep> ctor = steps.get(i);
 				// Fetch the priority/order.
-				final int order = orders.getUnsafe( i );
+				final int order = orders.getUnsafe(i);
 				/*
-				 * If its the dummy builder, just use the empty filter, otherwise build
-				 * the new filter to use.
+				 * If its the dummy builder, just use the empty filter, otherwise build the new
+				 * filter to use.
 				 */
 				// Construct step and set it on the same position.
-				result[i] = ctor.apply( groups );
+				result[i] = ctor.apply(groups);
 				// Map its order.
-				stepToOrder.put( result[i], Integer.valueOf( order ) );
+				stepToOrder.put(result[i], Integer.valueOf(order));
 			}
 
 			return result;
 		}
 
-		private final WorldParams composeWorldParams (
+		private final WorldParams composeWorldParams(
 				final DustStep[] steps,
 				final EntityGroups filterManager,
 				final Comparator<DustStep> comparator,
-				final ComponentManager cm )
-		{
+				final ComponentManager cm) {
 			// Make a defensive copy.
 			final DustStep[] processObservers = steps.clone();
 
-			if ( processByOrder )
-			{
+			if (processByOrder) {
 				// Sort if there was an order specified.
-				Arrays.sort( processObservers, comparator );
+				Arrays.sort(processObservers, comparator);
 			}
 
 			// Construct entity manager, used by the context instance.
@@ -770,29 +703,26 @@ public final class DustContext
 			 * World will respect the order in which processObservers is for calli@ng
 			 * 'process' on each of them.
 			 */
-			return new WorldParams( cm, em, processObservers, filterManager.groups(), data );
+			return new WorldParams(cm, em, processObservers, filterManager.groups(), data);
 		}
 
-		private final void stepInitialization (
+		private final void stepInitialization(
 				final DustStep[] steps,
 				final Comparator<DustStep> comparator,
-				final DustContext context )
-		{
+				final DustContext context) {
 			// Make a defensive copy.
 			final DustStep[] initializeObservers = steps.clone();
 
-			if ( initializeByOrder )
-			{
+			if (initializeByOrder) {
 				// Sort if there was an order specified.
-				Arrays.sort( initializeObservers, comparator );
+				Arrays.sort(initializeObservers, comparator);
 			}
 
 			// First step is to inject the steps.
-			Injector.init( context, initializeObservers );
+			Injector.init(context, initializeObservers);
 
 			// Second step is to call 'init' on them.
-			for ( int i = 0; i < initializeObservers.length; ++i )
-			{
+			for (int i = 0; i < initializeObservers.length; ++i) {
 				initializeObservers[i].init();
 			}
 		}

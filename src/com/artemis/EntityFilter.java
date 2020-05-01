@@ -49,46 +49,40 @@ import org.apache.lucene.util.BitUtil;
  * @author dustContributor
  *
  */
-public final class EntityFilter
-{
+public final class EntityFilter {
 	private final int hashCode;
 
 	private final Class<? extends Component>[] all;
 	private final Class<? extends Component>[] none;
 	private final Class<? extends Component>[] any;
 
-	EntityFilter ( final EntityFilter.Builder b )
-	{
-		this.all = b.all.stream().toArray( Class[]::new );
-		this.none = b.none.stream().toArray( Class[]::new );
-		this.any = b.any.stream().toArray( Class[]::new );
-		this.hashCode = hashCode( this.all, this.any, this.none );
+	EntityFilter(final EntityFilter.Builder b) {
+		this.all = b.all.stream().toArray(Class[]::new);
+		this.none = b.none.stream().toArray(Class[]::new);
+		this.any = b.any.stream().toArray(Class[]::new);
+		this.hashCode = hashCode(this.all, this.any, this.none);
 	}
 
 	@Override
-	public final boolean equals ( final Object obj )
-	{
-		if ( obj == this )
-		{
+	public final boolean equals(final Object obj) {
+		if (obj == this) {
 			return true;
 		}
 
-		if ( obj == null || !(obj instanceof EntityFilter) )
-		{
+		if (!(obj instanceof EntityFilter)) {
 			return false;
 		}
 
 		final EntityFilter a = (EntityFilter) obj;
 
 		return hashCode == a.hashCode
-				&& Arrays.equals( all, a.all )
-				&& Arrays.equals( none, a.none )
-				&& Arrays.equals( any, a.any );
+				&& Arrays.equals(all, a.all)
+				&& Arrays.equals(none, a.none)
+				&& Arrays.equals(any, a.any);
 	}
 
 	@Override
-	public final int hashCode ()
-	{
+	public final int hashCode() {
 		return this.hashCode;
 	}
 
@@ -103,9 +97,8 @@ public final class EntityFilter
 	 * @return new Builder instance.
 	 */
 	@SafeVarargs
-	public static final Builder all ( final Class<? extends Component>... types )
-	{
-		return builder().all( types );
+	public static final Builder all(final Class<? extends Component>... types) {
+		return builder().all(types);
 	}
 
 	/**
@@ -119,9 +112,8 @@ public final class EntityFilter
 	 * @return new {@link Builder} instance.
 	 */
 	@SafeVarargs
-	public static final Builder none ( final Class<? extends Component>... types )
-	{
-		return builder().none( types );
+	public static final Builder none(final Class<? extends Component>... types) {
+		return builder().none(types);
 	}
 
 	/**
@@ -135,9 +127,8 @@ public final class EntityFilter
 	 * @return new {@link Builder} instance.
 	 */
 	@SafeVarargs
-	public static final Builder any ( final Class<? extends Component>... types )
-	{
-		return builder().any( types );
+	public static final Builder any(final Class<? extends Component>... types) {
+		return builder().any(types);
 	}
 
 	/**
@@ -146,52 +137,44 @@ public final class EntityFilter
 	 *
 	 * @return new {@link EntityFilter} instance.
 	 */
-	public static final EntityFilter.Builder builder ()
-	{
+	public static final EntityFilter.Builder builder() {
 		return new EntityFilter.Builder();
 	}
 
-	final long[] allBits ( final ComponentManager cm )
-	{
-		return composeBitSet( cm, this.all );
+	final long[] allBits(final ComponentManager cm) {
+		return composeBitSet(cm, this.all);
 	}
 
-	final long[] noneBits ( final ComponentManager cm )
-	{
-		return composeBitSet( cm, this.none );
+	final long[] noneBits(final ComponentManager cm) {
+		return composeBitSet(cm, this.none);
 	}
 
-	final long[] anyBits ( final ComponentManager cm )
-	{
-		return composeBitSet( cm, this.any );
+	final long[] anyBits(final ComponentManager cm) {
+		return composeBitSet(cm, this.any);
 	}
 
-	final boolean isEmpty ()
-	{
+	final boolean isEmpty() {
 		return this.all.length < 1
 				&& this.none.length < 1
 				&& this.any.length < 1;
 	}
 
-	private static final long[] composeBitSet (
+	private static final long[] composeBitSet(
 			final ComponentManager cm,
-			final Class<? extends Component>[] types )
-	{
+			final Class<? extends Component>[] types) {
 		final long[] dest = new long[cm.wordsPerEntity()];
 
-		for ( final Class<? extends Component> type : types )
-		{
-			final int componentIndex = cm.indexFor( type );
+		for (final Class<? extends Component> type : types) {
+			final int componentIndex = cm.indexFor(type);
 
-			if ( componentIndex < 0 )
-			{
+			if (componentIndex < 0) {
 				final String msg = "Missing index for component of type: " + System.lineSeparator()
 						+ type.toString() + System.lineSeparator()
 						+ "Types need to be present in the world builder for EntityFilters to use them!";
-				throw new DustException( EntityFilter.class, msg );
+				throw new DustException(EntityFilter.class, msg);
 			}
 
-			BitUtil.set( dest, componentIndex );
+			BitUtil.set(dest, componentIndex);
 		}
 
 		return dest;
@@ -201,15 +184,12 @@ public final class EntityFilter
 	 * We don't use wordCount here since it ought to be equal in all instances.
 	 */
 	@SafeVarargs
-	private static final <T> int hashCode ( final T[]... typeSets )
-	{
+	private static final <T> int hashCode(final T[]... typeSets) {
 		final int mul = 31;
 		int hash = 1;
 
-		for ( final T[] types : typeSets )
-		{
-			for ( final T type : types )
-			{
+		for (final T[] types : typeSets) {
+			for (final T type : types) {
 				hash = mul * hash + type.hashCode();
 			}
 		}
@@ -223,30 +203,27 @@ public final class EntityFilter
 	 * @author dustContributor
 	 *
 	 */
-	public static final class Builder
-	{
+	public static final class Builder {
 		final HashSet<Class<? extends Component>> all;
 		final HashSet<Class<? extends Component>> none;
 		final HashSet<Class<? extends Component>> any;
 
-		Builder ()
-		{
+		Builder() {
 			this.all = new HashSet<>();
 			this.none = new HashSet<>();
 			this.any = new HashSet<>();
 		}
 
 		/**
-		 * Returns a {@link Builder} where an entity must possess all of the
-		 * specified component types.
+		 * Returns a {@link Builder} where an entity must possess all of the specified
+		 * component types.
 		 *
 		 * @param types a required component types.
 		 * @return this {@link Builder} instance.
 		 */
 		@SafeVarargs
-		public final Builder all ( final Class<? extends Component>... types )
-		{
-			addAll( all, types );
+		public final Builder all(final Class<? extends Component>... types) {
+			addAll(all, types);
 			return this;
 		}
 
@@ -259,23 +236,21 @@ public final class EntityFilter
 		 * @return this {@link Builder} instance.
 		 */
 		@SafeVarargs
-		public final Builder none ( final Class<? extends Component>... types )
-		{
-			addAll( none, types );
+		public final Builder none(final Class<? extends Component>... types) {
+			addAll(none, types);
 			return this;
 		}
 
 		/**
-		 * Returns an {@link Builder} where an entity must possess any of the
-		 * specified component types.
+		 * Returns an {@link Builder} where an entity must possess any of the specified
+		 * component types.
 		 *
 		 * @param types any of the types the entity must possess.
 		 * @return this {@link Builder} instance.
 		 */
 		@SafeVarargs
-		public final Builder any ( final Class<? extends Component>... types )
-		{
-			addAll( any, types );
+		public final Builder any(final Class<? extends Component>... types) {
+			addAll(any, types);
 			return this;
 		}
 
@@ -285,16 +260,13 @@ public final class EntityFilter
 		 *
 		 * @return {@link EntityFilter} based on this {@link Builder} configuration.
 		 */
-		public final EntityFilter build ()
-		{
-			return new EntityFilter( this );
+		public final EntityFilter build() {
+			return new EntityFilter(this);
 		}
 
-		private final <T> void addAll ( final HashSet<T> dest, final T[] items )
-		{
-			for ( final T item : DustException.enforceNonNull( this, items, "items" ) )
-			{
-				dest.add( DustException.enforceNonNull( this, item, "item" ) );
+		private final <T> void addAll(final HashSet<T> dest, final T[] items) {
+			for (final T item : DustException.enforceNonNull(this, items, "items")) {
+				dest.add(DustException.enforceNonNull(this, item, "item"));
 			}
 		}
 	}

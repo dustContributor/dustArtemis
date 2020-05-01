@@ -57,12 +57,10 @@ import java.util.Properties;
  * @author dustContributor
  *
  */
-public final class DAConstants
-{
+public final class DAConstants {
 	/** Non-instantiable class. */
-	private DAConstants ()
-	{
-		throw new DustException( DAConstants.class, "Can't create an instance of this class!" );
+	private DAConstants() {
+		throw new DustException(DAConstants.class, "Can't create an instance of this class!");
 	}
 
 	/** Name of the property that will be used to fetch config file path from. */
@@ -77,29 +75,25 @@ public final class DAConstants
 	/** Approximate amount of entities active in each system. */
 	public static final int APPROX_ENTITIES_PER_SYSTEM;
 
-	static
-	{
+	static {
 		final Properties props = loadCfgFile();
 
-		BAG_DEFAULT_CAPACITY = Math.max( getIntOrDefault( props, "BAG_DEFAULT_CAPACITY", 16 ), 4 );
-		BAG_GROW_RATE_THRESHOLD = Math.max( getIntOrDefault( props, "BAG_GROW_RATE_THRESHOLD", 2048 ), 256 );
-		APPROX_LIVE_ENTITIES = Math.max( getIntOrDefault( props, "APPROX_LIVE_ENTITIES", 1024 ), 64 );
-		APPROX_ENTITIES_PER_SYSTEM = Math.max( getIntOrDefault( props, "APPROX_ENTITIES_PER_SYSTEM", 1024 ), 16 );
+		BAG_DEFAULT_CAPACITY = Math.max(getIntOrDefault(props, "BAG_DEFAULT_CAPACITY", 16), 4);
+		BAG_GROW_RATE_THRESHOLD = Math.max(getIntOrDefault(props, "BAG_GROW_RATE_THRESHOLD", 2048), 256);
+		APPROX_LIVE_ENTITIES = Math.max(getIntOrDefault(props, "APPROX_LIVE_ENTITIES", 1024), 64);
+		APPROX_ENTITIES_PER_SYSTEM = Math.max(getIntOrDefault(props, "APPROX_ENTITIES_PER_SYSTEM", 1024), 16);
 	}
 
 	/**
 	 * Returns an int fetched and parsed from the properties table, or defaults to
 	 * passed value if there isn't one or the value couldn't be parsed.
 	 */
-	private static final int getIntOrDefault ( final Properties props, final String key, final int defValue )
-	{
-		try
-		{
-			return Integer.parseInt( props.getProperty( key ) );
+	private static final int getIntOrDefault(final Properties props, final String key, final int defValue) {
+		try {
+			return Integer.parseInt(props.getProperty(key));
 		}
 		// Prolly the only exception type that could be raised here.
-		catch ( final Exception ex )
-		{
+		catch (final Exception ex) {
 			// Fail silently.
 		}
 		return defValue;
@@ -109,14 +103,10 @@ public final class DAConstants
 	 * Returns a boolean fetched and parsed from the properties table, or defaults
 	 * to passed value if there isn't one or the value couldn't be parsed.
 	 */
-	private static final boolean getBoolOrDefault ( final Properties props, final String key, final boolean defValue )
-	{
-		try
-		{
-			return Boolean.parseBoolean( props.getProperty( key ) );
-		}
-		catch ( final Exception ex )
-		{
+	private static final boolean getBoolOrDefault(final Properties props, final String key, final boolean defValue) {
+		try {
+			return Boolean.parseBoolean(props.getProperty(key));
+		} catch (final Exception ex) {
 			// Fail silently.
 		}
 		return defValue;
@@ -126,22 +116,17 @@ public final class DAConstants
 	 * Loads configuration file for dustArtemis constants, fetching the path from
 	 * the property {@value #CFG_FILE_PROPERTY_NAME}.
 	 */
-	private static final Properties loadCfgFile ()
-	{
+	private static final Properties loadCfgFile() {
 		final Properties props = new Properties();
 
-		try
-		{
-			final String dir = System.getProperty( CFG_FILE_PROPERTY_NAME );
-			final File file = FileSystems.getDefault().getPath( dir ).toFile();
+		try {
+			final String dir = System.getProperty(CFG_FILE_PROPERTY_NAME);
+			final File file = FileSystems.getDefault().getPath(dir).toFile();
 			// Try load the constants configuration from the file.
-			try ( final FileReader fr = new FileReader( file ) )
-			{
-				props.load( fr );
+			try (final FileReader fr = new FileReader(file)) {
+				props.load(fr);
 			}
-		}
-		catch ( final Exception ex )
-		{
+		} catch (final Exception ex) {
 			// Fail silently.
 		}
 

@@ -50,9 +50,8 @@ package org.apache.lucene.util; // from org.apache.solr.util rev 555343
  * 
  * @author originally from <b>Apache Lucene Project</b>.
  */
-@SuppressWarnings( "javadoc" )
-public final class BitUtil
-{
+@SuppressWarnings("javadoc")
+public final class BitUtil {
 	// @formatter:off
 
 	// table of bits/byte
@@ -127,14 +126,12 @@ public final class BitUtil
 
   //@formatter:on
 
-	private BitUtil ()
-	{
+	private BitUtil() {
 		// no instance
 	}
 
 	/** Return the number of bits sets in b. */
-	public static final int bitCount ( final byte b )
-	{
+	public static final int bitCount(final byte b) {
 		return BYTE_COUNTS[b & 0xFF];
 	}
 
@@ -146,14 +143,13 @@ public final class BitUtil
 	 * <ul>
 	 * <li><code>0x43 &
 	 * 0x0F</code> is 3, meaning the the first bit set is at offset 3-1 = 2,</li>
-	 * <li><code>(0x43 >>> 4) & 0x0F</code> is 4, meaning there is a second bit
-	 * set at offset 4-1=3,</li>
+	 * <li><code>(0x43 >>> 4) & 0x0F</code> is 4, meaning there is a second bit set
+	 * at offset 4-1=3,</li>
 	 * <li><code>(0x43 >>> 8) & 0x0F</code> is 0, meaning there is no more bit set
 	 * in this byte.</li>
 	 * </ul>
 	 */
-	public static final int bitList ( final byte b )
-	{
+	public static final int bitList(final byte b) {
 		return BIT_LISTS[b & 0xFF];
 	}
 
@@ -162,12 +158,10 @@ public final class BitUtil
 	// intrinsic since Java 6u18) in a naive loop, see LUCENE-2221
 
 	/** Returns the number of set bits in an array of longs. */
-	public static final int pop_array ( final long[] arr, final int wordOffset, final int numWords )
-	{
+	public static final int pop_array(final long[] arr, final int wordOffset, final int numWords) {
 		int popCount = 0;
-		for ( int i = wordOffset, end = wordOffset + numWords; i < end; ++i )
-		{
-			popCount += Long.bitCount( arr[i] );
+		for (int i = wordOffset, end = wordOffset + numWords; i < end; ++i) {
+			popCount += Long.bitCount(arr[i]);
 		}
 		return popCount;
 	}
@@ -176,16 +170,14 @@ public final class BitUtil
 	 * Returns the popcount or cardinality of the two sets after an intersection.
 	 * Neither array is modified.
 	 */
-	public static final int pop_intersect (
+	public static final int pop_intersect(
 			final long[] arr1,
 			final long[] arr2,
 			final int wordOffset,
-			final int numWords )
-	{
+			final int numWords) {
 		int popCount = 0;
-		for ( int i = wordOffset, end = wordOffset + numWords; i < end; ++i )
-		{
-			popCount += Long.bitCount( arr1[i] & arr2[i] );
+		for (int i = wordOffset, end = wordOffset + numWords; i < end; ++i) {
+			popCount += Long.bitCount(arr1[i] & arr2[i]);
 		}
 		return popCount;
 	}
@@ -194,12 +186,10 @@ public final class BitUtil
 	 * Returns the popcount or cardinality of the union of two sets. Neither array
 	 * is modified.
 	 */
-	public static final int pop_union ( final long[] arr1, final long[] arr2, final int wordOffset, final int numWords )
-	{
+	public static final int pop_union(final long[] arr1, final long[] arr2, final int wordOffset, final int numWords) {
 		int popCount = 0;
-		for ( int i = wordOffset, end = wordOffset + numWords; i < end; ++i )
-		{
-			popCount += Long.bitCount( arr1[i] | arr2[i] );
+		for (int i = wordOffset, end = wordOffset + numWords; i < end; ++i) {
+			popCount += Long.bitCount(arr1[i] | arr2[i]);
 		}
 		return popCount;
 	}
@@ -207,12 +197,10 @@ public final class BitUtil
 	/**
 	 * Returns the popcount or cardinality of A & ~B. Neither array is modified.
 	 */
-	public static final int pop_andnot ( final long[] arr1, final long[] arr2, final int wordOffset, final int numWords )
-	{
+	public static final int pop_andnot(final long[] arr1, final long[] arr2, final int wordOffset, final int numWords) {
 		int popCount = 0;
-		for ( int i = wordOffset, end = wordOffset + numWords; i < end; ++i )
-		{
-			popCount += Long.bitCount( arr1[i] & ~arr2[i] );
+		for (int i = wordOffset, end = wordOffset + numWords; i < end; ++i) {
+			popCount += Long.bitCount(arr1[i] & ~arr2[i]);
 		}
 		return popCount;
 	}
@@ -220,22 +208,19 @@ public final class BitUtil
 	/**
 	 * Returns the popcount or cardinality of A ^ B Neither array is modified.
 	 */
-	public static final int pop_xor ( final long[] arr1, final long[] arr2, final int wordOffset, final int numWords )
-	{
+	public static final int pop_xor(final long[] arr1, final long[] arr2, final int wordOffset, final int numWords) {
 		int popCount = 0;
-		for ( int i = wordOffset, end = wordOffset + numWords; i < end; ++i )
-		{
-			popCount += Long.bitCount( arr1[i] ^ arr2[i] );
+		for (int i = wordOffset, end = wordOffset + numWords; i < end; ++i) {
+			popCount += Long.bitCount(arr1[i] ^ arr2[i]);
 		}
 		return popCount;
 	}
 
 	/**
-	 * returns the next highest power of two, or the current value if it's already
-	 * a power of two or zero
+	 * returns the next highest power of two, or the current value if it's already a
+	 * power of two or zero
 	 */
-	public static final int nextHighestPowerOfTwo ( int v )
-	{
+	public static final int nextHighestPowerOfTwo(int v) {
 		v--;
 		v |= v >> 1;
 		v |= v >> 2;
@@ -249,18 +234,15 @@ public final class BitUtil
 	/**
 	 * Returns true if any word intersects between the arrays, false otherwise.
 	 */
-	public static final boolean intersects (
+	public static final boolean intersects(
 			final long[] lft,
 			final int lftStart,
 			final long[] rgt,
 			final int rgtStart,
-			final int limit )
-	{
+			final int limit) {
 		final long[] bts = lft;
-		for ( int i = limit; i-- > 0; )
-		{
-			if ( (bts[lftStart + i] & rgt[rgtStart + i]) != 0L )
-			{
+		for (int i = limit; i-- > 0;) {
+			if ((bts[lftStart + i] & rgt[rgtStart + i]) != 0L) {
 				return true;
 			}
 		}
@@ -268,21 +250,18 @@ public final class BitUtil
 	}
 
 	/**
-	 * Returns false if the intersection between the arrays is not equal to the
-	 * word of the left array, true otherwise.
+	 * Returns false if the intersection between the arrays is not equal to the word
+	 * of the left array, true otherwise.
 	 */
-	public static final boolean intersectionEqual (
+	public static final boolean intersectionEqual(
 			final long[] lft,
 			final int lftStart,
 			final long[] rgt,
 			final int rgtStart,
-			final int limit )
-	{
-		for ( int i = limit; i-- > 0; )
-		{
+			final int limit) {
+		for (int i = limit; i-- > 0;) {
 			final long lftWord = lft[lftStart + i];
-			if ( (lftWord & rgt[rgtStart + i]) != lftWord )
-			{
+			if ((lftWord & rgt[rgtStart + i]) != lftWord) {
 				return false;
 			}
 		}
@@ -290,12 +269,9 @@ public final class BitUtil
 	}
 
 	/** Returns true if all words are zero, false otherwise. */
-	public static final boolean isEmpty ( final long[] bits )
-	{
-		for ( int i = bits.length; i-- > 0; )
-		{
-			if ( bits[i] != 0L )
-			{
+	public static final boolean isEmpty(final long[] bits) {
+		for (int i = bits.length; i-- > 0;) {
+			if (bits[i] != 0L) {
 				return false;
 			}
 		}
@@ -303,39 +279,32 @@ public final class BitUtil
 	}
 
 	/** Sets all words in the specified range to zero. */
-	public static final void clearWords ( final long[] bits, final int start, final int end )
-	{
-		for ( int i = end; i-- > start; )
-		{
+	public static final void clearWords(final long[] bits, final int start, final int end) {
+		for (int i = end; i-- > start;) {
 			bits[i] = 0L;
 		}
 	}
 
-	public static final void clearRelative ( final long[] bits, final int bit, final int index, final int wordStride )
-	{
-		clear( bits, (index * wordStride * 64) + bit );
+	public static final void clearRelative(final long[] bits, final int bit, final int index, final int wordStride) {
+		clear(bits, (index * wordStride * 64) + bit);
 	}
 
 	/** Sets a bit in the specified index to zero. */
-	public static final void clear ( final long[] bits, final int index )
-	{
-		clear( bits, index, index >> 6 );
+	public static final void clear(final long[] bits, final int index) {
+		clear(bits, index, index >> 6);
 	}
 
-	static final void clear ( final long[] bits, final int index, final int word )
-	{
+	static final void clear(final long[] bits, final int index, final int word) {
 		final long mask = 1L << index;
 		bits[word] &= ~mask;
 	}
 
 	/** Sets a bit in the specified index to zero. */
-	public static final void set ( final long[] bits, final int index )
-	{
-		set( bits, index, index >> 6 );
+	public static final void set(final long[] bits, final int index) {
+		set(bits, index, index >> 6);
 	}
 
-	static final void set ( final long[] bits, final int index, final int word )
-	{
+	static final void set(final long[] bits, final int index, final int word) {
 		final long mask = 1L << index;
 		bits[word] |= mask;
 	}
@@ -344,30 +313,26 @@ public final class BitUtil
 	 * Sets a bit relative from an index, word stride, and a bit offset from that
 	 * position.
 	 */
-	public static final void setRelative ( final long[] bits, final int bit, final int index, final int wordStride )
-	{
-		set( bits, (index * wordStride * 64) + bit );
+	public static final void setRelative(final long[] bits, final int bit, final int index, final int wordStride) {
+		set(bits, (index * wordStride * 64) + bit);
 	}
 
 	/** Gets the state of a bit in the specified index. */
-	public static final boolean get ( final long[] bits, final int index )
-	{
-		return get( bits, index, index >> 6 );
+	public static final boolean get(final long[] bits, final int index) {
+		return get(bits, index, index >> 6);
 	}
 
-	static final boolean get ( final long[] bits, final int index, final int word )
-	{
+	static final boolean get(final long[] bits, final int index, final int word) {
 		final long mask = 1L << index;
 		return (bits[word] & mask) != 0L;
 	}
 
 	/**
-	 * Gets the state of a bit relative from an index, word stride, and a bit
-	 * offset from that position.
+	 * Gets the state of a bit relative from an index, word stride, and a bit offset
+	 * from that position.
 	 */
-	public static final boolean getRelative ( final long[] bits, final int bit, final int index, final int wordStride )
-	{
-		return get( bits, (index * wordStride * 64) + bit );
+	public static final boolean getRelative(final long[] bits, final int bit, final int index, final int wordStride) {
+		return get(bits, (index * wordStride * 64) + bit);
 	}
 
 }

@@ -20,8 +20,7 @@ import com.artemis.DAConstants;
  *
  * @param <T> type of the elements it holds.
  */
-public abstract class ImmutableBag<T> implements Iterable<T>
-{
+public abstract class ImmutableBag<T> implements Iterable<T> {
 	protected T[] data;
 	protected int size;
 
@@ -30,59 +29,54 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 	 * {@value #DEFAULT_CAPACITY}. The backing array type will be Object.
 	 * 
 	 */
-	public ImmutableBag ()
-	{
-		this( DEFAULT_CAPACITY );
+	public ImmutableBag() {
+		this(DEFAULT_CAPACITY);
 	}
 
 	/**
 	 * Constructs an empty Bag with the specified initial capacity.
 	 * 
 	 * <p>
-	 * <b>NOTE</b>: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY},
-	 * the Bag will be created with a capacity of
-	 * {@value #MINIMUM_WORKING_CAPACITY} instead. The backing array type will be
-	 * Object.
+	 * <b>NOTE</b>: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY}, the
+	 * Bag will be created with a capacity of {@value #MINIMUM_WORKING_CAPACITY}
+	 * instead. The backing array type will be Object.
 	 * </p>
 	 * 
 	 * @param capacity of the Bag
 	 */
-	@SuppressWarnings( "unchecked" )
-	public ImmutableBag ( final int capacity )
-	{
-		this( (Class<T>) Object.class, capacity );
+	@SuppressWarnings("unchecked")
+	public ImmutableBag(final int capacity) {
+		this((Class<T>) Object.class, capacity);
 	}
 
 	/**
 	 * Constructs an empty Bag with an initial capacity of
-	 * {@value #DEFAULT_CAPACITY}. Uses Array.newInstance() to instantiate a
-	 * backing array of the proper type.
+	 * {@value #DEFAULT_CAPACITY}. Uses Array.newInstance() to instantiate a backing
+	 * array of the proper type.
 	 * 
 	 * @param type of the backing array.
 	 */
-	public ImmutableBag ( final Class<T> type )
-	{
-		this( type, DEFAULT_CAPACITY );
+	public ImmutableBag(final Class<T> type) {
+		this(type, DEFAULT_CAPACITY);
 	}
 
 	/**
 	 * Constructs an empty Bag with the defined initial capacity.
 	 * 
 	 * <p>
-	 * <b>NOTE</b>: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY},
-	 * the Bag will be created with a capacity of
-	 * {@value #MINIMUM_WORKING_CAPACITY} instead. Uses Array.newInstance() to
-	 * instantiate a backing array of the proper type.
+	 * <b>NOTE</b>: If capacity is less than {@value #MINIMUM_WORKING_CAPACITY}, the
+	 * Bag will be created with a capacity of {@value #MINIMUM_WORKING_CAPACITY}
+	 * instead. Uses Array.newInstance() to instantiate a backing array of the
+	 * proper type.
 	 * </p>
 	 * 
-	 * @param type of the backing array.
+	 * @param type     of the backing array.
 	 * 
 	 * @param capacity of the Bag.
 	 */
-	@SuppressWarnings( "unchecked" )
-	public ImmutableBag ( final Class<T> type, final int capacity )
-	{
-		this( (T[]) Array.newInstance( type, fixInitialCapacity( capacity ) ) );
+	@SuppressWarnings("unchecked")
+	public ImmutableBag(final Class<T> type, final int capacity) {
+		this((T[]) Array.newInstance(type, fixInitialCapacity(capacity)));
 	}
 
 	/**
@@ -94,8 +88,7 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 	 * 
 	 * @param data array to use as backing storage.
 	 */
-	public ImmutableBag ( final T[] data )
-	{
+	public ImmutableBag(final T[] data) {
 		this.data = data;
 	}
 
@@ -104,8 +97,7 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 	 * 
 	 * @return number of items in this bag.
 	 */
-	public int size ()
-	{
+	public int size() {
 		return size;
 	}
 
@@ -114,8 +106,7 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 	 * 
 	 * @return number of items the bag can hold without growing.
 	 */
-	public int capacity ()
-	{
+	public int capacity() {
 		return data.length;
 	}
 
@@ -124,8 +115,7 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 	 * 
 	 * @return true if this list contains no items.
 	 */
-	public boolean isEmpty ()
-	{
+	public boolean isEmpty() {
 		return size < 1;
 	}
 
@@ -135,15 +125,12 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 	 * @param item to check if its contained in the bag.
 	 * @return the index of the item, -1 if none of such item was found.
 	 */
-	public int contains ( final T item )
-	{
+	public int contains(final T item) {
 		final int size = this.size;
 		final T[] data = this.data;
 
-		for ( int i = 0; i < size; ++i )
-		{
-			if ( data[i] == item )
-			{
+		for (int i = 0; i < size; ++i) {
+			if (data[i] == item) {
 				// Item found. Return its index.
 				return i;
 			}
@@ -157,20 +144,17 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 	 * Check if the bag contains this item applying the criteria supplied..
 	 * 
 	 * @param criteria to be used to find an item.
-	 * @return the index of the item that met the criteria, -1 if none of such
-	 *         items were found.
+	 * @return the index of the item that met the criteria, -1 if none of such items
+	 *         were found.
 	 */
-	public int contains ( final Predicate<T> criteria )
-	{
-		Objects.requireNonNull( criteria, "criteria" );
+	public int contains(final Predicate<T> criteria) {
+		Objects.requireNonNull(criteria, "criteria");
 
 		final int size = this.size;
 		final T[] data = this.data;
 
-		for ( int i = 0; i < size; ++i )
-		{
-			if ( criteria.test( data[i] ) )
-			{
+		for (int i = 0; i < size; ++i) {
+			if (criteria.test(data[i])) {
 				// Item found. Return its index.
 				return i;
 			}
@@ -187,12 +171,10 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 	 * @return the item that met the criteria or null if none of such items were
 	 *         found.
 	 */
-	public T find ( final Predicate<T> criteria )
-	{
-		final int index = contains( criteria );
+	public T find(final Predicate<T> criteria) {
+		final int index = contains(criteria);
 
-		if ( index > -1 )
-		{
+		if (index > -1) {
 			return data[index];
 		}
 
@@ -200,41 +182,37 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 	}
 
 	/**
-	 * Iterates over each element of this bag and applying the supplied operation
-	 * on each element.
+	 * Iterates over each element of this bag and applying the supplied operation on
+	 * each element.
 	 * 
 	 * @param operation to be performed on each element of this bag.
 	 */
 	@Override
-	public void forEach ( final Consumer<? super T> operation )
-	{
-		Objects.requireNonNull( operation, "operation" );
+	public void forEach(final Consumer<? super T> operation) {
+		Objects.requireNonNull(operation, "operation");
 
 		final int size = this.size;
 		final T[] data = this.data;
 
-		for ( int i = 0; i < size; ++i )
-		{
-			operation.accept( data[i] );
+		for (int i = 0; i < size; ++i) {
+			operation.accept(data[i]);
 		}
 	}
 
 	/**
-	 * Iterates over each element of this bag and applying the supplied operation
-	 * on each element while passing the index of the element being operated on.
+	 * Iterates over each element of this bag and applying the supplied operation on
+	 * each element while passing the index of the element being operated on.
 	 * 
 	 * @param operation to be performed on each element of this bag.
 	 */
-	public void forEach ( final ObjIntConsumer<T> operation )
-	{
-		Objects.requireNonNull( operation, "operation" );
+	public void forEach(final ObjIntConsumer<T> operation) {
+		Objects.requireNonNull(operation, "operation");
 
 		final int size = this.size;
 		final T[] data = this.data;
 
-		for ( int i = 0; i < size; ++i )
-		{
-			operation.accept( data[i], i );
+		for (int i = 0; i < size; ++i) {
+			operation.accept(data[i], i);
 		}
 	}
 
@@ -244,10 +222,8 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 	 * @param index of the item to return
 	 * @return item at the specified position in bag
 	 */
-	public T get ( final int index )
-	{
-		if ( isInBounds( index ) )
-		{
+	public T get(final int index) {
+		if (isInBounds(index)) {
 			return data[index];
 		}
 
@@ -264,8 +240,7 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 	 * @param index of the item to return
 	 * @return item at the specified position in bag
 	 */
-	public T getUnsafe ( final int index )
-	{
+	public T getUnsafe(final int index) {
 		return data[index];
 	}
 
@@ -277,21 +252,19 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 	 * @return <code>true</code> if the index is within the bounds of the Bag,
 	 *         <code>false</code> otherwise.
 	 */
-	protected boolean isInBounds ( final int index )
-	{
+	protected boolean isInBounds(final int index) {
 		return (index > -1 && index < data.length);
 	}
 
 	/**
-	 * Checks if the index is within the size of the Bag (ie, if its bigger or
-	 * equal than 0 and less than the size of the bag).
+	 * Checks if the index is within the size of the Bag (ie, if its bigger or equal
+	 * than 0 and less than the size of the bag).
 	 * 
 	 * @param index that needs to be checked.
 	 * @return <code>true</code> if the index is within the size of the Bag,
 	 *         <code>false</code> otherwise.
 	 */
-	protected boolean isInSize ( final int index )
-	{
+	protected boolean isInSize(final int index) {
 		return (index > -1 && index < size);
 	}
 
@@ -302,21 +275,19 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 	 *
 	 * @return {@link Stream} representing this bag.
 	 */
-	public Stream<T> stream ()
-	{
-		return StreamSupport.stream( Arrays.spliterator( data, 0, size ), false );
+	public Stream<T> stream() {
+		return StreamSupport.stream(Arrays.spliterator(data, 0, size), false);
 	}
 
 	/**
 	 * Provides a {@link Spliterator#SIZED}, {@link Spliterator#SUBSIZED},
-	 * {@link Spliterator#ORDERED} and {@link Spliterator#IMMUTABLE}
-	 * <b>parallel</b> {@link java.util.stream.Stream} over this bag.
+	 * {@link Spliterator#ORDERED} and {@link Spliterator#IMMUTABLE} <b>parallel</b>
+	 * {@link java.util.stream.Stream} over this bag.
 	 *
 	 * @return parallel {@link Stream} representing this bag.
 	 */
-	public Stream<T> parallelStream ()
-	{
-		return StreamSupport.stream( Arrays.spliterator( data, 0, size ), true );
+	public Stream<T> parallelStream() {
+		return StreamSupport.stream(Arrays.spliterator(data, 0, size), true);
 	}
 
 	/**
@@ -324,9 +295,8 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 	 * while in use.
 	 */
 	@Override
-	public final Iterator<T> iterator ()
-	{
-		return new ArrayIterator<>( this.data, this.size );
+	public final Iterator<T> iterator() {
+		return new ArrayIterator<>(this.data, this.size);
 	}
 
 	/**
@@ -348,18 +318,15 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 	 * {@link ImmutableBag#MINIMUM_WORKING_CAPACITY}.
 	 * 
 	 * @param capacity to check.
-	 * @return capacity if its valid,
-	 *         {@link ImmutableBag#MINIMUM_WORKING_CAPACITY} otherwise.
+	 * @return capacity if its valid, {@link ImmutableBag#MINIMUM_WORKING_CAPACITY}
+	 *         otherwise.
 	 */
-	public static final int fixInitialCapacity ( final int capacity )
-	{
+	public static final int fixInitialCapacity(final int capacity) {
 		return (capacity > MINIMUM_WORKING_CAPACITY) ? capacity : MINIMUM_WORKING_CAPACITY;
 	}
 
-	protected static final int nextCapacity ( final int dataLength )
-	{
-		if ( dataLength < GROW_RATE_THRESHOLD )
-		{
+	protected static final int nextCapacity(final int dataLength) {
+		if (dataLength < GROW_RATE_THRESHOLD) {
 			// Exponential 2 growth.
 			return (dataLength << 1);
 		}
@@ -368,20 +335,18 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 	}
 
 	/**
-	 * It finds the next capacity according to the grow strategy that could
-	 * contain the supplied index.
+	 * It finds the next capacity according to the grow strategy that could contain
+	 * the supplied index.
 	 * 
-	 * @param index that needs to be contained.
+	 * @param index       that needs to be contained.
 	 * @param arrayLength of the current backing array.
 	 * @return proper capacity given by the grow strategy.
 	 */
-	public static final int getCapacityFor ( final int index, final int arrayLength )
-	{
+	public static final int getCapacityFor(final int index, final int arrayLength) {
 		int newSize = arrayLength;
 
-		while ( index >= newSize )
-		{
-			newSize = nextCapacity( newSize );
+		while (index >= newSize) {
+			newSize = nextCapacity(newSize);
 		}
 
 		return newSize;
@@ -392,17 +357,15 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 	 * Doesn't does bound checks.
 	 * 
 	 * @param value to set in the array.
-	 * @param dest array to fill with the value.
+	 * @param dest  array to fill with the value.
 	 * @param limit up to which the value will be set in the array.
 	 * @return the passed array.
 	 */
-	protected static final <T> T[] fillWith ( final T value, final T[] dest, final int limit )
-	{
+	protected static final <T> T[] fillWith(final T value, final T[] dest, final int limit) {
 		// Threshold backed by some JMH benchmarks.
-		if ( limit <= 256 )
-		{
+		if (limit <= 256) {
 			// Not worth going through arracopy if the range is small.
-			Arrays.fill( dest, 0, limit, value );
+			Arrays.fill(dest, 0, limit, value);
 			return dest;
 		}
 
@@ -416,9 +379,8 @@ public abstract class ImmutableBag<T> implements Iterable<T>
 		dest[6] = value;
 		dest[7] = value;
 
-		for ( int i = 8; i < limit; i += i )
-		{
-			System.arraycopy( dest, 0, dest, i, Math.min( limit - i, i ) );
+		for (int i = 8; i < limit; i += i) {
+			System.arraycopy(dest, 0, dest, i, Math.min(limit - i, i));
 		}
 
 		return dest;

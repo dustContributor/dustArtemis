@@ -17,24 +17,22 @@ import com.artemis.utils.ImmutableIntBag;
  *
  * @author dustContributor
  */
-final class Injector
-{
+final class Injector {
 	private final DustContext world;
 	private final Predicate<Field>[] tests;
 	private final Function<Field, Object>[] suppliers;
 
-	private Injector ( final DustContext world )
-	{
+	private Injector(final DustContext world) {
 		// Init all fields.
 		this.world = world;
 		// Predicates to test if the field is the appropriate one.
 		this.tests = asArray(
 				Injector::testForHandler,
-				Injector::testForObserver );
+				Injector::testForObserver);
 		// Suppliers for each of the fields that need to be injected.
 		this.suppliers = asArray(
 				this::supplyHandler,
-				this::supplyObserver );
+				this::supplyObserver);
 	}
 
 	/**
@@ -44,48 +42,44 @@ final class Injector
 	 * @return an array composed of the parameters.
 	 */
 	@SafeVarargs
-	private static final <T> T[] asArray ( final T... params )
-	{
+	private static final <T> T[] asArray(final T... params) {
 		return params;
 	}
 
 	/**
-	 * For each of the objects provided, they will get assigned an instance of
-	 * their {@link DustStep}, {@link ComponentHandler} or entity
-	 * {@link ImmutableIntBag} fields.
+	 * For each of the objects provided, they will get assigned an instance of their
+	 * {@link DustStep}, {@link ComponentHandler} or entity {@link ImmutableIntBag}
+	 * fields.
 	 *
 	 * @param objects that you need initialized.
 	 */
-	static final void init ( final DustContext world, final Object[] objects )
-	{
+	static final void init(final DustContext world, final Object[] objects) {
 		// Validate params.
-		DustException.enforceNonNull( Injector.class, world, "world" );
-		DustException.enforceNonNull( Injector.class, objects, "objects" );
+		DustException.enforceNonNull(Injector.class, world, "world");
+		DustException.enforceNonNull(Injector.class, objects, "objects");
 
 		// Injector instance that holds a world reference.
-		final Injector injector = new Injector( world );
+		final Injector injector = new Injector(world);
 		// Reasonable initial field amount.
-		final Bag<Field> fields = new Bag<>( new Field[32] );
+		final Bag<Field> fields = new Bag<>(new Field[32]);
 
 		// For each of the objects in the array:
-		for ( int s = objects.length; s-- > 0; )
-		{
+		for (int s = objects.length; s-- > 0;) {
 			final Object obj = objects[s];
 			/*
-			 * Iterating over superclasses until reaching Object. Otherwise instances
-			 * would only get assigned to the fields declared in the downmost subclass
-			 * in the hierarchy.
+			 * Iterating over superclasses until reaching Object. Otherwise instances would
+			 * only get assigned to the fields declared in the downmost subclass in the
+			 * hierarchy.
 			 */
-			for ( Class<?> clazz = obj.getClass(); clazz != Object.class; clazz = clazz.getSuperclass() )
-			{
-				fields.addAll( clazz.getDeclaredFields() );
+			for (Class<?> clazz = obj.getClass(); clazz != Object.class; clazz = clazz.getSuperclass()) {
+				fields.addAll(clazz.getDeclaredFields());
 			}
 			/*
 			 * Initialize all the collected fields in this object.
 			 */
-			injector.initFields( fields, obj );
+			injector.initFields(fields, obj);
 			// Clear the field bag for the next object.
-			fields.setSize( 0 );
+			fields.setSize(0);
 		}
 	}
 
@@ -93,26 +87,22 @@ final class Injector
 	 * Initializes all the fields in the bag, if they match a test, to the value
 	 * produced by its respective supplier.
 	 *
-	 * @param fields to initialize.
-	 * @param obj owner of these fields.
-	 * @param tests to try on each field.
+	 * @param fields    to initialize.
+	 * @param obj       owner of these fields.
+	 * @param tests     to try on each field.
 	 * @param suppliers to fetch the instances to set in the fields.
 	 */
-	private final void initFields ( final Bag<Field> fields, final Object obj )
-	{
+	private final void initFields(final Bag<Field> fields, final Object obj) {
 		final Field[] flds = fields.data();
 
 		// Now for each of those ComponentHandler fields in the object:
-		for ( int f = fields.size(); f-- > 0; )
-		{
+		for (int f = fields.size(); f-- > 0;) {
 			final Field field = flds[f];
 
-			for ( int i = tests.length; i-- > 0; )
-			{
-				if ( tests[i].test( field ) )
-				{
+			for (int i = tests.length; i-- > 0;) {
+				if (tests[i].test(field)) {
 					// Try to set the field with the supplied value.
-					trySetField( field, obj, suppliers[i].apply( field ) );
+					trySetField(field, obj, suppliers[i].apply(field));
 					// Field already set, jump to the next one.
 					break;
 				}
@@ -120,33 +110,29 @@ final class Injector
 		}
 	}
 
-	private final Object supplyHandler ( final Field field )
-	{
+	private final Object supplyHandler(final Field field) {
 		final ParameterizedType genericType = (ParameterizedType) field.getGenericType();
-		@SuppressWarnings( "unchecked" )
+		@SuppressWarnings("unchecked")
 		final Class<? extends Component> componentType = (Class<? extends Component>) genericType
 				.getActualTypeArguments()[0];
-		final ComponentHandler<? extends Component> value = world.getHandler( componentType );
+		final ComponentHandler<? extends Component> value = world.getHandler(componentType);
 		// Check for missing handler.
-		if ( value == null )
-		{
+		if (value == null) {
 			final String tname = componentType.getSimpleName();
-			throw new DustException( this, "Cant find HANDLER for the type " + tname + " to inject!" );
+			throw new DustException(this, "Cant find HANDLER for the type " + tname + " to inject!");
 		}
 		// Everything OK.
 		return value;
 	}
 
-	private final Object supplyObserver ( final Field field )
-	{
+	private final Object supplyObserver(final Field field) {
 		final Class<?> type = field.getType();
-		@SuppressWarnings( "unchecked" )
-		final DustStep value = world.step( (Class<DustStep>) type );
+		@SuppressWarnings("unchecked")
+		final DustStep value = world.step((Class<DustStep>) type);
 		// Check for missing observer.
-		if ( value == null )
-		{
+		if (value == null) {
 			final String tname = type.getSimpleName();
-			throw new DustException( this, "Cant find OBSERVER of the type " + tname + " to inject!" );
+			throw new DustException(this, "Cant find OBSERVER of the type " + tname + " to inject!");
 		}
 		// Everything OK.
 		return value;
@@ -158,9 +144,8 @@ final class Injector
 	 * @param field to test.
 	 * @return 'true' if it is, 'false' otherwise.
 	 */
-	private static final boolean testForHandler ( final Field field )
-	{
-		return ComponentHandler.class.isAssignableFrom( field.getType() );
+	private static final boolean testForHandler(final Field field) {
+		return ComponentHandler.class.isAssignableFrom(field.getType());
 	}
 
 	/**
@@ -169,36 +154,29 @@ final class Injector
 	 * @param field to test.
 	 * @return 'true' if it is, 'false' otherwise.
 	 */
-	private static final boolean testForObserver ( final Field field )
-	{
-		return DustStep.class.isAssignableFrom( field.getType() );
+	private static final boolean testForObserver(final Field field) {
+		return DustStep.class.isAssignableFrom(field.getType());
 	}
 
-	private static final void trySetField ( final Field field, final Object target, final Object value )
-	{
+	private static final void trySetField(final Field field, final Object target, final Object value) {
 		// Store current state of the field.
-		final boolean wasntAccessible = !field.canAccess( target );
+		final boolean wasntAccessible = !field.canAccess(target);
 		// If its accessible, no need to change it.
-		if ( wasntAccessible )
-		{
-			field.setAccessible( true );
+		if (wasntAccessible) {
+			field.setAccessible(true);
 		}
-		try
-		{
-			if ( field.get( target ) != null )
-			{
+		try {
+			if (field.get(target) != null) {
 				// Only modify the field if it hasn't been set already.
-				throw new DustException( Injector.class, "The FIELD already has a value!" );
+				throw new DustException(Injector.class, "The FIELD already has a value!");
 			}
 
 			// Assign the passed value.
-			field.set( target, value );
-		}
-		catch ( final IllegalArgumentException | IllegalAccessException | DustException e )
-		{
-			final String vmsg = String.valueOf( value );
-			final String tmsg = String.valueOf( target );
-			final String fmsg = String.valueOf( field );
+			field.set(target, value);
+		} catch (final IllegalArgumentException | IllegalAccessException | DustException e) {
+			final String vmsg = String.valueOf(value);
+			final String tmsg = String.valueOf(target);
+			final String fmsg = String.valueOf(field);
 			// Compose error message and throw exception.
 			final String emsg = "While INJECTING object instance: " + System.lineSeparator()
 					+ vmsg + System.lineSeparator()
@@ -206,17 +184,14 @@ final class Injector
 					+ fmsg + System.lineSeparator()
 					+ "Of the object: " + System.lineSeparator()
 					+ tmsg;
-			throw new DustException( Injector.class, emsg, e );
-		}
-		finally
-		{
+			throw new DustException(Injector.class, emsg, e);
+		} finally {
 			/*
-			 * Return the field to its initial state regardless of successful
-			 * assignment or not.
+			 * Return the field to its initial state regardless of successful assignment or
+			 * not.
 			 */
-			if ( wasntAccessible )
-			{
-				field.setAccessible( false );
+			if (wasntAccessible) {
+				field.setAccessible(false);
 			}
 		}
 	}

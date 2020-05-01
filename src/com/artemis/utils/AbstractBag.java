@@ -9,16 +9,13 @@ import java.util.Arrays;
  *
  * @param <T> type of the elements it holds.
  */
-abstract class AbstractBag<T> extends ImmutableBag<T>
-{
+abstract class AbstractBag<T> extends ImmutableBag<T> {
 	/**
 	 * Constructs an empty Bag with an initial capacity of
-	 * {@link ImmutableBag#DEFAULT_CAPACITY}. The backing array type will be
-	 * Object.
+	 * {@link ImmutableBag#DEFAULT_CAPACITY}. The backing array type will be Object.
 	 * 
 	 */
-	public AbstractBag ()
-	{
+	public AbstractBag() {
 		super();
 	}
 
@@ -26,17 +23,16 @@ abstract class AbstractBag<T> extends ImmutableBag<T>
 	 * Constructs an empty Bag with the specified initial capacity.
 	 * 
 	 * <p>
-	 * NOTE: If capacity is less than
-	 * {@link ImmutableBag#MINIMUM_WORKING_CAPACITY}, the Bag will be created
-	 * with a capacity of {@link ImmutableBag#MINIMUM_WORKING_CAPACITY} instead.
-	 * The backing array type will be Object.
+	 * NOTE: If capacity is less than {@link ImmutableBag#MINIMUM_WORKING_CAPACITY},
+	 * the Bag will be created with a capacity of
+	 * {@link ImmutableBag#MINIMUM_WORKING_CAPACITY} instead. The backing array type
+	 * will be Object.
 	 * </p>
 	 * 
 	 * @param capacity of the Bag
 	 */
-	public AbstractBag ( final int capacity )
-	{
-		super( capacity );
+	public AbstractBag(final int capacity) {
+		super(capacity);
 	}
 
 	/**
@@ -46,9 +42,8 @@ abstract class AbstractBag<T> extends ImmutableBag<T>
 	 * 
 	 * @param type of the backing array.
 	 */
-	public AbstractBag ( final Class<T> type )
-	{
-		super( type );
+	public AbstractBag(final Class<T> type) {
+		super(type);
 	}
 
 	/**
@@ -60,60 +55,52 @@ abstract class AbstractBag<T> extends ImmutableBag<T>
 	 * 
 	 * @param data array to use as backing storage.
 	 */
-	public AbstractBag ( final T[] data )
-	{
-		super( data );
+	public AbstractBag(final T[] data) {
+		super(data);
 	}
 
 	/**
 	 * Constructs an empty Bag with the defined initial capacity.
 	 * 
 	 * <p>
-	 * NOTE: If capacity is less than
-	 * {@link ImmutableBag#MINIMUM_WORKING_CAPACITY}, the Bag will be created
-	 * with a capacity of {@link ImmutableBag#MINIMUM_WORKING_CAPACITY} instead.
-	 * Uses Array.newInstance() to instantiate a backing array of the proper
-	 * type.
+	 * NOTE: If capacity is less than {@link ImmutableBag#MINIMUM_WORKING_CAPACITY},
+	 * the Bag will be created with a capacity of
+	 * {@link ImmutableBag#MINIMUM_WORKING_CAPACITY} instead. Uses
+	 * Array.newInstance() to instantiate a backing array of the proper type.
 	 * </p>
 	 * 
-	 * @param type of the backing array.
+	 * @param type     of the backing array.
 	 * 
 	 * @param capacity of the Bag.
 	 */
-	public AbstractBag ( final Class<T> type, final int capacity )
-	{
-		super( type, capacity );
+	public AbstractBag(final Class<T> type, final int capacity) {
+		super(type, capacity);
 	}
 
-	private void resize ( final int newCapacity )
-	{
-		data = Arrays.copyOf( data, newCapacity );
+	private void resize(final int newCapacity) {
+		data = Arrays.copyOf(data, newCapacity);
 	}
 
 	/**
-	 * Shrinks the capacity of this Bag to the next capacity that could hold a
-	 * Bag of this size.
+	 * Shrinks the capacity of this Bag to the next capacity that could hold a Bag
+	 * of this size.
 	 * 
 	 * If the capacities match, then it leaves the Bag as it is.
 	 */
-	public void shrink ()
-	{
-		final int nextCap = nextCapacity( size );
-		final int newCap = Math.max( nextCap, MINIMUM_WORKING_CAPACITY );
+	public void shrink() {
+		final int nextCap = nextCapacity(size);
+		final int newCap = Math.max(nextCap, MINIMUM_WORKING_CAPACITY);
 
-		if ( newCap < data.length )
-		{
-			resize( newCap );
+		if (newCap < data.length) {
+			resize(newCap);
 		}
 	}
 
 	/**
-	 * Resizes the backing array so its length matches the current size of the
-	 * bag.
+	 * Resizes the backing array so its length matches the current size of the bag.
 	 */
-	public void trim ()
-	{
-		resize( size );
+	public void trim() {
+		resize(size);
 	}
 
 	/**
@@ -121,13 +108,11 @@ abstract class AbstractBag<T> extends ImmutableBag<T>
 	 * 
 	 * @param index that is expected the Bag can contain.
 	 */
-	public void ensureCapacity ( final int index )
-	{
+	public void ensureCapacity(final int index) {
 		final int dataLen = data.length;
 
-		if ( index >= dataLen )
-		{
-			resize( getCapacityFor( index, dataLen ) );
+		if (index >= dataLen) {
+			resize(getCapacityFor(index, dataLen));
 		}
 	}
 
@@ -135,9 +120,8 @@ abstract class AbstractBag<T> extends ImmutableBag<T>
 	 * Removes all the items from this bag. This versions erases up to the
 	 * {@link ImmutableBag#size()} of the Bag.
 	 */
-	public void clear ()
-	{
-		fillWith( null, data, size );
+	public void clear() {
+		fillWith(null, data, size);
 		size = 0;
 	}
 
@@ -145,19 +129,16 @@ abstract class AbstractBag<T> extends ImmutableBag<T>
 	 * Removes all the items from this bag. This version erases up to the
 	 * {@link ImmutableBag#capacity()} of the Bag.
 	 */
-	public void totalClear ()
-	{
-		fillWith( null, data, data.length );
+	public void totalClear() {
+		fillWith(null, data, data.length);
 		size = 0;
 	}
 
-	public final T[] data ()
-	{
+	public final T[] data() {
 		return this.data;
 	}
 
-	public final void setSize ( final int size )
-	{
+	public final void setSize(final int size) {
 		this.size = size;
 	}
 
