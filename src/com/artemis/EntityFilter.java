@@ -188,7 +188,13 @@ public final class EntityFilter {
 		final int mul = 31;
 		int hash = 1;
 
-		for (final T[] types : typeSets) {
+		for (int i = 0; i < typeSets.length; ++i) {
+			final T[] types = typeSets[i];
+			/*
+			 * Avoids collisions for sets with the same component types but different kinds
+			 * (ie, all/any/none).
+			 */
+			hash = mul * hash + i;
 			for (final T type : types) {
 				hash = mul * hash + type.hashCode();
 			}
