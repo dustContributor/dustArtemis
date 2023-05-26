@@ -4,8 +4,6 @@ dustArtemis
 
 dustArtemis is a fork of `Artemis Entity System Framework <http://gamadu.com/artemis/>`_ As such it is licenced under the 2-clause BSD licence found in com/artemis/LICENCE.
 
-You can check out the `GDNet dustArtemis dev blog <http://www.gamedev.net/blog/1871-dustartemis-ecs-framework/>`_.
-
 Overview
 ========
 
@@ -13,7 +11,7 @@ An ECS (Entity Component System) framework provides the basics to compose Entiti
 
 dustArtemis is a fork of Artemis that provides additional functionality, bug fixes, better performance and other tweaks compared the original codebase.
 
-**Have in mind that Java 8 (or newer) is required for dustArtemis to work.** Having said that, Java 8 features are used sporadically in dustArtemis, so it's not too complex to just set the target to Java 7 and fix any compile error that pops up.
+**Have in mind that Java 11 (or newer) is required for dustArtemis to work.**
 
 How different is it?
 =======
