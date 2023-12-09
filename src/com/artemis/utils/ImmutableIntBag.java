@@ -1,5 +1,6 @@
 package com.artemis.utils;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -39,8 +40,7 @@ public abstract class ImmutableIntBag {
 	 * @param capacity of the Bag.
 	 */
 	public ImmutableIntBag(final int capacity) {
-		final int newCap = (capacity > MINIMUM_WORKING_CAPACITY) ? capacity
-				: MINIMUM_WORKING_CAPACITY;
+		final int newCap = (capacity > MINIMUM_WORKING_CAPACITY) ? capacity : MINIMUM_WORKING_CAPACITY;
 		this.data = new int[newCap];
 	}
 
@@ -203,6 +203,15 @@ public abstract class ImmutableIntBag {
 	 */
 	protected boolean isInSize(final int index) {
 		return (index > -1 && index < size);
+	}
+
+	/**
+	 * Creates an array with the elements of this bag.
+	 * 
+	 * @return an array containing the elements of this bag.
+	 */
+	public final int[] toArray() {
+		return Arrays.copyOf(this.data, this.size);
 	}
 
 	private IntStream stream(final boolean parallel) {

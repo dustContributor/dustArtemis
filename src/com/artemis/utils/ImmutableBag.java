@@ -1,8 +1,10 @@
 package com.artemis.utils;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.Consumer;
@@ -350,6 +352,28 @@ public abstract class ImmutableBag<T> implements Iterable<T> {
 		}
 
 		return newSize;
+	}
+
+	/**
+	 * Creates an array with the elements of this bag.
+	 * 
+	 * @return an array containing the elements of this bag.
+	 */
+	public final T[] toArray() {
+		return Arrays.copyOf(this.data, this.size);
+	}
+
+	/**
+	 * Creates a list with the elements of this bag.
+	 * 
+	 * @return a list containing the elements of this bag.
+	 */
+	public final List<T> toList() {
+		var dest = new ArrayList<T>(this.size);
+		for (int i = 0; i < this.size; i++) {
+			dest.add(data[i]);
+		}
+		return dest;
 	}
 
 	/**
