@@ -244,13 +244,6 @@ public final class CompactComponentHandler<T extends Component> extends Componen
 		return item;
 	}
 
-	private final boolean isInBounds(final int index) {
-		// Probably the best check we can make without searching the whole array.
-		return rangesSize > 0
-				&& index >= Range.start(ranges[0])
-				&& index < Range.end(ranges[rangesSize - 1]);
-	}
-
 	private final long[] fixRangeCapacity(final int expected) {
 		return expected < ranges.length ? ranges
 				: (ranges = Arrays.copyOf(ranges, ranges.length << 1));

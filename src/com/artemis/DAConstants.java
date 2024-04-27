@@ -100,19 +100,6 @@ public final class DAConstants {
 	}
 
 	/**
-	 * Returns a boolean fetched and parsed from the properties table, or defaults
-	 * to passed value if there isn't one or the value couldn't be parsed.
-	 */
-	private static final boolean getBoolOrDefault(final Properties props, final String key, final boolean defValue) {
-		try {
-			return Boolean.parseBoolean(props.getProperty(key));
-		} catch (final Exception ex) {
-			// Fail silently.
-		}
-		return defValue;
-	}
-
-	/**
 	 * Loads configuration file for dustArtemis constants, fetching the path from
 	 * the property {@value #CFG_FILE_PROPERTY_NAME}.
 	 */

@@ -56,6 +56,7 @@ public final class EntityFilter {
 	private final Class<? extends Component>[] none;
 	private final Class<? extends Component>[] any;
 
+	@SuppressWarnings("unchecked")
 	EntityFilter(final EntityFilter.Builder b) {
 		this.all = b.all.stream().toArray(Class[]::new);
 		this.none = b.none.stream().toArray(Class[]::new);
