@@ -117,7 +117,7 @@ There is a lot of code in original Artemis that was either refactored into somet
 
 Things such as ComponentMapper annotation, reduntant inner classes, ComponentType, unused utility classes, EntitySystem derivates, etc, were removed.
 
-Reasons for this vary for each case, it was mostly to simplify the API, remove unused code, hopefully replacing implementations of some functions with something more compact or better performant (or sometimes, both!). See ClassIndexer for example, it replaces a few classes original Artemis had.
+Reasons for this vary for each case, it was mostly to simplify the API, remove unused code, hopefully replacing implementations of some functions with something more compact or better performant (or sometimes, both!).
 
 ### As for the rest...
 These are just a few of the most obvious changes, hopefully the sources are documented enough so you can just jump in and see how dustArtemis works.
