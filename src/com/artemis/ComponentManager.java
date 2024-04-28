@@ -29,11 +29,9 @@ public final class ComponentManager {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	ComponentManager(final Iterable<Class<? extends Component>> componentTypes) {
 		// Get array of component types. Essentially a defensive copy.
-		final Class<? extends Component>[] types = StreamSupport
-				.stream(componentTypes.spliterator(), false)
-				.toArray(Class[]::new);
+		var types = StreamSupport.stream(componentTypes.spliterator(), false).toArray(Class[]::new);
 		// Get a sorted hash code array from it.
-		final int[] componentHashCodes = Arrays.stream(types).mapToInt(Object::hashCode).sorted().toArray();
+		var componentHashCodes = Arrays.stream(types).mapToInt(ComponentManager::typeHashCode).sorted().toArray();
 
 		if (hasDuplicates(componentHashCodes)) {
 			/*
@@ -47,20 +45,20 @@ public final class ComponentManager {
 		}
 
 		// Sort the component types by hash code.
-		Arrays.sort(types, (a, b) -> Integer.compare(a.hashCode(), b.hashCode()));
+		Arrays.sort(types, (a, b) -> Integer.compare(typeHashCode(a), typeHashCode(b)));
 		// Fetch the constant.
-		final int wordsPerEntity = computeWordsPerEntity(types.length);
+		int wordsPerEntity = computeWordsPerEntity(types.length);
 
 		// Init bitsets for all entities.
-		final int bitCount = (DAConstants.APPROX_LIVE_ENTITIES * wordsPerEntity) * 64;
-		final OpenBitSet componentBits = new OpenBitSet(bitCount);
+		int bitCount = (DAConstants.APPROX_LIVE_ENTITIES * wordsPerEntity) * 64;
+		var componentBits = new OpenBitSet(bitCount);
 
 		// Reasonable initial capacity.
-		final int handlerCap = Math.max(32, DAConstants.APPROX_LIVE_ENTITIES / 2);
+		int handlerCap = Math.max(32, DAConstants.APPROX_LIVE_ENTITIES / 2);
 
-		final ComponentHandler[] componentHandlers = new ComponentHandler[types.length];
+		var componentHandlers = new ComponentHandler[types.length];
 		// Init all the component handlers.
-		for (int i = componentHandlers.length; i-- > 0;) {
+		for (int i = 0; i < componentHandlers.length; ++i) {
 			componentHandlers[i] = new ArrayComponentHandler(types[i], componentBits, wordsPerEntity, i, handlerCap);
 		}
 
@@ -73,20 +71,18 @@ public final class ComponentManager {
 
 	private static final int computeWordsPerEntity(final int componentTypeCount) {
 		// Enforce a positive minimum so not to screw up the math.
-		final int itmp = Math.max(componentTypeCount, 1);
+		int itmp = Math.max(componentTypeCount, 1);
 		// Now get how many 64 bit words do we need.
 		return ((itmp - 1) / 64) + 1;
 	}
 
 	private static final boolean hasDuplicates(final int[] numbers) {
-		final HashSet<Integer> values = new HashSet<>(numbers.length);
-
+		var values = new HashSet<Integer>(numbers.length);
 		for (final int val : numbers) {
 			if (!values.add(Integer.valueOf(val))) {
 				return true;
 			}
 		}
-
 		return false;
 	}
 
@@ -96,12 +92,12 @@ public final class ComponentManager {
 	 * @return bag passed as 'dest' parameter.
 	 */
 	public final Bag<Component> getComponentsFor(final int id, final Bag<Component> dest) {
-		final ComponentHandler<Component>[] cmpBags = componentHandlers;
-		final MutableBitIterator it = new MutableBitIterator(componentBits());
-		final int start = id * wordsPerEntity;
-		final int end = start + wordsPerEntity;
+		var cmpBags = componentHandlers;
+		var it = new MutableBitIterator(componentBits());
+		int start = id * wordsPerEntity;
+		int end = start + wordsPerEntity;
 		// Implementation detail, bit set uses 64 bit words.
-		final int cmpBitOffset = start * 64;
+		int cmpBitOffset = start * 64;
 		// Start from the entity's bits.
 		it.selectWord(start);
 
@@ -127,8 +123,7 @@ public final class ComponentManager {
 	}
 
 	final void registerEntity(final int eid) {
-		final int index = eid * wordsPerEntity;
-
+		int index = eid * wordsPerEntity;
 		if (index >= componentBits.length()) {
 			componentBits.resizeWords(index + 1);
 		}
@@ -139,8 +134,8 @@ public final class ComponentManager {
 	}
 
 	final void markChanges() {
-		final ComponentHandler<Component>[] handlers = componentHandlers;
-		final int size = handlers.length;
+		var handlers = componentHandlers;
+		int size = handlers.length;
 		for (int i = 0; i < size; ++i) {
 			handlers[i].markChanges();
 		}
@@ -154,25 +149,25 @@ public final class ComponentManager {
 	}
 
 	private final void cleanupHandlers() {
-		final ComponentHandler<Component>[] handlers = componentHandlers;
-		final int size = handlers.length;
+		var handlers = componentHandlers;
+		int size = handlers.length;
 		for (int i = 0; i < size; ++i) {
 			handlers[i].cleanup();
 		}
 	}
 
 	private final void cleanupComponents(final int[] ents, final int size) {
-		final ComponentHandler<Component>[] handlers = componentHandlers;
-		final long[] bits = componentBits();
-		final MutableBitIterator it = new MutableBitIterator(componentBits());
-		final int wordCount = wordsPerEntity;
+		var handlers = componentHandlers;
+		var bits = componentBits();
+		var it = new MutableBitIterator(componentBits());
+		int wordCount = wordsPerEntity;
 
 		for (int i = size; i-- > 0;) {
-			final int eid = ents[i];
-			final int start = eid * wordCount;
-			final int end = start + wordCount;
+			int eid = ents[i];
+			int start = eid * wordCount;
+			int end = start + wordCount;
 			// Implementation detail, bit set uses 64 bit words.
-			final int cmpBitOffset = start * 64;
+			int cmpBitOffset = start * 64;
 			// Now iterate over normal component bits and remove them.
 			it.selectWord(start);
 
@@ -194,7 +189,7 @@ public final class ComponentManager {
 	 * @return index of the component type, or -1 if it wasn't found.
 	 */
 	final int indexFor(final Class<? extends Component> type) {
-		return Arrays.binarySearch(componentHashCodes, type.hashCode());
+		return Arrays.binarySearch(componentHashCodes, typeHashCode(type));
 	}
 
 	/**
@@ -203,5 +198,10 @@ public final class ComponentManager {
 	 */
 	final int wordsPerEntity() {
 		return wordsPerEntity;
+	}
+
+	private static final int typeHashCode(Class<?> c) {
+		// Let the caller handle the nulls
+		return c == null ? 0 : c.getTypeName().hashCode();
 	}
 }
