@@ -6,7 +6,7 @@ An ECS (Entity Component System) framework provides the basics to compose Entiti
 
 dustArtemis is a fork of Artemis that provides additional functionality, bug fixes, better performance and other tweaks compared the original codebase.
 
-**Have in mind that Java 11 (or newer) is required for dustArtemis to work.**
+**Have in mind that Java 17 (or newer) is required for dustArtemis to work.**
 
 ## How different is it?
 dustArtemis, on the outside, keeps working pretty much the same as original Artemis.
