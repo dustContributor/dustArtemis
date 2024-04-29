@@ -43,7 +43,7 @@ public final class DustContext {
 	/** All the steps this instance owns. */
 	private final DustStep[] steps;
 	/** An immutable view of the steps. */
-	private final ImmutableBag<DustStep> immutableObservers;
+	private final ImmutableBag<DustStep> immutableSteps;
 
 	/**
 	 * Tiny internal class to pass parameters to the {@link DustContext}'s
@@ -52,28 +52,16 @@ public final class DustContext {
 	 *
 	 * @author dustContributor
 	 */
-	private static final class WorldParams {
-		final ComponentManager componentManager;
-		final EntityManager entityManager;
-		final DustStep[] steps;
-		final EntityGroup[] entityFilters;
-		final Object data;
-
-		WorldParams(
-				final ComponentManager componentManager,
-				final EntityManager entityManager,
-				final DustStep[] steps,
-				final EntityGroup[] entityFilters,
-				final Object data) {
-			super();
-			this.componentManager = DustException.enforceNonNull(this, componentManager, "componentManager");
-			this.entityManager = DustException.enforceNonNull(this, entityManager, "entityManager");
-			this.steps = DustException.enforceNonNull(this, steps, "steps");
-			this.entityFilters = DustException.enforceNonNull(this, entityFilters, "entityFilters");
+	private static record ContextParams(ComponentManager componentManager, EntityManager entityManager,
+			DustStep[] steps, EntityGroup[] entityFilters,
 			// This one can be null. User-defined.
-			this.data = data;
+			Object data) {
+		ContextParams {
+			DustException.enforceNonNull(this, componentManager, "componentManager");
+			DustException.enforceNonNull(this, entityManager, "entityManager");
+			DustException.enforceNonNull(this, steps, "steps");
+			DustException.enforceNonNull(this, entityFilters, "entityFilters");
 		}
-
 	}
 
 	/**
@@ -82,25 +70,25 @@ public final class DustContext {
 	 *
 	 * @param params to use to initialize the instance, can't be null.
 	 */
-	DustContext(final WorldParams params) {
+	DustContext(final ContextParams params) {
 		DustException.enforceNonNull(this, params, "params");
 
-		componentManager = params.componentManager;
-		entityManager = params.entityManager;
+		componentManager = params.componentManager();
+		entityManager = params.entityManager();
 
 		// We don't validate arbitrary data.
-		data = params.data;
+		data = params.data();
 
 		// Store steps.
-		steps = params.steps;
+		steps = params.steps();
 
 		// Store entity filters.
-		entityGroups = params.entityFilters;
+		entityGroups = params.entityFilters();
 
 		// Create immutable view of the step array.
-		final Bag<DustStep> obag = new Bag<>(steps);
-		obag.setSize(steps.length);
-		immutableObservers = obag;
+		var stepsBag = new Bag<DustStep>(steps);
+		stepsBag.setSize(steps.length);
+		immutableSteps = stepsBag;
 	}
 
 	/**
@@ -150,7 +138,7 @@ public final class DustContext {
 	 * @return all {@link DustStep}s in {@link DustContext}.
 	 */
 	public final ImmutableBag<DustStep> steps() {
-		return immutableObservers;
+		return immutableSteps;
 	}
 
 	/**
@@ -163,10 +151,9 @@ public final class DustContext {
 	@SuppressWarnings("unchecked")
 	public final <T extends DustStep> T step(final Class<T> type) {
 		for (int i = 0; i < steps.length; ++i) {
-			final DustStep obs = steps[i];
-
-			if (obs.getClass() == type) {
-				return (T) obs;
+			var step = steps[i];
+			if (step.getClass() == type) {
+				return (T) step;
 			}
 		}
 		return null;
@@ -181,7 +168,6 @@ public final class DustContext {
 	 */
 	public final void addEntity(final int eid) {
 		final int ei = added.binarySearch(eid);
-
 		if (ei < 0) {
 			added.insert(-ei - 1, eid);
 		}
@@ -208,7 +194,6 @@ public final class DustContext {
 	 */
 	public final void changedEntity(final int eid) {
 		final int ei = changed.binarySearch(eid);
-
 		if (ei < 0) {
 			changed.insert(-ei - 1, eid);
 		}
@@ -234,7 +219,6 @@ public final class DustContext {
 	 */
 	public final void deleteEntity(final int eid) {
 		final int ei = deleted.binarySearch(eid);
-
 		if (ei < 0) {
 			deleted.insert(-ei - 1, eid);
 		}
@@ -260,7 +244,6 @@ public final class DustContext {
 	 */
 	public final void enable(final int eid) {
 		final int ei = enabled.binarySearch(eid);
-
 		if (ei < 0) {
 			enabled.insert(-ei - 1, eid);
 		}
@@ -286,7 +269,6 @@ public final class DustContext {
 	 */
 	public final void disable(final int eid) {
 		final int ei = disabled.binarySearch(eid);
-
 		if (ei < 0) {
 			disabled.insert(-ei - 1, eid);
 		}
@@ -321,7 +303,7 @@ public final class DustContext {
 
 	private final void notifyFilters() {
 		for (int i = 0; i < entityGroups.length; ++i) {
-			final EntityGroup group = entityGroups[i];
+			var group = entityGroups[i];
 			group.clear();
 			group.added(added);
 			group.added(enabled);
@@ -345,25 +327,23 @@ public final class DustContext {
 
 	private final void cleanupSteps() {
 		for (int i = 0; i < steps.length; ++i) {
-			final DustStep obs = steps[i];
-
-			if (obs.isActive()) {
+			var step = steps[i];
+			if (step.isActive()) {
 				/*
 				 * TODO: What if component cleanup or initialization is still needed even if
 				 * step is disabled? This way the step will never know since changes will be
 				 * cleared in the next tick.
 				 */
-				obs.cleanup();
+				step.cleanup();
 			}
 		}
 	}
 
 	private final void runSteps() {
 		for (int i = 0; i < steps.length; ++i) {
-			final DustStep obs = steps[i];
-
-			if (obs.isActive()) {
-				obs.run();
+			var step = steps[i];
+			if (step.isActive()) {
+				step.run();
 			}
 		}
 	}
@@ -440,7 +420,7 @@ public final class DustContext {
 		 */
 		private final HashSet<Class<? extends Component>> componentTypes;
 		/**
-		 * Observers, their filter builders and their priorities/orders, matched by
+		 * Steps, their filter builders and their priorities/orders, matched by
 		 * position.
 		 */
 		private final ArrayList<Function<EntityGroups, DustStep>> steps;
@@ -634,20 +614,20 @@ public final class DustContext {
 			 * Mapping from step to order, we fill it later by passing it to the method that
 			 * creates steps. The usage is a bit messy, maybe it could be refined.
 			 */
-			final IdentityHashMap<DustStep, Integer> orderMap = new IdentityHashMap<>(this.steps.size());
+			var orderMap = new IdentityHashMap<DustStep, Integer>(this.steps.size());
 			// Capture the map and use it for sorter by order later.
 			final Comparator<DustStep> compareByOrder = (a, b) -> orderMap.get(a).compareTo(orderMap.get(b));
 			/*
 			 * Construct component manager, used by context instance and filter creation.
 			 */
-			final ComponentManager cm = new ComponentManager(componentTypes);
+			var cm = new ComponentManager(componentTypes);
 			// Make the filter manager which will initialize all the filter groups.
-			final EntityGroups filterManager = new EntityGroups(cm);
+			var filterManager = new EntityGroups(cm);
 			// Use all the constructors to create the steps.
-			final DustStep[] steps = createObservers(orderMap, filterManager);
+			DustStep[] steps = createSteps(orderMap, filterManager);
 
 			// Compose context parameters and construct it.
-			final DustContext context = new DustContext(composeWorldParams(steps, filterManager, compareByOrder, cm));
+			var context = new DustContext(composeWorldParams(steps, filterManager, compareByOrder, cm));
 			// Set the owner for all steps.
 			for (int s = steps.length; s-- > 0;) {
 				steps[s].context(context);
@@ -658,18 +638,15 @@ public final class DustContext {
 			return context;
 		}
 
-		private final DustStep[] createObservers(
-				final IdentityHashMap<DustStep, Integer> stepToOrder,
+		private final DustStep[] createSteps(final IdentityHashMap<DustStep, Integer> stepToOrder,
 				final EntityGroups groups) {
-			final int size = steps.size();
-
-			final DustStep[] result = new DustStep[size];
-
+			int size = steps.size();
+			var result = new DustStep[size];
 			for (int i = 0; i < size; ++i) {
 				// Fetch the step constructor.
-				final Function<EntityGroups, DustStep> ctor = steps.get(i);
+				Function<EntityGroups, DustStep> ctor = steps.get(i);
 				// Fetch the priority/order.
-				final int order = orders.getUnsafe(i);
+				int order = orders.getUnsafe(i);
 				/*
 				 * If its the dummy builder, just use the empty filter, otherwise build the new
 				 * filter to use.
@@ -683,47 +660,42 @@ public final class DustContext {
 			return result;
 		}
 
-		private final WorldParams composeWorldParams(
-				final DustStep[] steps,
-				final EntityGroups filterManager,
-				final Comparator<DustStep> comparator,
-				final ComponentManager cm) {
+		private final ContextParams composeWorldParams(final DustStep[] steps, final EntityGroups filterManager,
+				final Comparator<DustStep> comparator, final ComponentManager cm) {
 			// Make a defensive copy.
-			final DustStep[] processObservers = steps.clone();
+			var processSteps = steps.clone();
 
 			if (processByOrder) {
 				// Sort if there was an order specified.
-				Arrays.sort(processObservers, comparator);
+				Arrays.sort(processSteps, comparator);
 			}
 
 			// Construct entity manager, used by the context instance.
-			final EntityManager em = new EntityManager();
+			var em = new EntityManager();
 
 			/*
-			 * World will respect the order in which processObservers is for calli@ng
-			 * 'process' on each of them.
+			 * World will respect the order in which processSteps is for calli@ng 'process'
+			 * on each of them.
 			 */
-			return new WorldParams(cm, em, processObservers, filterManager.groups(), data);
+			return new ContextParams(cm, em, processSteps, filterManager.groups(), data);
 		}
 
-		private final void stepInitialization(
-				final DustStep[] steps,
-				final Comparator<DustStep> comparator,
+		private final void stepInitialization(final DustStep[] steps, final Comparator<DustStep> comparator,
 				final DustContext context) {
 			// Make a defensive copy.
-			final DustStep[] initializeObservers = steps.clone();
+			var initializeSteps = steps.clone();
 
 			if (initializeByOrder) {
 				// Sort if there was an order specified.
-				Arrays.sort(initializeObservers, comparator);
+				Arrays.sort(initializeSteps, comparator);
 			}
 
 			// First step is to inject the steps.
-			Injector.init(context, initializeObservers);
+			Injector.init(context, initializeSteps);
 
 			// Second step is to call 'init' on them.
-			for (int i = 0; i < initializeObservers.length; ++i) {
-				initializeObservers[i].init();
+			for (int i = 0; i < initializeSteps.length; ++i) {
+				initializeSteps[i].init();
 			}
 		}
 	}
