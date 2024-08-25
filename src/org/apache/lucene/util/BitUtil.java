@@ -137,15 +137,15 @@ public final class BitUtil {
 
 	/**
 	 * Return the list of bits which are set in b encoded as followed: <code>(i
-	 * >>> (4 * n)) & 0x0F</code> is the offset of the n-th set bit of the given
+	 * >>> (4 * n)) &amp; 0x0F</code> is the offset of the n-th set bit of the given
 	 * byte plus one, or 0 if there are n or less bits set in the given byte. For
 	 * example <code>bitList(12)</code> returns 0x43:
 	 * <ul>
-	 * <li><code>0x43 &
+	 * <li><code>0x43 &amp;
 	 * 0x0F</code> is 3, meaning the the first bit set is at offset 3-1 = 2,</li>
-	 * <li><code>(0x43 >>> 4) & 0x0F</code> is 4, meaning there is a second bit set
+	 * <li><code>(0x43 >>> 4) &amp; 0x0F</code> is 4, meaning there is a second bit set
 	 * at offset 4-1=3,</li>
-	 * <li><code>(0x43 >>> 8) & 0x0F</code> is 0, meaning there is no more bit set
+	 * <li><code>(0x43 >>> 8) &amp; 0x0F</code> is 0, meaning there is no more bit set
 	 * in this byte.</li>
 	 * </ul>
 	 */
@@ -195,7 +195,7 @@ public final class BitUtil {
 	}
 
 	/**
-	 * Returns the popcount or cardinality of A & ~B. Neither array is modified.
+	 * Returns the popcount or cardinality of A &amp; ~B. Neither array is modified.
 	 */
 	public static final int pop_andnot(final long[] arr1, final long[] arr2, final int wordOffset, final int numWords) {
 		int popCount = 0;

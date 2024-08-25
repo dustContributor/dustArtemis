@@ -35,6 +35,7 @@ import java.util.function.IntConsumer;
  * An "open" BitSet implementation that allows direct access to the array of
  * words storing the bits.
  * </p>
+ * <p>
  * Unlike java.util.bitset, the fact that bits are packed into an array of longs
  * is part of the interface. This allows efficient implementation of other
  * algorithms by someone other than the author. It also allows one to
@@ -113,8 +114,8 @@ public final class OpenBitSet implements Cloneable {
 	 * word.
 	 * <p>
 	 * numWords are the number of elements in the array that contain set bits
-	 * (non-zero longs). numWords should be &lt= bits.length, and any existing words
-	 * in the array at position &gt= numWords should be zero.
+	 * (non-zero longs). numWords should be &lt;= bits.length, and any existing words
+	 * in the array at position &gt;= numWords should be zero.
 	 *
 	 */
 	public OpenBitSet(final long[] bits, final int numWords) {

@@ -33,7 +33,6 @@ import java.util.function.Supplier;
  * capacity*1.5 when the size is more or equal than
  * {@link ImmutableBag#GROW_RATE_THRESHOLD}
  * </p>
- * </p>
  *
  * @author Arni Arent
  * @author dustContributor

@@ -21,7 +21,7 @@ public abstract class ImmutableIntBag {
 
 	/**
 	 * Constructs an empty Bag with an initial capacity of
-	 * {@value #DEFAULT_CAPACITY}.
+	 * {@link #DEFAULT_CAPACITY}.
 	 * 
 	 */
 	public ImmutableIntBag() {

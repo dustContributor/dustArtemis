@@ -6,7 +6,7 @@ import java.util.function.IntPredicate;
 public class IntBag extends ImmutableIntBag {
 	/**
 	 * Constructs an empty {@link IntBag} with an initial capacity of
-	 * {@value #DEFAULT_CAPACITY}.
+	 * {@link #DEFAULT_CAPACITY}.
 	 *
 	 */
 	public IntBag() {

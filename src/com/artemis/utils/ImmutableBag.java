@@ -28,7 +28,7 @@ public abstract class ImmutableBag<T> implements Iterable<T> {
 
 	/**
 	 * Constructs an empty Bag with an initial capacity of
-	 * {@value #DEFAULT_CAPACITY}. The backing array type will be Object.
+	 * {@link #DEFAULT_CAPACITY}. The backing array type will be Object.
 	 * 
 	 */
 	public ImmutableBag() {
@@ -53,7 +53,7 @@ public abstract class ImmutableBag<T> implements Iterable<T> {
 
 	/**
 	 * Constructs an empty Bag with an initial capacity of
-	 * {@value #DEFAULT_CAPACITY}. Uses Array.newInstance() to instantiate a backing
+	 * {@link #DEFAULT_CAPACITY}. Uses Array.newInstance() to instantiate a backing
 	 * array of the proper type.
 	 * 
 	 * @param type of the backing array.
