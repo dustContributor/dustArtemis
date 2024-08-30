@@ -16,12 +16,15 @@ public final class IdAllocator {
 	private int[] freeRanges;
 	private int freeRangesSize;
 
+	private final int rangeStart;
+	private final int rangeEnd;
+
 	/**
 	 * Creates an IdAllocator that will manage IDs in the interval [0,
 	 * Integer.MAX_VALUE ).
 	 */
 	public IdAllocator() {
-		this(0, MAX_VALUE);
+		this(1, MAX_VALUE);
 	}
 
 	/**
@@ -34,6 +37,14 @@ public final class IdAllocator {
 	 *                   Exclusive.
 	 */
 	public IdAllocator(final int rangeStart, final int rangeEnd) {
+		if (rangeEnd < rangeStart) {
+			throw new IllegalArgumentException("end can't be smaller than start!");
+		}
+		if (rangeEnd == rangeStart) {
+			throw new IllegalArgumentException("end can't be equal to start!");
+		}
+		this.rangeStart = rangeStart;
+		this.rangeEnd = rangeEnd;
 		this.freeRanges = new int[256];
 		this.freeRanges[0] = rangeStart;
 		this.freeRanges[1] = rangeEnd;
@@ -71,6 +82,9 @@ public final class IdAllocator {
 	 * @param id to be freed.
 	 */
 	public final void free(final int id) {
+		if (id < rangeStart || id >= rangeEnd) {
+			throw new IllegalArgumentException("id '" + id + "'' is out of range!");
+		}
 		/*
 		 * We're going to assume you're not freeing an ID thats outside of this
 		 * IdAllocator's initial range.
@@ -153,29 +167,23 @@ public final class IdAllocator {
 
 	@Override
 	public final String toString() {
-		final StringBuilder sb = new StringBuilder(512);
-		sb.append("ID ALLOCATOR: ");
-		sb.append(super.toString());
-		sb.append(System.lineSeparator());
-		sb.append("BACKING ARRAY SIZE: ");
-		sb.append(freeRanges.length);
-		sb.append(System.lineSeparator());
-		sb.append(" - FREE RANGES LIST - ");
-
-		final int frSize = freeRangesSize;
-		final int[] fRanges = freeRanges;
-
-		for (int i = 0; i < frSize; i += 2) {
-			sb.append(System.lineSeparator());
-			sb.append("RANGE: ");
-			sb.append(i / 2);
-			sb.append(" - START: ");
-			sb.append(fRanges[i]);
-			sb.append(" - END: ");
-			sb.append(fRanges[i + 1]);
+		var sep = System.lineSeparator();
+		var sb = new StringBuilder(512)
+				.append("{%s".formatted(sep))
+				.append("  \"identity\": \"%s\",%s".formatted(super.toString(), sep))
+				.append("  \"backingArraySize\": %d,%s".formatted(freeRanges.length, sep))
+				.append("  \"freeRangesSize\": %d,%s".formatted(freeRangesSize, sep))
+				.append("  \"freeRanges\": [");
+		for (int i = 0; i < freeRangesSize; i += 2) {
+			if (i > 0) {
+				sb.append(',');
+			}
+			var st = freeRanges[i];
+			var en = freeRanges[i + 1];
+			sb.append("%s    { \"start\": %d, \"end\": %d, \"size\": %d }"
+					.formatted(sep, st, en, en - st));
 		}
-
-		return sb.toString();
+		return sb.append("%s  ]%s}".formatted(sep, sep)).toString();
 	}
 
 }
