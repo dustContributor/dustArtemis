@@ -20,8 +20,8 @@ public final class IdAllocator {
 	private final int rangeEnd;
 
 	/**
-	 * Creates an IdAllocator that will manage IDs in the interval [0,
-	 * Integer.MAX_VALUE ).
+	 * Creates an IdAllocator that will manage IDs in the interval [1,
+	 * Integer.MAX_VALUE)
 	 */
 	public IdAllocator() {
 		this(1, MAX_VALUE);
