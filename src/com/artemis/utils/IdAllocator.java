@@ -60,10 +60,9 @@ public final class IdAllocator {
 		var fRanges = freeRanges;
 		// Free range's start will be new ID.
 		int id = fRanges[0]++;
-
 		// If free range's end was reached, remove it from the list.
 		if (fRanges[0] >= fRanges[1]) {
-			final int newSize = freeRangesSize - 2;
+			int newSize = freeRangesSize - 2;
 			// Shift left overwriting range.
 			System.arraycopy(fRanges, 2, fRanges, 0, newSize);
 			freeRangesSize = newSize;
@@ -132,7 +131,7 @@ public final class IdAllocator {
 		// Set new size.
 		freeRangesSize = newSize;
 		// Fetch possibly reallocated array.
-		final int[] nfRanges = freeRanges;
+		var nfRanges = freeRanges;
 		// Shift to the right.
 		System.arraycopy(nfRanges, i, nfRanges, i + 2, newSize - i);
 		// Store free range.
@@ -140,7 +139,7 @@ public final class IdAllocator {
 		nfRanges[i + 1] = id + 1;
 	}
 
-	private static final int searchRangeIndex(int[] data, int size, int value) {
+	private static int searchRangeIndex(int[] data, int size, int value) {
 		// Range index.
 		int rangei = 0;
 		while (rangei < size) {
