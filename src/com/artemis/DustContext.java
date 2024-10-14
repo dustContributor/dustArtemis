@@ -1,10 +1,6 @@
 package com.artemis;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -167,6 +163,9 @@ public final class DustContext {
 	 * @param eid entity id.
 	 */
 	public final void addEntity(final int eid) {
+		if (eid < EntityManager.MIN_ENTITY_ID) {
+			throw new IllegalArgumentException("Entity id %s is out of range!".formatted(eid));
+		}
 		final int ei = added.binarySearch(eid);
 		if (ei < 0) {
 			added.insert(-ei - 1, eid);
@@ -193,6 +192,9 @@ public final class DustContext {
 	 * @param eid entity id.
 	 */
 	public final void changedEntity(final int eid) {
+		if (eid < EntityManager.MIN_ENTITY_ID) {
+			throw new IllegalArgumentException("Entity id %s is out of range!".formatted(eid));
+		}
 		final int ei = changed.binarySearch(eid);
 		if (ei < 0) {
 			changed.insert(-ei - 1, eid);
@@ -218,6 +220,9 @@ public final class DustContext {
 	 * @param eid entity id.
 	 */
 	public final void deleteEntity(final int eid) {
+		if (eid < EntityManager.MIN_ENTITY_ID) {
+			throw new IllegalArgumentException("Entity id %s is out of range!".formatted(eid));
+		}
 		final int ei = deleted.binarySearch(eid);
 		if (ei < 0) {
 			deleted.insert(-ei - 1, eid);

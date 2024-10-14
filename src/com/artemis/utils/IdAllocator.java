@@ -1,7 +1,5 @@
 package com.artemis.utils;
 
-import static java.lang.Integer.MAX_VALUE;
-
 import java.util.Arrays;
 
 /**
@@ -17,14 +15,6 @@ public final class IdAllocator {
 	/** List of ranges of free ID numbers. */
 	private int[] freeRanges;
 	private int freeRangesSize;
-
-	/**
-	 * Creates an IdAllocator that will manage IDs in the interval [1,
-	 * Integer.MAX_VALUE)
-	 */
-	public IdAllocator() {
-		this(1, MAX_VALUE);
-	}
 
 	/**
 	 * Creates an IdAllocator that will manage IDs in the range of the provided

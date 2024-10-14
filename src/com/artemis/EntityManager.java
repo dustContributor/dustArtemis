@@ -11,6 +11,8 @@ import com.artemis.utils.IntBag;
  * @author dustContributor
  */
 public final class EntityManager {
+	public static final int MIN_ENTITY_ID = 1;
+
 	/* Various counters of entity state in this manager. */
 	private long activeCount;
 	private long addedCount;
@@ -31,7 +33,7 @@ public final class EntityManager {
 
 		this.entities = new OpenBitSet(eSize);
 		this.disabled = new OpenBitSet(eSize);
-		this.idStore = new IdAllocator();
+		this.idStore = new IdAllocator(MIN_ENTITY_ID, Integer.MAX_VALUE);
 	}
 
 	final int createEntityInstance() {
