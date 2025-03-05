@@ -1,6 +1,7 @@
 package com.artemis;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 
 import org.apache.lucene.util.BitUtil;
@@ -57,29 +58,30 @@ public final class EntityFilter {
 	private final Class<? extends Component>[] any;
 
 	@SuppressWarnings("unchecked")
-	EntityFilter(final EntityFilter.Builder b) {
-		this.all = b.all.stream().toArray(Class[]::new);
-		this.none = b.none.stream().toArray(Class[]::new);
-		this.any = b.any.stream().toArray(Class[]::new);
-		this.hashCode = hashCode(this.all, this.any, this.none);
+	EntityFilter(EntityFilter.Builder builder) {
+		/*
+		 * Sort all of these by some criteria to make hash code generation and
+		 * comparisons more stable
+		 */
+		var cmp = Comparator.<Class<?>, String>comparing(Class::getName);
+		this.all = builder.all.stream().sorted(cmp).toArray(Class[]::new);
+		this.none = builder.none.stream().sorted(cmp).toArray(Class[]::new);
+		this.any = builder.any.stream().sorted(cmp).toArray(Class[]::new);
+		this.hashCode = hashCode(this.all, this.none, this.any);
 	}
 
 	@Override
-	public final boolean equals(final Object obj) {
+	public final boolean equals(Object obj) {
 		if (obj == this) {
 			return true;
 		}
-
-		if (!(obj instanceof EntityFilter)) {
-			return false;
+		if (obj instanceof EntityFilter a) {
+			return hashCode == a.hashCode
+					&& Arrays.equals(all, a.all)
+					&& Arrays.equals(none, a.none)
+					&& Arrays.equals(any, a.any);
 		}
-
-		final EntityFilter a = (EntityFilter) obj;
-
-		return hashCode == a.hashCode
-				&& Arrays.equals(all, a.all)
-				&& Arrays.equals(none, a.none)
-				&& Arrays.equals(any, a.any);
+		return false;
 	}
 
 	@Override
@@ -98,7 +100,7 @@ public final class EntityFilter {
 	 * @return new Builder instance.
 	 */
 	@SafeVarargs
-	public static final Builder all(final Class<? extends Component>... types) {
+	public static Builder all(Class<? extends Component>... types) {
 		return builder().all(types);
 	}
 
@@ -113,7 +115,7 @@ public final class EntityFilter {
 	 * @return new {@link Builder} instance.
 	 */
 	@SafeVarargs
-	public static final Builder none(final Class<? extends Component>... types) {
+	public static Builder none(Class<? extends Component>... types) {
 		return builder().none(types);
 	}
 
@@ -128,7 +130,7 @@ public final class EntityFilter {
 	 * @return new {@link Builder} instance.
 	 */
 	@SafeVarargs
-	public static final Builder any(final Class<? extends Component>... types) {
+	public static Builder any(Class<? extends Component>... types) {
 		return builder().any(types);
 	}
 
@@ -138,19 +140,19 @@ public final class EntityFilter {
 	 *
 	 * @return new {@link EntityFilter} instance.
 	 */
-	public static final EntityFilter.Builder builder() {
+	public static EntityFilter.Builder builder() {
 		return new EntityFilter.Builder();
 	}
 
-	final long[] allBits(final ComponentManager cm) {
+	final long[] allBits(ComponentManager cm) {
 		return composeBitSet(cm, this.all);
 	}
 
-	final long[] noneBits(final ComponentManager cm) {
+	final long[] noneBits(ComponentManager cm) {
 		return composeBitSet(cm, this.none);
 	}
 
-	final long[] anyBits(final ComponentManager cm) {
+	final long[] anyBits(ComponentManager cm) {
 		return composeBitSet(cm, this.any);
 	}
 
@@ -160,24 +162,18 @@ public final class EntityFilter {
 				&& this.any.length < 1;
 	}
 
-	private static final long[] composeBitSet(
-			final ComponentManager cm,
-			final Class<? extends Component>[] types) {
-		final long[] dest = new long[cm.wordsPerEntity()];
-
-		for (final Class<? extends Component> type : types) {
-			final int componentIndex = cm.indexFor(type);
-
+	private static long[] composeBitSet(ComponentManager cm, Class<? extends Component>[] types) {
+		var dest = new long[cm.wordsPerEntity()];
+		for (var type : types) {
+			int componentIndex = cm.indexFor(type);
 			if (componentIndex < 0) {
-				final String msg = "Missing index for component of type: " + System.lineSeparator()
-						+ type.toString() + System.lineSeparator()
-						+ "Types need to be present in the world builder for EntityFilters to use them!";
-				throw new DustException(EntityFilter.class, msg);
+				throw new DustException(EntityFilter.class,
+						"Missing index for component of type '%s'!"
+								+ "Types need to be present in the world builder "
+								+ "for filters to use them!");
 			}
-
 			BitUtil.set(dest, componentIndex);
 		}
-
 		return dest;
 	}
 
@@ -185,18 +181,18 @@ public final class EntityFilter {
 	 * We don't use wordCount here since it ought to be equal in all instances.
 	 */
 	@SafeVarargs
-	private static final <T> int hashCode(final T[]... typeSets) {
+	private static <T> int hashCode(T[]... typeSets) {
 		final int mul = 31;
 		int hash = 1;
 
 		for (int i = 0; i < typeSets.length; ++i) {
-			final T[] types = typeSets[i];
+			var types = typeSets[i];
 			/*
 			 * Avoids collisions for sets with the same component types but different kinds
-			 * (ie, all/any/none).
+			 * (ie, all/none/any).
 			 */
 			hash = mul * hash + i;
-			for (final T type : types) {
+			for (var type : types) {
 				hash = mul * hash + type.hashCode();
 			}
 		}
@@ -229,7 +225,7 @@ public final class EntityFilter {
 		 * @return this {@link Builder} instance.
 		 */
 		@SafeVarargs
-		public final Builder all(final Class<? extends Component>... types) {
+		public final Builder all(Class<? extends Component>... types) {
 			addAll(all, types);
 			return this;
 		}
@@ -243,7 +239,7 @@ public final class EntityFilter {
 		 * @return this {@link Builder} instance.
 		 */
 		@SafeVarargs
-		public final Builder none(final Class<? extends Component>... types) {
+		public final Builder none(Class<? extends Component>... types) {
 			addAll(none, types);
 			return this;
 		}
@@ -256,7 +252,7 @@ public final class EntityFilter {
 		 * @return this {@link Builder} instance.
 		 */
 		@SafeVarargs
-		public final Builder any(final Class<? extends Component>... types) {
+		public final Builder any(Class<? extends Component>... types) {
 			addAll(any, types);
 			return this;
 		}
@@ -271,8 +267,8 @@ public final class EntityFilter {
 			return new EntityFilter(this);
 		}
 
-		private final <T> void addAll(final HashSet<T> dest, final T[] items) {
-			for (final T item : DustException.enforceNonNull(this, items, "items")) {
+		private final <T> void addAll(HashSet<T> dest, T[] items) {
+			for (var item : DustException.enforceNonNull(this, items, "items")) {
 				dest.add(DustException.enforceNonNull(this, item, "item"));
 			}
 		}
