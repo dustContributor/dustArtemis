@@ -1,7 +1,6 @@
 package com.artemis;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.stream.StreamSupport;
 
 import org.apache.lucene.util.BitUtil;
@@ -33,7 +32,7 @@ public final class ComponentManager {
 		// Get a sorted hash code array from it.
 		var componentHashCodes = Arrays.stream(types).mapToInt(ComponentManager::typeHashCode).sorted().toArray();
 
-		if (hasDuplicates(componentHashCodes)) {
+		if (Arrays.stream(componentHashCodes).distinct().count() != componentHashCodes.length) {
 			/*
 			 * There is really no recovery from this, if the JVM returns the same hashCode
 			 * for two different Class objects, we're screwed.
@@ -74,16 +73,6 @@ public final class ComponentManager {
 		int itmp = Math.max(componentTypeCount, 1);
 		// Now get how many 64 bit words do we need.
 		return ((itmp - 1) / 64) + 1;
-	}
-
-	private static final boolean hasDuplicates(final int[] numbers) {
-		var values = new HashSet<Integer>(numbers.length);
-		for (final int val : numbers) {
-			if (!values.add(Integer.valueOf(val))) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	/**
