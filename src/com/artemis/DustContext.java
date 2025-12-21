@@ -4,8 +4,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import com.artemis.utils.Bag;
-import com.artemis.utils.ImmutableBag;
 import com.artemis.utils.IntBag;
 
 /**
@@ -39,7 +37,7 @@ public final class DustContext {
 	/** All the steps this instance owns. */
 	private final DustStep[] steps;
 	/** An immutable view of the steps. */
-	private final ImmutableBag<DustStep> immutableSteps;
+	private final List<DustStep> immutableSteps;
 
 	/**
 	 * Tiny internal class to pass parameters to the {@link DustContext}'s
@@ -48,8 +46,11 @@ public final class DustContext {
 	 *
 	 * @author dustContributor
 	 */
-	private static record ContextParams(ComponentManager componentManager, EntityManager entityManager,
-			DustStep[] steps, EntityGroup[] entityFilters,
+	private static record ContextParams(
+			ComponentManager componentManager,
+			EntityManager entityManager,
+			DustStep[] steps,
+			EntityGroup[] entityFilters,
 			// This one can be null. User-defined.
 			Object data) {
 		ContextParams {
@@ -82,9 +83,7 @@ public final class DustContext {
 		entityGroups = params.entityFilters();
 
 		// Create immutable view of the step array.
-		var stepsBag = new Bag<DustStep>(steps);
-		stepsBag.setSize(steps.length);
-		immutableSteps = stepsBag;
+		immutableSteps = Arrays.asList(steps);
 	}
 
 	/**
@@ -133,7 +132,7 @@ public final class DustContext {
 	 *
 	 * @return all {@link DustStep}s in {@link DustContext}.
 	 */
-	public final ImmutableBag<DustStep> steps() {
+	public final List<DustStep> steps() {
 		return immutableSteps;
 	}
 
@@ -146,9 +145,8 @@ public final class DustContext {
 	 */
 	@SuppressWarnings("unchecked")
 	public final <T extends DustStep> T step(final Class<T> type) {
-		for (int i = 0; i < steps.length; ++i) {
-			var step = steps[i];
-			if (step.getClass() == type) {
+		for (var step : steps) {
+			if (Objects.equals(step.getClass(), type)) {
 				return (T) step;
 			}
 		}
@@ -307,8 +305,7 @@ public final class DustContext {
 	}
 
 	private final void notifyFilters() {
-		for (int i = 0; i < entityGroups.length; ++i) {
-			var group = entityGroups[i];
+		for (var group : entityGroups) {
 			group.clear();
 			group.added(added);
 			group.added(enabled);
@@ -331,8 +328,7 @@ public final class DustContext {
 	}
 
 	private final void cleanupSteps() {
-		for (int i = 0; i < steps.length; ++i) {
-			var step = steps[i];
+		for (var step : steps) {
 			if (step.isActive()) {
 				/*
 				 * TODO: What if component cleanup or initialization is still needed even if
@@ -345,8 +341,7 @@ public final class DustContext {
 	}
 
 	private final void runSteps() {
-		for (int i = 0; i < steps.length; ++i) {
-			var step = steps[i];
+		for (var step : steps) {
 			if (step.isActive()) {
 				step.run();
 			}
@@ -447,8 +442,8 @@ public final class DustContext {
 			this.initializeByOrder = false;
 			this.processByOrder = false;
 			this.componentTypes = new HashSet<>();
-			this.steps = new ArrayList<>(16);
-			this.orders = new IntBag(16);
+			this.steps = new ArrayList<>(64);
+			this.orders = new IntBag(64);
 		}
 
 		/**
@@ -589,7 +584,7 @@ public final class DustContext {
 		 */
 		@SafeVarargs
 		public final Builder componentTypes(final Class<? extends Component>... types) {
-			for (final Class<? extends Component> type : types) {
+			for (var type : types) {
 				componentType(type);
 			}
 			return this;
@@ -602,7 +597,7 @@ public final class DustContext {
 		 * @return this {@link Builder} instance.
 		 */
 		public final Builder componentTypes(final Iterable<Class<? extends Component>> types) {
-			for (final Class<? extends Component> type : types) {
+			for (var type : types) {
 				componentType(type);
 			}
 			return this;
@@ -621,7 +616,7 @@ public final class DustContext {
 			 */
 			var orderMap = new IdentityHashMap<DustStep, Integer>(this.steps.size());
 			// Capture the map and use it for sorter by order later.
-			final Comparator<DustStep> compareByOrder = (a, b) -> orderMap.get(a).compareTo(orderMap.get(b));
+			Comparator<DustStep> compareByOrder = (a, b) -> orderMap.get(a).compareTo(orderMap.get(b));
 			/*
 			 * Construct component manager, used by context instance and filter creation.
 			 */
@@ -643,7 +638,8 @@ public final class DustContext {
 			return context;
 		}
 
-		private final DustStep[] createSteps(final IdentityHashMap<DustStep, Integer> stepToOrder,
+		private final DustStep[] createSteps(
+				final IdentityHashMap<DustStep, Integer> stepToOrder,
 				final EntityGroups groups) {
 			int size = steps.size();
 			var result = new DustStep[size];
@@ -665,8 +661,11 @@ public final class DustContext {
 			return result;
 		}
 
-		private final ContextParams composeWorldParams(final DustStep[] steps, final EntityGroups filterManager,
-				final Comparator<DustStep> comparator, final ComponentManager cm) {
+		private final ContextParams composeWorldParams(
+				final DustStep[] steps,
+				final EntityGroups filterManager,
+				final Comparator<DustStep> comparator,
+				final ComponentManager cm) {
 			// Make a defensive copy.
 			var processSteps = steps.clone();
 
@@ -685,7 +684,9 @@ public final class DustContext {
 			return new ContextParams(cm, em, processSteps, filterManager.groups(), data);
 		}
 
-		private final void stepInitialization(final DustStep[] steps, final Comparator<DustStep> comparator,
+		private final void stepInitialization(
+				final DustStep[] steps,
+				final Comparator<DustStep> comparator,
 				final DustContext context) {
 			// Make a defensive copy.
 			var initializeSteps = steps.clone();
@@ -699,8 +700,8 @@ public final class DustContext {
 			Injector.init(context, initializeSteps);
 
 			// Second step is to call 'init' on them.
-			for (int i = 0; i < initializeSteps.length; ++i) {
-				initializeSteps[i].init();
+			for (var initializeStep : initializeSteps) {
+				initializeStep.init();
 			}
 		}
 	}
